@@ -1,6 +1,7 @@
 /* English */
 "app_name" = "Picsew-WT";
 "video_capture" = "Video Capture";
+"image_stitch" = "Image Stitch";
 "import_video" = "Import Video";
 "auto_stitch" = "Auto Stitch";
 "manual_stitch" = "Manual Stitch";

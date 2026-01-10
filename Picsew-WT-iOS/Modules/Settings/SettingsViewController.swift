@@ -1,127 +1,132 @@
 import UIKit
 
-class SettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class SettingsViewController: UIViewController {
     
-    private let settingsViewModel = SettingsViewModel()
+    // MARK: - UI 组件
+    private let titleLabel = UILabel()
+    private let settingsTableView = UITableView()
     
-    private lazy var tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsCell")
-        return tableView
-    }()
+    // MARK: - 数据
+    private let settingsItems = [
+        (title: NSLocalizedString("export_settings", comment: "导出设置"), subtitle: "调整导出图片的质量和格式", icon: "square.and.arrow.up", viewController: ExportSettingsViewController()),
+        (title: NSLocalizedString("scroll_settings", comment: "滚动设置"), subtitle: "调整自动滚动的速度和灵敏度", icon: "arrow.down.to.line", viewController: ScrollSettingsViewController()),
+        (title: NSLocalizedString("tutorial", comment: "教程"), subtitle: "查看如何使用应用的详细教程", icon: "book", viewController: TutorialViewController()),
+        (title: "关于", subtitle: NSLocalizedString("version", comment: "版本") + " 1.0.0", icon: "info.circle", viewController: nil)
+    ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemGray6
         setupUI()
+        setupConstraints()
+        setupTableView()
     }
     
+    // MARK: - UI 设置
     private func setupUI() {
-        view.backgroundColor = .white
-        title = "Settings"
+        // 设置标题
+        titleLabel.text = NSLocalizedString("settings", comment: "设置")
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(titleLabel)
         
-        view.addSubview(tableView)
-        
+        // 设置表格视图
+        settingsTableView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(settingsTableView)
+    }
+    
+    private func setupTableView() {
+        settingsTableView.dataSource = self
+        settingsTableView.delegate = self
+        settingsTableView.backgroundColor = .systemGray6
+        settingsTableView.separatorStyle = .none
+        settingsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsCell")
+    }
+    
+    // MARK: - 约束设置
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            // 标题
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            // 表格视图
+            settingsTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            settingsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            settingsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            settingsTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
-    // MARK: - UITableViewDataSource
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return settingsViewModel.sections.count
+    // MARK: - 导航方法
+    private func navigateToViewController(_ viewController: UIViewController) {
+        navigationController?.pushViewController(viewController, animated: true)
     }
-    
+}
+
+// MARK: - UITableViewDataSource
+
+extension SettingsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return settingsViewModel.sections[section].rows.count
-    }
-    
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return settingsViewModel.sections[section].title
+        return settingsItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
-        let row = settingsViewModel.sections[indexPath.section].rows[indexPath.row]
+        let settingsItem = settingsItems[indexPath.row]
         
-        cell.textLabel?.text = row.title
+        // 配置单元格
+        var content = cell.defaultContentConfiguration()
+        content.text = settingsItem.title
+        content.secondaryText = settingsItem.subtitle
+        content.image = UIImage(systemName: settingsItem.icon)
+        content.imageProperties.tintColor = .systemBlue
+        content.textProperties.font = UIFont.systemFont(ofSize: 16)
+        content.secondaryTextProperties.font = UIFont.systemFont(ofSize: 14)
+        content.secondaryTextProperties.color = .secondaryLabel
+        cell.contentConfiguration = content
+        
+        // 添加右侧箭头
         cell.accessoryType = .disclosureIndicator
+        cell.backgroundColor = .systemGray6
         
         return cell
     }
-    
-    // MARK: - UITableViewDelegate
-    
+}
+
+// MARK: - UITableViewDelegate
+
+extension SettingsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let row = settingsViewModel.sections[indexPath.section].rows[indexPath.row]
-        handleRowSelection(row)
-    }
-    
-    private func handleRowSelection(_ row: SettingsRow) {
-        switch row.type {
-        case .exportSettings:
-            showExportSettings()
-        case .scrollSettings:
-            showScrollSettings()
-        case .tutorial:
-            showTutorial()
-        case .version:
-            showVersion()
-        case .contactUs:
-            showContactUs()
-        case .rateApp:
-            rateApp()
-        case .shareApp:
-            shareApp()
+        let settingsItem = settingsItems[indexPath.row]
+        if let viewController = settingsItem.viewController {
+            navigateToViewController(viewController)
+        } else {
+            // 处理关于按钮点击
+            showAboutAlert()
         }
     }
     
-    private func showExportSettings() {
-        let exportSettingsVC = ExportSettingsViewController()
-        navigationController?.pushViewController(exportSettingsVC, animated: true)
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
-    private func showScrollSettings() {
-        let scrollSettingsVC = ScrollSettingsViewController()
-        navigationController?.pushViewController(scrollSettingsVC, animated: true)
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return nil
     }
     
-    private func showTutorial() {
-        let tutorialVC = TutorialViewController()
-        navigationController?.pushViewController(tutorialVC, animated: true)
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 0
     }
     
-    private func showVersion() {
-        let alert = UIAlertController(title: "Version", message: "Picsew-WT v1.0", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-    
-    private func showContactUs() {
-        if let url = URL(string: "mailto:contact@picsew-wt.com") {
-            UIApplication.shared.open(url)
-        }
-    }
-    
-    private func rateApp() {
-        if let url = URL(string: "https://apps.apple.com/app/id1234567890") {
-            UIApplication.shared.open(url)
-        }
-    }
-    
-    private func shareApp() {
-        let text = "Check out Picsew-WT, the best long screenshot app!"
-        let url = URL(string: "https://apps.apple.com/app/id1234567890")!
-        
-        let activityViewController = UIActivityViewController(activityItems: [text, url], applicationActivities: nil)
-        present(activityViewController, animated: true)
+    // MARK: - 关于弹窗
+    private func showAboutAlert() {
+        let alertController = UIAlertController(title: "关于 Picsew-WT", message: "版本 1.0.0\n\nPicsew-WT 是一款功能强大的长截图和图片拼接工具，支持视频截图和手动拼接。\n\n© 2026 MagiXun", preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "确定", style: .default)
+        alertController.addAction(okAction)
+        present(alertController, animated: true)
     }
 }

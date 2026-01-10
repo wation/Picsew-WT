@@ -1,6 +1,7 @@
 /* Chinese Simplified */
 "app_name" = "Picsew-WT";
 "video_capture" = "视频截图";
+"image_stitch" = "图片拼接";
 "import_video" = "导入视频";
 "auto_stitch" = "自动拼图";
 "manual_stitch" = "手动拼图";

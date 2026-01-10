@@ -71,7 +71,7 @@ class VideoCaptureManager: NSObject, RPPreviewViewControllerDelegate {
     }
     
     // RPPreviewViewControllerDelegate 方法
-    func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
-        previewController.dismiss(animated: true, completion: nil)
+    func previewControllerDidFinish(_ previewViewController: RPPreviewViewController) {
+        previewViewController.dismiss(animated: true, completion: nil)
     }
 }
