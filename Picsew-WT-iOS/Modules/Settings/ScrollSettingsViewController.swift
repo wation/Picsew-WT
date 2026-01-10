@@ -1,0 +1,63 @@
+import UIKit
+
+class ScrollSettingsViewController: UIViewController {
+    
+    private var scrollDuration: Int = 5 // 默认5秒
+    
+    private lazy var durationLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var stepper: UIStepper = {
+        let stepper = UIStepper()
+        stepper.minimumValue = 1
+        stepper.maximumValue = 30
+        stepper.stepValue = 1
+        stepper.value = Double(scrollDuration)
+        stepper.translatesAutoresizingMaskIntoConstraints = false
+        stepper.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .valueChanged)
+        return stepper
+    }()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        loadSettings()
+    }
+    
+    private func setupUI() {
+        view.backgroundColor = .white
+        title = "Scroll Settings"
+        
+        view.addSubview(durationLabel)
+        view.addSubview(stepper)
+        
+        NSLayoutConstraint.activate([
+            durationLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            durationLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -50),
+            
+            stepper.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stepper.topAnchor.constraint(equalTo: durationLabel.bottomAnchor, constant: 30)
+        ])
+    }
+    
+    private func loadSettings() {
+        if let savedDuration = UserDefaults.standard.object(forKey: "scrollDuration") as? Int {
+            scrollDuration = savedDuration
+            stepper.value = Double(scrollDuration)
+            durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+        }
+    }
+    
+    @objc private func stepperValueChanged(_ stepper: UIStepper) {
+        scrollDuration = Int(stepper.value)
+        durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+        
+        // 保存设置
+        UserDefaults.standard.set(scrollDuration, forKey: "scrollDuration")
+    }
+}

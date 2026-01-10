@@ -1,0 +1,14 @@
+/* Spanish */
+"app_name" = "Picsew-WT";
+"video_capture" = "Captura de Video";
+"import_video" = "Importar Video";
+"auto_stitch" = "Costura Automática";
+"manual_stitch" = "Costura Manual";
+"settings" = "Configuración";
+"export_settings" = "Configuración de Exportación";
+"scroll_settings" = "Configuración de Desplazamiento";
+"tutorial" = "Tutorial";
+"version" = "Versión";
+"contact_us" = "Contáctanos";
+"rate_app" = "Calificar App";
+"share_app" = "Compartir App";

@@ -1,0 +1,14 @@
+/* Chinese Simplified */
+"app_name" = "Picsew-WT";
+"video_capture" = "视频截图";
+"import_video" = "导入视频";
+"auto_stitch" = "自动拼图";
+"manual_stitch" = "手动拼图";
+"settings" = "设置";
+"export_settings" = "导出设置";
+"scroll_settings" = "滚动设置";
+"tutorial" = "操作教程";
+"version" = "版本";
+"contact_us" = "联系我们";
+"rate_app" = "评分应用";
+"share_app" = "分享应用";
