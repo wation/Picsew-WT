@@ -1,8 +1,11 @@
 /* Korean */
 "app_name" = "Picsew-WT";
 "video_capture" = "비디오 캡처";
+"image_stitch" = "이미지 스티치";
 "import_video" = "비디오 가져오기";
 "auto_stitch" = "자동 스티치";
+"vertical_stitch" = "수직 스티치";
+"horizontal_stitch" = "수평 스티치";
 "manual_stitch" = "수동 스티치";
 "settings" = "설정";
 "export_settings" = "내보내기 설정";
@@ -12,3 +15,4 @@
 "contact_us" = "연락처";
 "rate_app" = "앱 평가";
 "share_app" = "앱 공유";
+"no_overlap_found" = "겹치는 점을 찾을 수 없습니다";

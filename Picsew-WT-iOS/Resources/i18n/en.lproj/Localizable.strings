@@ -4,6 +4,8 @@
 "image_stitch" = "Image Stitch";
 "import_video" = "Import Video";
 "auto_stitch" = "Auto Stitch";
+"vertical_stitch" = "Vertical Stitch";
+"horizontal_stitch" = "Horizontal Stitch";
 "manual_stitch" = "Manual Stitch";
 "settings" = "Settings";
 "export_settings" = "Export Settings";
@@ -13,3 +15,4 @@
 "contact_us" = "Contact Us";
 "rate_app" = "Rate App";
 "share_app" = "Share App";
+"no_overlap_found" = "No overlap points found";

@@ -1,8 +1,11 @@
 /* Japanese */
 "app_name" = "Picsew-WT";
 "video_capture" = "ビデオキャプチャ";
+"image_stitch" = "画像ステッチ";
 "import_video" = "動画をインポート";
 "auto_stitch" = "自動ステッチ";
+"vertical_stitch" = "垂直ステッチ";
+"horizontal_stitch" = "水平ステッチ";
 "manual_stitch" = "手動ステッチ";
 "settings" = "設定";
 "export_settings" = "エクスポート設定";
@@ -12,3 +15,4 @@
 "contact_us" = "お問い合わせ";
 "rate_app" = "アプリを評価";
 "share_app" = "アプリを共有";
+"no_overlap_found" = "重なり点が見つかりませんでした";

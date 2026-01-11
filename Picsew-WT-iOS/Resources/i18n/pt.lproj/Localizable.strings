@@ -1,8 +1,11 @@
 /* Portuguese */
 "app_name" = "Picsew-WT";
 "video_capture" = "Captura de Vídeo";
+"image_stitch" = "Costura de imagem";
 "import_video" = "Importar Vídeo";
-"auto_stitch" = "Costura Automática";
+"auto_stitch" = "Costura automática";
+"vertical_stitch" = "Costura vertical";
+"horizontal_stitch" = "Costura horizontal";
 "manual_stitch" = "Costura Manual";
 "settings" = "Configurações";
 "export_settings" = "Configurações de Exportação";
@@ -12,3 +15,4 @@
 "contact_us" = "Fale Conosco";
 "rate_app" = "Avaliar App";
 "share_app" = "Compartilhar App";
+"no_overlap_found" = "Não foram encontrados pontos de sobreposição";

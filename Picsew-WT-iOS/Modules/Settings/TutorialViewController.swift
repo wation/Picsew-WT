@@ -85,8 +85,11 @@ class TutorialViewController: UIViewController, UIScrollViewDelegate {
     // MARK: - UIScrollViewDelegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let pageIndex = Int(scrollView.contentOffset.x / scrollView.frame.width)
-        pageControl.currentPage = pageIndex
+        let width = scrollView.frame.width
+        if width > 0 {
+            let pageIndex = Int(scrollView.contentOffset.x / width)
+            pageControl.currentPage = pageIndex
+        }
     }
     
     // MARK: - Actions

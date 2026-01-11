@@ -1,9 +1,16 @@
 import UIKit
+import PhotosUI
 import MobileCoreServices
+
+enum StitchMode {
+    case vertical
+    case horizontal
+}
 
 class ManualStitchViewController: UIViewController {
     
     private var images: [UIImage] = []
+    private var mode: StitchMode = .vertical
     private var imageViews: [UIImageView] = []
     private var currentSelectedImageView: UIImageView?
     
@@ -60,6 +67,17 @@ class ManualStitchViewController: UIViewController {
         setupUI()
     }
     
+    func setInputImages(_ images: [UIImage], mode: StitchMode = .vertical) {
+        self.images = images
+        self.mode = mode
+        self.saveButton.isEnabled = !images.isEmpty
+        self.statusLabel.text = "Imported \(images.count) images (\(mode == .vertical ? "Vertical" : "Horizontal"))"
+        if !images.isEmpty {
+            self.stitchScrollView.isHidden = false
+            self.setupImageViews()
+        }
+    }
+    
     private func setupUI() {
         view.backgroundColor = .white
         title = "Manual Stitch"
@@ -99,13 +117,13 @@ class ManualStitchViewController: UIViewController {
     }
     
     @objc private func importImagesTapped() {
-        let imagePicker = UIImagePickerController()
-        imagePicker.sourceType = .photoLibrary
-        imagePicker.mediaTypes = [kUTTypeImage as String]
-        imagePicker.allowsMultipleSelection = true
-        imagePicker.delegate = self
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images
+        configuration.selectionLimit = 0 // 0 means no limit
         
-        present(imagePicker, animated: true, completion: nil)
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        present(picker, animated: true)
     }
     
     @objc private func saveStitchTapped() {
@@ -132,13 +150,27 @@ class ManualStitchViewController: UIViewController {
         imageViews.removeAll()
         
         // 创建图片视图
+        var currentX: CGFloat = 20
         var currentY: CGFloat = 20
         let containerWidth = stitchContainerView.frame.width
+        let containerHeight = stitchContainerView.frame.height
         
-        for (index, image) in images.enumerated() {
+        for image in images {
             let imageView = UIImageView(image: image)
             imageView.contentMode = .scaleAspectFit
-            imageView.frame = CGRect(x: 20, y: currentY, width: containerWidth - 40, height: image.size.height * (containerWidth - 40) / image.size.width)
+            
+            if mode == .vertical {
+                let displayWidth = containerWidth - 40
+                let displayHeight = image.size.height * (displayWidth / image.size.width)
+                imageView.frame = CGRect(x: 20, y: currentY, width: displayWidth, height: displayHeight)
+                currentY += displayHeight + 20
+            } else {
+                let displayHeight = containerHeight - 40
+                let displayWidth = image.size.width * (displayHeight / image.size.height)
+                imageView.frame = CGRect(x: currentX, y: 20, width: displayWidth, height: displayHeight)
+                currentX += displayWidth + 20
+            }
+            
             imageView.isUserInteractionEnabled = true
             
             // 添加拖拽手势
@@ -155,12 +187,14 @@ class ManualStitchViewController: UIViewController {
             
             stitchContainerView.addSubview(imageView)
             imageViews.append(imageView)
-            
-            currentY += imageView.frame.height + 20
         }
         
-        // 调整容器高度
-        stitchContainerView.heightAnchor.constraint(equalToConstant: currentY + 20).isActive = true
+        // 调整容器大小
+        if mode == .vertical {
+            stitchContainerView.heightAnchor.constraint(equalToConstant: currentY + 20).isActive = true
+        } else {
+            stitchContainerView.widthAnchor.constraint(equalToConstant: currentX + 20).isActive = true
+        }
     }
     
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
@@ -198,27 +232,35 @@ class ManualStitchViewController: UIViewController {
     }
 }
 
-// MARK: - UIImagePickerControllerDelegate
+// MARK: - PHPickerViewControllerDelegate
 
-extension ManualStitchViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        picker.dismiss(animated: true, completion: nil)
+extension ManualStitchViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
         
-        // 处理选择的图片
-        if let image = info[.originalImage] as? UIImage {
-            images.append(image)
-            statusLabel.text = "Imported \(images.count) images"
-            saveButton.isEnabled = !images.isEmpty
-            
-            if !images.isEmpty {
-                stitchScrollView.isHidden = false
-                setupImageViews()
+        let group = DispatchGroup()
+        var newImages: [UIImage] = []
+        
+        for result in results {
+            group.enter()
+            result.itemProvider.loadObject(ofClass: UIImage.self) { (object, error) in
+                if let image = object as? UIImage {
+                    newImages.append(image)
+                }
+                group.leave()
             }
         }
-    }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true, completion: nil)
+        
+        group.notify(queue: .main) {
+            self.images.append(contentsOf: newImages)
+            self.statusLabel.text = "Imported \(self.images.count) images"
+            self.saveButton.isEnabled = !self.images.isEmpty
+            
+            if !self.images.isEmpty {
+                self.stitchScrollView.isHidden = false
+                self.setupImageViews()
+            }
+        }
     }
 }
 
