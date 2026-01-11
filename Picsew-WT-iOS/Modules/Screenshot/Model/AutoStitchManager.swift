@@ -107,38 +107,46 @@ class AutoStitchManager {
         if n <= 1 { return images }
         
         // 1. 构建邻接矩阵，存储每对图片之间的重合可能性
-        // matrix[i][j] 表示图片 i 在图片 j 之上的匹配结果
-        var matrix = [[OverlapResult?]](repeating: [OverlapResult?](repeating: nil, count: n), count: n)
+        // matrix[i][j] 表示图片 i 在图片 j 之上的匹配度（diff 越小越好）
+        var matrix = [[Double?]](repeating: [Double?](repeating: nil, count: n), count: n)
         
         for i in 0..<n {
             for j in 0..<n {
                 if i == j { continue }
-                matrix[i][j] = self.findOverlap(topImage: images[i], bottomImage: images[j])
+                // 仅用于评估匹配度，不存储具体的裁切点
+                matrix[i][j] = self.evaluateOverlap(topImage: images[i], bottomImage: images[j])
             }
         }
         
-        // 2. 寻找最长的匹配链
+        // 寻找最长的匹配链
         var bestPath: [Int] = []
+        var minTotalDiff: Double = Double.greatestFiniteMagnitude
         
-        func findLongestPath(current: Int, visited: Set<Int>) -> [Int] {
+        func findLongestPath(current: Int, visited: Set<Int>, currentDiff: Double) -> ([Int], Double) {
             var longest: [Int] = [current]
+            var bestDiff = currentDiff
+            
             for next in 0..<n {
-                if !visited.contains(next) && matrix[current][next] != nil {
+                if !visited.contains(next), let diff = matrix[current][next] {
                     var newVisited = visited
                     newVisited.insert(next)
-                    let path = [current] + findLongestPath(current: next, visited: newVisited)
-                    if path.count > longest.count {
-                        longest = path
+                    let (path, pathDiff) = findLongestPath(current: next, visited: newVisited, currentDiff: currentDiff + diff)
+                    let fullPath = [current] + path
+                    
+                    if fullPath.count > longest.count || (fullPath.count == longest.count && pathDiff < bestDiff) {
+                        longest = fullPath
+                        bestDiff = pathDiff
                     }
                 }
             }
-            return longest
+            return (longest, bestDiff)
         }
         
         for start in 0..<n {
-            let path = findLongestPath(current: start, visited: [start])
-            if path.count > bestPath.count {
+            let (path, pathDiff) = findLongestPath(current: start, visited: [start], currentDiff: 0)
+            if path.count > bestPath.count || (path.count == bestPath.count && pathDiff < minTotalDiff) {
                 bestPath = path
+                minTotalDiff = pathDiff
             }
         }
         
@@ -164,6 +172,66 @@ class AutoStitchManager {
         }
         
         return images
+    }
+    
+    // 仅用于评估重合度，返回差异值
+    private func evaluateOverlap(topImage: UIImage, bottomImage: UIImage) -> Double? {
+        guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
+        
+        let scale: CGFloat = 0.1 // 评估时使用更小的缩放以提高性能
+        let topSmall = resizeCGImage(topCG, scale: scale)
+        let bottomSmall = resizeCGImage(bottomCG, scale: scale)
+        
+        guard let topData = getPixelData(topSmall), let bottomData = getPixelData(bottomSmall) else { return nil }
+        
+        let topWidth = topSmall.width
+        let topHeight = topSmall.height
+        let bottomWidth = bottomSmall.width
+        
+        let topIgnoreHeader = Int(Double(topHeight) * 0.15)
+        let topIgnoreFooter = Int(Double(topHeight) * 0.05)
+        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.15)
+        
+        let topContentStart = topIgnoreHeader
+        let topContentEnd = topHeight - topIgnoreFooter
+        let bottomContentStart = bottomIgnoreHeader
+        
+        let sampleHeight = 40
+        let sampleStart = bottomContentStart
+        
+        var minDiff = Double.greatestFiniteMagnitude
+        var found = false
+        
+        for yOffset in topContentStart...(topContentEnd - sampleHeight) {
+            var totalDiff: Double = 0
+            var pixelCount: Double = 0
+            
+            for row in 0..<sampleHeight {
+                let topRow = yOffset + row
+                let bottomRow = sampleStart + row
+                
+                for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 8) {
+                    let topIdx = (topRow * topWidth + col) * 4
+                    let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                    
+                    if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
+                        let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                        let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                        let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                        totalDiff += Double(dr + dg + db)
+                        pixelCount += 1
+                    }
+                }
+            }
+            
+            let averageDiff = totalDiff / (pixelCount * 3.0)
+            if averageDiff < minDiff {
+                minDiff = averageDiff
+                found = true
+            }
+        }
+        
+        return (found && minDiff < 35.0) ? minDiff : nil
     }
     
     struct OverlapResult {
