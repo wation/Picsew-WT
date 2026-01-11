@@ -12,8 +12,8 @@ class AutoStitchViewModel {
     var matchedIndices: [Int] = []
     
     // 自动拼接图片
-    func autoStitch(completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
-        stitchManager.autoStitch(images) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
+    func autoStitch(forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
+        stitchManager.autoStitch(images, forceManual: forceManual) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
             DispatchQueue.main.async {
                 if let workingImages = workingImages {
                     self?.images = workingImages

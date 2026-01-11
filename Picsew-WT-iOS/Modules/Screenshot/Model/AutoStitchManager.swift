@@ -13,7 +13,7 @@ class AutoStitchManager {
     static let shared = AutoStitchManager()
     
     // 自动寻找重合点并拼接
-    func autoStitch(_ images: [UIImage], completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
+    func autoStitch(_ images: [UIImage], forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             guard images.count >= 2 else {
                 let error = NSError(domain: "StitchError", code: 0, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_need_2_images", comment: "")])
@@ -22,7 +22,7 @@ class AutoStitchManager {
             }
             
             // 尝试自动排序
-            let reorderedImages = StitchAlgorithm.findBestSequence(images)
+            let reorderedImages = forceManual ? images : StitchAlgorithm.findBestSequence(images)
             let workingImages = reorderedImages
             
             var offsets: [CGFloat] = [0] // 每一张图在画布上的起始 Y 坐标
@@ -33,8 +33,8 @@ class AutoStitchManager {
                 let topImage = workingImages[i]
                 let bottomImage = workingImages[i+1]
                 
-                // 尝试寻找重合点
-                if let result = StitchAlgorithm.findOverlap(topImage: topImage, bottomImage: bottomImage) {
+                // 如果不是强制手动模式，尝试寻找重合点
+                if !forceManual, let result = StitchAlgorithm.findOverlap(topImage: topImage, bottomImage: bottomImage) {
                     let topImageCutY = result.topY
                     let bottomImageStartY = result.bottomY
                     
@@ -44,6 +44,7 @@ class AutoStitchManager {
                     bottomStartOffsets.append(bottomImageStartY)
                     matchedIndices.append(i + 1)
                 } else {
+                    // 强制手动模式或未找到重合点：直接首尾相接
                     let fallbackOffset = workingImages[i].size.height
                     let nextImageCanvasY = offsets[i] + fallbackOffset
                     

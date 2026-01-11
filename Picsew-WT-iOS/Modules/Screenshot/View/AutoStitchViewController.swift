@@ -254,7 +254,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private func startAutoStitch() {
         loadingIndicator.startAnimating()
-        viewModel.autoStitch { [weak self] stitchedImage, offsets, bottomStarts, matched, error in
+        viewModel.autoStitch(forceManual: isManualMode) { [weak self] stitchedImage, offsets, bottomStarts, matched, error in
             self?.loadingIndicator.stopAnimating()
             
             self?.matchedIndices.removeAll()
@@ -269,9 +269,15 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                         self?.currentOffsets = offsets
                         self?.currentBottomStarts = bottomStarts
                         self?.setupImageDisplay()
-                        self?.showWarningTip(nsError.localizedDescription) { [weak self] in
-                            // 等toast消失后，标题栏改成手动拼图
+                        
+                        if let isManual = self?.isManualMode, isManual {
+                            // 手动模式进入，不需要弹出警告 toast，直接设置标题
                             self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                        } else {
+                            // 自动识别失败降级到手动，弹出提示
+                            self?.showWarningTip(nsError.localizedDescription) { [weak self] in
+                                self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                            }
                         }
                     }
                 } else {
