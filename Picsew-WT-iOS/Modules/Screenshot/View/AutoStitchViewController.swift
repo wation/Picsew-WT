@@ -181,10 +181,10 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         
         if isManualMode {
             titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
-            startManualInitialStitch()
-        } else {
-            startAutoStitch()
         }
+        
+        // 无论是自动还是手动进入，都先尝试自动识别重合点
+        startAutoStitch()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -285,21 +285,6 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
 
-    private func startManualInitialStitch() {
-        // 手动模式下，直接按原图顺序排列，不寻找重合点
-        let images = viewModel.images
-        var offsets: [CGFloat] = [0]
-        var currentY: CGFloat = 0
-        for i in 0..<(images.count - 1) {
-            currentY += images[i].size.height
-            offsets.append(currentY)
-        }
-        self.currentOffsets = offsets
-        self.currentBottomStarts = Array(repeating: 0, count: images.count)
-        self.matchedIndices.removeAll() // 手动模式下所有气泡都显示（不隐藏）
-        self.setupImageDisplay()
-    }
-    
     private var imageViewTopConstraints: [NSLayoutConstraint] = []
     private var imageViewHeightConstraints: [NSLayoutConstraint] = []
     private var imageViewInternalTopConstraints: [NSLayoutConstraint] = []
