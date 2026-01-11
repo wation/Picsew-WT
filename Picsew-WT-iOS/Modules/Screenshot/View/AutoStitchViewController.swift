@@ -44,7 +44,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "自动拼图"
+        label.text = NSLocalizedString("auto_stitch", comment: "")
         label.font = .systemFont(ofSize: 17, weight: .semibold)
         label.textColor = .black
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -261,6 +261,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                         self?.currentBottomStarts = bottomStarts
                         self?.setupImageDisplay()
                         self?.showWarningTip(nsError.localizedDescription)
+                        // 标题栏改成手动拼图
+                        self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
                     }
                 } else {
                     self?.showError(error.localizedDescription)

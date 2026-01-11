@@ -23,7 +23,7 @@ class AutoStitchViewModel {
                     let nsError = error as NSError
                     if nsError.domain == "StitchWarning" {
                         // 警告：仍然保存结果
-                        self?.statusMessage = "拼接完成 (部分图片未找到重合点)"
+                        self?.statusMessage = NSLocalizedString("stitch_warning_auto_to_manual", comment: "")
                         self?.stitchedImage = stitchedImage
                         self?.offsets = offsets ?? []
                         self?.bottomStartOffsets = bottomStarts ?? []

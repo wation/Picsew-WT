@@ -16,3 +16,4 @@
 "rate_app" = "Avaliar App";
 "share_app" = "Compartilhar App";
 "no_overlap_found" = "Não foram encontrados pontos de sobreposição";
+"stitch_warning_auto_to_manual" = "Algumas imagens não puderam ser combinadas, mudando automaticamente para colagem manual";

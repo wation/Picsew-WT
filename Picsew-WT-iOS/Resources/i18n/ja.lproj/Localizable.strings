@@ -16,3 +16,4 @@
 "rate_app" = "アプリを評価";
 "share_app" = "アプリを共有";
 "no_overlap_found" = "重なり点が見つかりませんでした";
+"stitch_warning_auto_to_manual" = "一部の画像で重なりが見つかりませんでした。手動結合に切り替えます。";

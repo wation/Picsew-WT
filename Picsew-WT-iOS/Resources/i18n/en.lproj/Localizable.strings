@@ -16,3 +16,4 @@
 "rate_app" = "Rate App";
 "share_app" = "Share App";
 "no_overlap_found" = "No overlap points found";
+"stitch_warning_auto_to_manual" = "Some images could not be matched, automatically switching to manual stitch";

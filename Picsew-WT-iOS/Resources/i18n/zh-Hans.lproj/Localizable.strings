@@ -16,3 +16,4 @@
 "rate_app" = "评分应用";
 "share_app" = "分享应用";
 "no_overlap_found" = "没有找到重合点";
+"stitch_warning_auto_to_manual" = "部分图片未找到重合点，自动切换到手动拼图";

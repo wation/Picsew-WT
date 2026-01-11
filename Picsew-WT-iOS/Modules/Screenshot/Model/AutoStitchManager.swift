@@ -92,7 +92,7 @@ class AutoStitchManager {
             
             if let finalImage = finalImage {
                 let hasOverlapWarning = matchedIndices.count < workingImages.count - 1
-                let warning = hasOverlapWarning ? NSError(domain: "StitchWarning", code: 2, userInfo: [NSLocalizedDescriptionKey: "部分图片未找到重合点"]) : nil
+                let warning = hasOverlapWarning ? NSError(domain: "StitchWarning", code: 2, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_warning_auto_to_manual", comment: "")]) : nil
                 completion(finalImage, offsets, bottomStartOffsets, matchedIndices, workingImages, warning)
             } else {
                 let error = NSError(domain: "StitchError", code: 1, userInfo: [NSLocalizedDescriptionKey: "拼接失败"])
