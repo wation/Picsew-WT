@@ -13,8 +13,12 @@ class AutoStitchViewModel {
     
     // 自动拼接图片
     func autoStitch(completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
-        stitchManager.autoStitch(images) { [weak self] stitchedImage, offsets, bottomStarts, matched, error in
+        stitchManager.autoStitch(images) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
             DispatchQueue.main.async {
+                if let workingImages = workingImages {
+                    self?.images = workingImages
+                }
+                
                 if let error = error {
                     let nsError = error as NSError
                     if nsError.domain == "StitchWarning" {

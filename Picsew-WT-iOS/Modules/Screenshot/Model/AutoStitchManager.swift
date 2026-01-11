@@ -13,92 +13,71 @@ class AutoStitchManager {
     static let shared = AutoStitchManager()
     
     // 自动寻找重合点并拼接
-    func autoStitch(_ images: [UIImage], completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
+    func autoStitch(_ images: [UIImage], completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             guard images.count >= 2 else {
                 let error = NSError(domain: "StitchError", code: 0, userInfo: [NSLocalizedDescriptionKey: "需要至少2张图片进行拼接"])
-                completion(nil, nil, nil, nil, error)
+                completion(nil, nil, nil, nil, nil, error)
                 return
             }
+            
+            // 尝试自动排序
+            let reorderedImages = self.findBestSequence(images)
+            let workingImages = reorderedImages
             
             var offsets: [CGFloat] = [0] // 每一张图在画布上的起始 Y 坐标
             var bottomStartOffsets: [CGFloat] = [0] // 每一张图自身开始显示的 Y 坐标（用于裁掉 header）
             var matchedIndices: [Int] = []
             
-            var currentCanvasY: CGFloat = 0
-            var hasOverlapWarning = false
-            
-            // 第一张图
-            currentCanvasY = images[0].size.height
-            
-            for i in 0..<(images.count - 1) {
-                let topImage = images[i]
-                let bottomImage = images[i+1]
+            for i in 0..<(workingImages.count - 1) {
+                let topImage = workingImages[i]
+                let bottomImage = workingImages[i+1]
                 
                 // 尝试寻找重合点
                 if let result = self.findOverlap(topImage: topImage, bottomImage: bottomImage) {
-                    // result.topY: topImage 中匹配到的位置
-                    // result.bottomY: bottomImage 中匹配到的位置
-                    
-                    // 我们将 topImage 在 result.topY 处切断
-                    // 然后从 bottomImage 的 result.bottomY 处开始接上
-                    
-                    // 更新前一张图的 offset（实际上是调整画布位置）
-                    // 之前的图已经摆好了，我们要确定下一张图的位置
                     let topImageCutY = result.topY
                     let bottomImageStartY = result.bottomY
                     
-                    // 下一张图在画布上的位置 = 上一张图在画布上的起始位置 + 上一张图被裁切的位置
                     let nextImageCanvasY = offsets[i] + topImageCutY
                     
                     offsets.append(nextImageCanvasY)
                     bottomStartOffsets.append(bottomImageStartY)
                     matchedIndices.append(i + 1)
-                    
-                    print("AutoStitch: Image \(i) and \(i+1) - Matched! TopCut: \(topImageCutY), BottomStart: \(bottomImageStartY)")
                 } else {
-                    // 找不到重合点，直接接在后面
-                    let fallbackOffset = images[i].size.height
+                    let fallbackOffset = workingImages[i].size.height
                     let nextImageCanvasY = offsets[i] + fallbackOffset
                     
                     offsets.append(nextImageCanvasY)
                     bottomStartOffsets.append(0)
-                    hasOverlapWarning = true
-                    print("AutoStitch: Image \(i) and \(i+1) - No overlap found, fallback.")
                 }
             }
             
             // 计算总高度
             var totalHeight: CGFloat = 0
-            for i in 0..<images.count {
-                let displayHeight = images[i].size.height - bottomStartOffsets[i]
-                // 注意：中间的图还会被下一张图裁切，但最后一张图会显示到最后
-                if i == images.count - 1 {
+            for i in 0..<workingImages.count {
+                let displayHeight = workingImages[i].size.height - bottomStartOffsets[i]
+                if i == workingImages.count - 1 {
                     totalHeight = offsets[i] + displayHeight
                 }
             }
             
-            let maxWidth = images.map { $0.size.width }.max() ?? 0
+            let maxWidth = workingImages.map { $0.size.width }.max() ?? 0
             
             UIGraphicsBeginImageContextWithOptions(CGSize(width: maxWidth, height: totalHeight), false, 1.0)
             
-            for i in 0..<images.count {
-                let image = images[i]
+            for i in 0..<workingImages.count {
+                let image = workingImages[i]
                 let canvasY = offsets[i]
                 let startY = bottomStartOffsets[i]
                 
-                // 计算该张图片在画布上占据的高度
                 let displayHeight: CGFloat
-                if i < images.count - 1 {
-                    // 每一张图显示的高度等于下一张图的起始位置减去当前图的起始位置
+                if i < workingImages.count - 1 {
                     displayHeight = offsets[i+1] - offsets[i]
                 } else {
-                    // 最后一张图显示剩余所有部分
                     displayHeight = image.size.height - startY
                 }
                 
-                // 裁切并绘制。为了防止由于浮点数舍入导致的 1 像素缝隙，我们在非最后一张图的高度上多加 1 像素重叠
-                let cropHeight = (i < images.count - 1) ? displayHeight + 1 : displayHeight
+                let cropHeight = (i < workingImages.count - 1) ? displayHeight + 1 : displayHeight
                 
                 if let cgImage = image.cgImage?.cropping(to: CGRect(x: 0, y: startY * image.scale, width: image.size.width * image.scale, height: cropHeight * image.scale)) {
                     let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
@@ -112,13 +91,79 @@ class AutoStitchManager {
             UIGraphicsEndImageContext()
             
             if let finalImage = finalImage {
+                let hasOverlapWarning = matchedIndices.count < workingImages.count - 1
                 let warning = hasOverlapWarning ? NSError(domain: "StitchWarning", code: 2, userInfo: [NSLocalizedDescriptionKey: "部分图片未找到重合点"]) : nil
-                completion(finalImage, offsets, bottomStartOffsets, matchedIndices, warning)
+                completion(finalImage, offsets, bottomStartOffsets, matchedIndices, workingImages, warning)
             } else {
                 let error = NSError(domain: "StitchError", code: 1, userInfo: [NSLocalizedDescriptionKey: "拼接失败"])
-                completion(nil, nil, nil, nil, error)
+                completion(nil, nil, nil, nil, nil, error)
             }
         }
+    }
+    
+    // 寻找最佳的图片序列（自动排序）
+    private func findBestSequence(_ images: [UIImage]) -> [UIImage] {
+        let n = images.count
+        if n <= 1 { return images }
+        
+        // 1. 构建邻接矩阵，存储每对图片之间的重合可能性
+        // matrix[i][j] 表示图片 i 在图片 j 之上的匹配结果
+        var matrix = [[OverlapResult?]](repeating: [OverlapResult?](repeating: nil, count: n), count: n)
+        
+        for i in 0..<n {
+            for j in 0..<n {
+                if i == j { continue }
+                matrix[i][j] = self.findOverlap(topImage: images[i], bottomImage: images[j])
+            }
+        }
+        
+        // 2. 寻找最长的匹配链
+        var bestPath: [Int] = []
+        
+        func findLongestPath(current: Int, visited: Set<Int>) -> [Int] {
+            var longest: [Int] = [current]
+            for next in 0..<n {
+                if !visited.contains(next) && matrix[current][next] != nil {
+                    var newVisited = visited
+                    newVisited.insert(next)
+                    let path = [current] + findLongestPath(current: next, visited: newVisited)
+                    if path.count > longest.count {
+                        longest = path
+                    }
+                }
+            }
+            return longest
+        }
+        
+        for start in 0..<n {
+            let path = findLongestPath(current: start, visited: [start])
+            if path.count > bestPath.count {
+                bestPath = path
+            }
+        }
+        
+        // 3. 如果找到了更长的匹配链（至少匹配了一对），则按此排序
+        if bestPath.count >= 2 {
+            var resultImages: [UIImage] = []
+            var usedIndices = Set<Int>()
+            
+            for idx in bestPath {
+                resultImages.append(images[idx])
+                usedIndices.insert(idx)
+            }
+            
+            // 将未匹配进去的图片按原顺序接在后面（虽然这种情况通常意味着拼接会失败）
+            for i in 0..<n {
+                if !usedIndices.contains(i) {
+                    resultImages.append(images[i])
+                }
+            }
+            
+            print("AutoStitch: Reordered sequence: \(bestPath)")
+            return resultImages
+        }
+        
+        return images
     }
     
     struct OverlapResult {
