@@ -260,9 +260,10 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                         self?.currentOffsets = offsets
                         self?.currentBottomStarts = bottomStarts
                         self?.setupImageDisplay()
-                        self?.showWarningTip(nsError.localizedDescription)
-                        // 标题栏改成手动拼图
-                        self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                        self?.showWarningTip(nsError.localizedDescription) { [weak self] in
+                            // 等toast消失后，标题栏改成手动拼图
+                            self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                        }
                     }
                 } else {
                     self?.showError(error.localizedDescription)
@@ -541,8 +542,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         setupImageDisplay(lockingIndex: index)
     }
 
-    private func showWarningTip(_ message: String) {
-        showToast(message: message)
+    private func showWarningTip(_ message: String, completion: (() -> Void)? = nil) {
+        showToast(message: message, completion: completion)
     }
     
     private func showError(_ message: String) {
@@ -877,7 +878,7 @@ class ToastView: UIView {
 // MARK: - Toast Extension
 
 extension UIViewController {
-    func showToast(message: String, duration: TimeInterval = 2.0) {
+    func showToast(message: String, duration: TimeInterval = 2.0, completion: (() -> Void)? = nil) {
         let toastView = ToastView(message: message)
         toastView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(toastView)
@@ -896,6 +897,7 @@ extension UIViewController {
                     toastView.alpha = 0
                 } completion: { _ in
                     toastView.removeFromSuperview()
+                    completion?()
                 }
             }
         }
