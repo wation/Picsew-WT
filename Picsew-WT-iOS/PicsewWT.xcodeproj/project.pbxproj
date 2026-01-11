@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		043094B7C722A4F61094E819 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC07250DED4A0210B34547C /* SettingsViewController.swift */; };
 		0ADEC2EC342F12BB205A4714 /* AutoStitchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */; };
+		0ADEC2EC342F12BB205A4715 /* StitchAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */; };
 		0C32290C6C8EDCCB962F1E41 /* ExportSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1775436335E1083E0DA3EB /* ExportSettingsViewController.swift */; };
 		136F0EAAA3C7EA59BA619A6A /* VideoImportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48802182790D1942E3391AE8 /* VideoImportViewController.swift */; };
 		1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D421C57E02336E52A544300 /* HomeViewController.swift */; };
@@ -45,6 +46,7 @@
 		2C231FE0FA6FD11E4B841746 /* ImageStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageStitchViewController.swift; path = Modules/Screenshot/View/ImageStitchViewController.swift; sourceTree = "<group>"; };
 		2EFE44F7BFF48834F5A30938 /* PicsewWT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PicsewWT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
+		3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StitchAlgorithm.swift; path = Modules/Screenshot/Model/StitchAlgorithm.swift; sourceTree = "<group>"; };
 		424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LocalizationManager.swift; path = Modules/Common/LocalizationManager.swift; sourceTree = "<group>"; };
 		468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewModel.swift; path = Modules/VideoCapture/VideoCaptureViewModel.swift; sourceTree = "<group>"; };
 		48802182790D1942E3391AE8 /* VideoImportViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewController.swift; path = Modules/VideoCapture/VideoImportViewController.swift; sourceTree = "<group>"; };
@@ -127,6 +129,7 @@
 				A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */,
 				C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */,
 				3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */,
+				3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */,
 			);
 			name = ImageStitching;
 			sourceTree = "<group>";
@@ -338,6 +341,7 @@
 				AD264FA329ED58AC6FB4BA43 /* AutoStitchViewModel.swift in Sources */,
 				39E76B8A8E2683C627B51230 /* AutoStitchViewController.swift in Sources */,
 				0ADEC2EC342F12BB205A4714 /* AutoStitchManager.swift in Sources */,
+				0ADEC2EC342F12BB205A4715 /* StitchAlgorithm.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -361,7 +361,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             // 我们要显示图片的哪一部分？
             // 如果 containerStartY 是固定的，但 canvasY 变了，
             // 那么内部偏移 imgTop 必须补偿这个差值：imgTop = -(canvasY - (containerStartY - paddingTop))
-            let internalTopOffset = -(canvasY - (containerStartY - paddingTop)) - (index == 0 ? topCrop : 0)
+            // 同时，必须考虑到 AutoStitchManager 识别出的图片起始偏移 (selfStartY)
+            let internalTopOffset = -(canvasY - (containerStartY - paddingTop)) - selfStartY - (index == 0 ? topCrop : 0)
             let imgInternalTopConstraint = imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: internalTopOffset)
             
             imageViewTopConstraints.append(topConstraint)
