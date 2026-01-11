@@ -21,14 +21,9 @@ class HomeViewController: UIViewController {
     
     private lazy var bottomActionBar: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-        let blurEffect = UIBlurEffect(style: .light)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        view.addSubview(blurView)
-        blurView.frame = view.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.backgroundColor = .white
         view.isHidden = true
-        view.layer.cornerRadius = 15
+        view.layer.cornerRadius = 10
         view.clipsToBounds = true
         return view
     }()
@@ -42,26 +37,17 @@ class HomeViewController: UIViewController {
         return btn
     }()
     
-    private lazy var verticalStitchButton: UIButton = {
+    private lazy var manualStitchButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setTitle(NSLocalizedString("vertical_stitch", comment: "垂直拼图"), for: .normal)
-        btn.setImage(UIImage(systemName: "rectangle.stack.badge.plus"), for: .normal)
-        btn.addTarget(self, action: #selector(verticalStitchTapped), for: .touchUpInside)
-        applyButtonStyle(btn, position: .middle)
-        return btn
-    }()
-
-    private lazy var horizontalStitchButton: UIButton = {
-        let btn = UIButton(type: .system)
-        btn.setTitle(NSLocalizedString("horizontal_stitch", comment: "横向拼图"), for: .normal)
-        btn.setImage(UIImage(systemName: "square.split.2x1"), for: .normal)
-        btn.addTarget(self, action: #selector(horizontalStitchTapped), for: .touchUpInside)
+        btn.setTitle(NSLocalizedString("manual_stitch", comment: "手动拼图"), for: .normal)
+        btn.setImage(UIImage(systemName: "hand.raised"), for: .normal)
+        btn.addTarget(self, action: #selector(manualStitchTapped), for: .touchUpInside)
         applyButtonStyle(btn, position: .right)
         return btn
     }()
     
     enum ButtonPosition {
-        case left, middle, right
+        case left, right
     }
 
     private func applyButtonStyle(_ button: UIButton, position: ButtonPosition) {
@@ -75,14 +61,11 @@ class HomeViewController: UIViewController {
             switch position {
             case .left:
                 button.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
-            case .middle:
-                button.layer.cornerRadius = 0
             case .right:
                 button.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]
             }
         } else {
-            // 对于 iOS 11 以下版本，逻辑较复杂，由于项目要求 iOS 17+，此处直接按 iOS 11 处理
-            button.layer.cornerRadius = position == .middle ? 0 : cornerRadius
+            button.layer.cornerRadius = cornerRadius
         }
         
         // 设置图片和文字的间距
@@ -139,24 +122,24 @@ class HomeViewController: UIViewController {
             
             bottomActionBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             bottomActionBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            bottomActionBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            bottomActionBar.heightAnchor.constraint(equalToConstant: 80),
+            bottomActionBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            bottomActionBar.heightAnchor.constraint(equalToConstant: 60),
             
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
         
-        let stackView = UIStackView(arrangedSubviews: [autoStitchButton, verticalStitchButton, horizontalStitchButton])
+        let stackView = UIStackView(arrangedSubviews: [autoStitchButton, manualStitchButton])
         stackView.axis = .horizontal
         stackView.distribution = .fillEqually
         stackView.spacing = -1.0 // 使边框重叠，避免中间线变粗
         bottomActionBar.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: bottomActionBar.topAnchor, constant: 10),
-            stackView.leadingAnchor.constraint(equalTo: bottomActionBar.leadingAnchor, constant: 15),
-            stackView.trailingAnchor.constraint(equalTo: bottomActionBar.trailingAnchor, constant: -15),
-            stackView.bottomAnchor.constraint(equalTo: bottomActionBar.bottomAnchor, constant: -10)
+            stackView.topAnchor.constraint(equalTo: bottomActionBar.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: bottomActionBar.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: bottomActionBar.trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: bottomActionBar.bottomAnchor)
         ])
     }
     
@@ -183,24 +166,36 @@ class HomeViewController: UIViewController {
         }
     }
     
-    @objc private func verticalStitchTapped() {
+    @objc private func manualStitchTapped() {
         guard viewModel.selectedAssets.count >= 2 else { return }
-        loadingIndicator.startAnimating()
-        viewModel.fetchSelectedImages { [weak self] images in
-            self?.loadingIndicator.stopAnimating()
-            let vc = ManualStitchViewController()
-            vc.setInputImages(images, mode: .vertical)
-            self?.navigationController?.pushViewController(vc, animated: true)
+        
+        let alert = UIAlertController(title: NSLocalizedString("manual_stitch", comment: "手动拼图"), message: nil, preferredStyle: .actionSheet)
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("vertical_stitch", comment: "垂直拼图"), style: .default, handler: { _ in
+            self.startManualStitch(mode: .vertical)
+        }))
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("horizontal_stitch", comment: "横向拼图"), style: .default, handler: { _ in
+            self.startManualStitch(mode: .horizontal)
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        // For iPad support
+        if let popoverController = alert.popoverPresentationController {
+            popoverController.sourceView = manualStitchButton
+            popoverController.sourceRect = manualStitchButton.bounds
         }
+        
+        present(alert, animated: true, completion: nil)
     }
 
-    @objc private func horizontalStitchTapped() {
-        guard viewModel.selectedAssets.count >= 2 else { return }
+    private func startManualStitch(mode: StitchMode) {
         loadingIndicator.startAnimating()
         viewModel.fetchSelectedImages { [weak self] images in
             self?.loadingIndicator.stopAnimating()
             let vc = ManualStitchViewController()
-            vc.setInputImages(images, mode: .horizontal)
+            vc.setInputImages(images, mode: mode)
             self?.navigationController?.pushViewController(vc, animated: true)
         }
     }
@@ -213,6 +208,10 @@ class HomeViewController: UIViewController {
         let isAutoStitchEnabled = (count == 2)
         autoStitchButton.isEnabled = isAutoStitchEnabled
         autoStitchButton.alpha = isAutoStitchEnabled ? 1.0 : 0.5
+        
+        let isManualStitchEnabled = (count >= 2)
+        manualStitchButton.isEnabled = isManualStitchEnabled
+        manualStitchButton.alpha = isManualStitchEnabled ? 1.0 : 0.5
     }
 }
 

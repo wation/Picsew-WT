@@ -231,7 +231,40 @@ class AutoStitchManager {
             }
         }
         
-        return (found && minDiff < 35.0) ? minDiff : nil
+        // 降低阈值并增加对“无聊”区域（如纯色）的检查
+        let threshold: Double = 20.0
+        if found && minDiff < threshold {
+            // 简单检查区域是否有足够的色彩变化
+            let variance = calculateVariance(data: bottomData, width: bottomWidth, startRow: sampleStart, rowCount: sampleHeight)
+            if variance < 5.0 { // 如果区域太纯色，要求更严苛
+                return minDiff < 5.0 ? minDiff : nil
+            }
+            return minDiff
+        }
+        return nil
+    }
+    
+    private func calculateVariance(data: [UInt8], width: Int, startRow: Int, rowCount: Int) -> Double {
+        var sum: Double = 0
+        var sumSq: Double = 0
+        var count: Double = 0
+        
+        for r in 0..<rowCount {
+            let row = startRow + r
+            for c in stride(from: 0, to: width, by: 8) {
+                let idx = (row * width + c) * 4
+                if idx + 2 < data.count {
+                    let gray = Double(data[idx]) * 0.299 + Double(data[idx+1]) * 0.587 + Double(data[idx+2]) * 0.114
+                    sum += gray
+                    sumSq += gray * gray
+                    count += 1
+                }
+            }
+        }
+        
+        if count == 0 { return 0 }
+        let mean = sum / count
+        return sqrt(max(0, (sumSq / count) - (mean * mean)))
     }
     
     struct OverlapResult {
@@ -312,8 +345,18 @@ class AutoStitchManager {
             }
         }
         
-        // 校验：阈值稍微放宽一点点
-        if bestTopY != -1 && minDiff < 35.0 {
+        // 校验：阈值收紧，并增加对纯色区域的过滤
+        let threshold: Double = 20.0
+        if bestTopY != -1 && minDiff < threshold {
+            // 校验采样区域的“丰富度”
+            let variance = calculateVariance(data: bottomData, width: bottomWidth, startRow: sampleStart, rowCount: sampleHeight)
+            
+            // 如果区域极其单调（如纯白、纯黑背景），要求 diff 极小（近乎完全一致）
+            if variance < 5.0 && minDiff > 3.0 {
+                print("AutoStitch: Rejecting match due to low variance (\(variance)) and insufficient confidence (\(minDiff))")
+                return nil
+            }
+            
             let topYInOriginal = CGFloat(bestTopY) / scale
             let bottomYInOriginal = CGFloat(bestBottomY) / scale
             
