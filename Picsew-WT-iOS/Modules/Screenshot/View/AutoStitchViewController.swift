@@ -17,6 +17,19 @@ class AutoStitchViewController: UIViewController {
         let view = UIView()
         view.backgroundColor = .white
         view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let separator = UIView()
+        separator.backgroundColor = UIColor(white: 0, alpha: 0.1)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(separator)
+        
+        NSLayoutConstraint.activate([
+            separator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 0.5)
+        ])
+        
         return view
     }()
     
@@ -29,12 +42,13 @@ class AutoStitchViewController: UIViewController {
         return button
     }()
     
-    private lazy var segmentControl: UISegmentedControl = {
-        let items = ["裁剪", "工具"]
-        let sc = UISegmentedControl(items: items)
-        sc.selectedSegmentIndex = 0
-        sc.translatesAutoresizingMaskIntoConstraints = false
-        return sc
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "自动拼图"
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.textColor = .black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var shareButton: UIButton = {
@@ -46,23 +60,15 @@ class AutoStitchViewController: UIViewController {
         return button
     }()
     
-    private lazy var scrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        return sv
-    }()
-    
-    private lazy var contentView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
     private lazy var bottomToolbar: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let separator = UIView()
+        separator.backgroundColor = UIColor(white: 0, alpha: 0.1)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(separator)
         
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -79,6 +85,11 @@ class AutoStitchViewController: UIViewController {
         
         view.addSubview(stackView)
         NSLayoutConstraint.activate([
+            separator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            separator.topAnchor.constraint(equalTo: view.topAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+            
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
             stackView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
@@ -93,6 +104,19 @@ class AutoStitchViewController: UIViewController {
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
         return indicator
+    }()
+    
+    private lazy var scrollView: UIScrollView = {
+        let sv = UIScrollView()
+        sv.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        return sv
+    }()
+    
+    private lazy var contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
     // MARK: - Lifecycle
@@ -131,7 +155,7 @@ class AutoStitchViewController: UIViewController {
         
         view.addSubview(topNavigationBar)
         topNavigationBar.addSubview(backButton)
-        topNavigationBar.addSubview(segmentControl)
+        topNavigationBar.addSubview(titleLabel)
         topNavigationBar.addSubview(shareButton)
         
         view.addSubview(scrollView)
@@ -148,8 +172,8 @@ class AutoStitchViewController: UIViewController {
             backButton.leadingAnchor.constraint(equalTo: topNavigationBar.leadingAnchor, constant: 16),
             backButton.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
             
-            segmentControl.centerXAnchor.constraint(equalTo: topNavigationBar.centerXAnchor),
-            segmentControl.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
+            titleLabel.centerXAnchor.constraint(equalTo: topNavigationBar.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
             
             shareButton.trailingAnchor.constraint(equalTo: topNavigationBar.trailingAnchor, constant: -16),
             shareButton.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
@@ -230,6 +254,10 @@ class AutoStitchViewController: UIViewController {
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
         contentView.backgroundColor = .white
         
+        let edgePadding: CGFloat = 25 // 气泡边缘到容器边缘的距离
+        let bubbleHalfHeight: CGFloat = 15
+        let paddingTop = edgePadding + bubbleHalfHeight // 40
+        
         var lastContainer: UIView?
         
         for (index, image) in images.enumerated() {
@@ -239,7 +267,7 @@ class AutoStitchViewController: UIViewController {
             let selfStartY = currentBottomStarts[index] * displayScale
             
             // 容器在画布上的位置
-            var finalStartY = canvasY
+            var finalStartY = canvasY + paddingTop
             if index == 0 {
                 finalStartY += topCrop
             }
@@ -349,8 +377,7 @@ class AutoStitchViewController: UIViewController {
                 bottomAdjustment.topAnchor.constraint(equalTo: lastContainer.bottomAnchor, constant: -15),
                 bottomAdjustment.widthAnchor.constraint(equalToConstant: 60),
                 bottomAdjustment.heightAnchor.constraint(equalToConstant: 30),
-                // 关键：底部气泡决定了 contentView 的底部，从而让 ScrollView 能滑动
-                bottomAdjustment.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
+                bottomAdjustment.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -edgePadding)
             ])
         }
         
@@ -428,17 +455,77 @@ class AutoStitchViewController: UIViewController {
     }
     
     @objc private func shareTapped() {
-        adjustmentViews.forEach { $0.isHidden = true }
-        let renderer = UIGraphicsImageRenderer(bounds: contentView.bounds)
-        let stitchedImage = renderer.image { ctx in
-            contentView.drawHierarchy(in: contentView.bounds, afterScreenUpdates: true)
+        guard let stitchedImage = generateFullResolutionImage() else {
+            showError("生成图片失败")
+            return
         }
-        adjustmentViews.forEach { $0.isHidden = false }
         
+        loadingIndicator.startAnimating()
         UIImageWriteToSavedPhotosAlbum(stitchedImage, self, #selector(imageSaved(_:didFinishSavingWithError:contextInfo:)), nil)
     }
     
+    private func generateFullResolutionImage() -> UIImage? {
+        let images = viewModel.images
+        guard !images.isEmpty, currentOffsets.count == images.count, currentBottomStarts.count == images.count else { return nil }
+        
+        let firstImage = images[0]
+        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let displayScale = containerWidth / firstImage.size.width
+        
+        let origTopCrop = topCrop / displayScale
+        let origBottomCrop = bottomCrop / displayScale
+        
+        // 计算原始总高度
+        let lastIndex = images.count - 1
+        let lastImage = images[lastIndex]
+        let lastCanvasY = currentOffsets[lastIndex]
+        let lastSelfStartY = currentBottomStarts[lastIndex]
+        let lastImageHeight = lastImage.size.height
+        
+        let firstCanvasY = currentOffsets[0]
+        
+        // 总高度 = (最后一张图的底部在画布的位置 - 底部裁剪) - (第一张图的顶部在画布的位置 + 顶部裁剪)
+        let totalFullHeight = (lastCanvasY + lastImageHeight - lastSelfStartY - origBottomCrop) - (firstCanvasY + origTopCrop)
+        
+        if totalFullHeight <= 0 { return nil }
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0 // 使用原图像素
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: firstImage.size.width, height: totalFullHeight), format: format)
+        
+        return renderer.image { ctx in
+            for (index, image) in images.enumerated() {
+                let canvasY = currentOffsets[index]
+                let selfStartY = currentBottomStarts[index]
+                
+                // 该图片在结果图中的起始 Y
+                let drawY = canvasY - (firstCanvasY + origTopCrop)
+                
+                // 确定该段的裁剪高度
+                let segmentHeight: CGFloat
+                if index == lastIndex {
+                    segmentHeight = image.size.height - selfStartY - origBottomCrop
+                } else {
+                    segmentHeight = currentOffsets[index+1] - canvasY
+                }
+                
+                let drawRect = CGRect(x: 0, y: drawY, width: image.size.width, height: segmentHeight)
+                
+                ctx.cgContext.saveGState()
+                ctx.cgContext.clip(to: drawRect)
+                
+                // 绘制图片，需要考虑 selfStartY 和如果是第一张图的 origTopCrop
+                let imageDrawY = drawY - selfStartY - (index == 0 ? origTopCrop : 0)
+                let imageDrawRect = CGRect(x: 0, y: imageDrawY, width: image.size.width, height: image.size.height)
+                image.draw(in: imageDrawRect)
+                
+                ctx.cgContext.restoreGState()
+            }
+        }
+    }
+    
     @objc private func imageSaved(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        loadingIndicator.stopAnimating()
         if let error = error {
             showToast(message: "保存失败: \(error.localizedDescription)")
         } else {
