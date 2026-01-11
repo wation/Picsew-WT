@@ -188,24 +188,19 @@ class AutoStitchManager {
         let topHeight = topSmall.height
         let bottomWidth = bottomSmall.width
         
-        // 增加忽略区域以避开浏览器地址栏
-        let topIgnoreHeader = Int(Double(topHeight) * 0.20)
+        let topIgnoreHeader = Int(Double(topHeight) * 0.15)
         let topIgnoreFooter = Int(Double(topHeight) * 0.05)
-        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.20)
+        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.15)
         
         let topContentStart = topIgnoreHeader
         let topContentEnd = topHeight - topIgnoreFooter
         let bottomContentStart = bottomIgnoreHeader
         
-        let sampleHeight = 60 // 增加评估采样高度
+        let sampleHeight = 40
         let sampleStart = bottomContentStart
         
         var minDiff = Double.greatestFiniteMagnitude
         var found = false
-        
-        // 避开左右边缘（如悬浮按钮、滚动条）
-        let colStart = Int(Double(min(topWidth, bottomWidth)) * 0.2)
-        let colEnd = Int(Double(min(topWidth, bottomWidth)) * 0.8)
         
         for yOffset in topContentStart...(topContentEnd - sampleHeight) {
             var totalDiff: Double = 0
@@ -215,7 +210,7 @@ class AutoStitchManager {
                 let topRow = yOffset + row
                 let bottomRow = sampleStart + row
                 
-                for col in stride(from: colStart, to: colEnd, by: 4) {
+                for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 8) {
                     let topIdx = (topRow * topWidth + col) * 4
                     let bottomIdx = (bottomRow * bottomWidth + col) * 4
                     
@@ -236,7 +231,7 @@ class AutoStitchManager {
             }
         }
         
-        return (found && minDiff < 30.0) ? minDiff : nil // 评估阈值稍微收紧
+        return (found && minDiff < 35.0) ? minDiff : nil
     }
     
     struct OverlapResult {
@@ -259,9 +254,9 @@ class AutoStitchManager {
         let bottomWidth = bottomSmall.width
         let bottomHeight = bottomSmall.height
         
-        // 扩大页眉忽略区域以适配浏览器截图
-        let ignoreHeaderRatio = 0.20 
-        let ignoreFooterRatio = 0.05
+        // 进一步减小忽略区域，以便识别到图片边缘（如阴影）
+        let ignoreHeaderRatio = 0.15 
+        let ignoreFooterRatio = 0.05 // 减小底部忽略，识别阴影
         
         let topIgnoreHeader = Int(Double(topHeight) * ignoreHeaderRatio)
         let topIgnoreFooter = Int(Double(topHeight) * ignoreFooterRatio)
@@ -273,17 +268,15 @@ class AutoStitchManager {
         let bottomContentStart = bottomIgnoreHeader
         let bottomContentEnd = bottomHeight - bottomIgnoreFooter
         
-        let searchHeight = 100 // 显著增加搜索高度以提高鲁棒性
-        let minOverlap = 40   // 增加最小重合要求以排除误报
+        let searchHeight = 60 // 增加搜索高度
+        let minOverlap = 20  // 降低最小重合要求
         
         var bestTopY = -1
         var bestBottomY = -1
         var minDiff = Double.greatestFiniteMagnitude
         
-        // 避开左右边缘（如 Honor 官网右下角的耳机图标、侧边滚动条）
-        let colStart = Int(Double(min(topWidth, bottomWidth)) * 0.2)
-        let colEnd = Int(Double(min(topWidth, bottomWidth)) * 0.8)
-        
+        // 策略：在 bottomImage 的内容区域取一段，在 topImage 的内容区域寻找匹配
+        // 我们取 bottomImage 的 [bottomContentStart, bottomContentStart + searchHeight] 这一段
         let sampleStart = bottomContentStart
         let sampleHeight = min(searchHeight, bottomContentEnd - sampleStart)
         
@@ -297,7 +290,7 @@ class AutoStitchManager {
                 let topRow = yOffset + row
                 let bottomRow = sampleStart + row
                 
-                for col in stride(from: colStart, to: colEnd, by: 4) {
+                for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) {
                     let topIdx = (topRow * topWidth + col) * 4
                     let bottomIdx = (bottomRow * bottomWidth + col) * 4
                     
@@ -319,8 +312,8 @@ class AutoStitchManager {
             }
         }
         
-        // 校验：阈值收紧到 30.0，减少误匹配
-        if bestTopY != -1 && minDiff < 30.0 {
+        // 校验：阈值稍微放宽一点点
+        if bestTopY != -1 && minDiff < 35.0 {
             let topYInOriginal = CGFloat(bestTopY) / scale
             let bottomYInOriginal = CGFloat(bestBottomY) / scale
             
