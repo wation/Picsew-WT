@@ -7,6 +7,7 @@ class AutoStitchViewController: UIViewController {
     private var imageViews: [UIImageView] = []
     private var adjustmentViews: [StitchAdjustmentView] = []
     private var currentOffsets: [CGFloat] = []
+    private var currentBottomStarts: [CGFloat] = [] // 每一张图自身显示的起始 Y
     private var topCrop: CGFloat = 0 // 第一张图片的顶部裁剪 (显示坐标)
     private var bottomCrop: CGFloat = 0 // 最后一张图片的底部裁剪 (显示坐标)
     
@@ -52,16 +53,6 @@ class AutoStitchViewController: UIViewController {
         return sv
     }()
     
-    private lazy var contentStackView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.distribution = .fill
-        stack.alignment = .fill
-        stack.spacing = 0
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        return stack
-    }()
-    
     private lazy var contentView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -72,7 +63,7 @@ class AutoStitchViewController: UIViewController {
         let view = UIView()
         view.backgroundColor = .white
         view.translatesAutoresizingMaskIntoConstraints = false
-        // 添加底部工具图标 (占位)
+        
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.distribution = .equalSpacing
@@ -184,27 +175,33 @@ class AutoStitchViewController: UIViewController {
         ])
     }
     
+    private var matchedIndices: Set<Int> = [] // 记录哪些索引是自动匹配成功的
+
     private func startAutoStitch() {
         loadingIndicator.startAnimating()
-        viewModel.autoStitch { [weak self] stitchedImage, offsets, error in
+        viewModel.autoStitch { [weak self] stitchedImage, offsets, bottomStarts, matched, error in
             self?.loadingIndicator.stopAnimating()
+            
+            self?.matchedIndices.removeAll()
+            if let matched = matched {
+                self?.matchedIndices = Set(matched)
+            }
+
             if let error = error {
                 let nsError = error as NSError
                 if nsError.domain == "StitchWarning" {
-                    // 警告：找不到重合点，但仍然显示结果
-                    print("AutoStitch: Warning - No overlap found for some images")
-                    if let offsets = offsets {
+                    if let offsets = offsets, let bottomStarts = bottomStarts {
                         self?.currentOffsets = offsets
+                        self?.currentBottomStarts = bottomStarts
                         self?.setupImageDisplay()
-                        // 可选：提示用户部分图片未找到重合点
                         self?.showWarningTip(nsError.localizedDescription)
                     }
                 } else {
-                    // 真正的错误
                     self?.showError(error.localizedDescription)
                 }
-            } else if let _ = stitchedImage, let offsets = offsets {
+            } else if let _ = stitchedImage, let offsets = offsets, let bottomStarts = bottomStarts {
                 self?.currentOffsets = offsets
+                self?.currentBottomStarts = bottomStarts
                 self?.setupImageDisplay()
             }
         }
@@ -212,77 +209,87 @@ class AutoStitchViewController: UIViewController {
     
     private var imageViewTopConstraints: [NSLayoutConstraint] = []
     private var imageViewHeightConstraints: [NSLayoutConstraint] = []
-    private var firstImageTopConstraint: NSLayoutConstraint? // 第一个容器相对于 contentView 的 top
-    private var firstImageViewTopConstraint: NSLayoutConstraint? // 第一张图片相对于第一个容器的 top
-    private var firstImageHeightConstraint: NSLayoutConstraint? // 第一个容器的高度
-    private var lastImageHeightConstraint: NSLayoutConstraint? // 最后一个容器的高度
+    private var imageViewInternalTopConstraints: [NSLayoutConstraint] = []
+    private var firstImageTopConstraint: NSLayoutConstraint?
+    private var firstImageViewTopConstraint: NSLayoutConstraint?
+    private var firstImageHeightConstraint: NSLayoutConstraint?
+    private var lastImageHeightConstraint: NSLayoutConstraint?
 
     private func setupImageDisplay() {
         let images = viewModel.images
-        guard !images.isEmpty else {
-            print("AutoStitch: No images to display")
-            return
-        }
+        guard !images.isEmpty, currentOffsets.count == images.count, currentBottomStarts.count == images.count else { return }
         
-        guard currentOffsets.count == images.count else {
-            print("AutoStitch: Offsets count (\(currentOffsets.count)) does not match images count (\(images.count))")
-            return
-        }
-        
-        // 确保视图已布局以获取正确的宽度
         view.layoutIfNeeded()
-        
-        // 清除旧视图
         contentView.subviews.forEach { $0.removeFromSuperview() }
         imageViews.removeAll()
         adjustmentViews.removeAll()
         imageViewTopConstraints.removeAll()
         imageViewHeightConstraints.removeAll()
+        imageViewInternalTopConstraints.removeAll()
         
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
         contentView.backgroundColor = .white
         
-        print("AutoStitch: Setup display with width: \(containerWidth), images: \(images.count)")
+        var lastContainer: UIView?
         
         for (index, image) in images.enumerated() {
-            // 容器视图，负责裁剪
+            let displayScale = containerWidth / image.size.width
+            let displayHeight = image.size.height * displayScale
+            let canvasY = currentOffsets[index] * displayScale
+            let selfStartY = currentBottomStarts[index] * displayScale
+            
+            // 容器在画布上的位置
+            var finalStartY = canvasY
+            if index == 0 {
+                finalStartY += topCrop
+            }
+            
+            // 容器的高度
+            let containerHeight: CGFloat
+            if index == images.count - 1 {
+                // 最后一张图：(原始高度 - 自身起始位置) - 底部裁剪
+                containerHeight = max(0, displayHeight - selfStartY - bottomCrop)
+            } else {
+                // 中间图：下一张图的起始位置 - 当前图的起始位置
+                let nextCanvasY = currentOffsets[index+1] * displayScale
+                containerHeight = max(0, nextCanvasY - canvasY)
+            }
+            
             let container = UIView()
             container.clipsToBounds = true
+            container.backgroundColor = .clear
             container.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(container)
+            // 关键修改：为了让上层图盖住下层图的阴影，我们需要上层图在层级上更靠前。
+            // addSubview 默认把新视图放在最前面，所以我们要反向操作：
+            // 将后添加的图片（下层图）放到最底层，这样先添加的图片（上层图）就在其之上。
+            contentView.sendSubviewToBack(container)
             
             let imageView = UIImageView(image: image)
-            imageView.contentMode = .scaleAspectFill
+            imageView.contentMode = .scaleToFill
             imageView.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(imageView)
             imageViews.append(imageView)
             
-            let aspectRatio = image.size.height / image.size.width
-            let displayHeight = containerWidth * aspectRatio
+            let topConstraint = container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: finalStartY)
+            let heightConstraint = container.heightAnchor.constraint(equalToConstant: containerHeight)
             
-            // 将图片坐标转换为显示坐标
-            let displayScale = containerWidth / image.size.width
-            let yPosition = currentOffsets[index] * displayScale
-            
-            // 容器的约束
-            let topOffset = (index == 0) ? topCrop : 0
-            let bottomOffset = (index == images.count - 1) ? bottomCrop : 0
-            
-            let topConstraint = container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: yPosition + topOffset)
-            let heightConstraint = container.heightAnchor.constraint(equalToConstant: displayHeight - topOffset - bottomOffset)
+            // 内部偏移：不仅要考虑自身的 header 裁剪，如果是第一张图还要考虑 topCrop
+            let internalTopOffset = -selfStartY + (index == 0 ? -topCrop : 0)
+            let imgInternalTopConstraint = imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: internalTopOffset)
             
             imageViewTopConstraints.append(topConstraint)
             imageViewHeightConstraints.append(heightConstraint)
-            
-            let imgTopConstraint = imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: -topOffset)
+            imageViewInternalTopConstraints.append(imgInternalTopConstraint)
             
             if index == 0 {
                 firstImageTopConstraint = topConstraint
-                firstImageViewTopConstraint = imgTopConstraint
+                firstImageViewTopConstraint = imgInternalTopConstraint
                 firstImageHeightConstraint = heightConstraint
             }
             if index == images.count - 1 {
                 lastImageHeightConstraint = heightConstraint
+                lastContainer = container
             }
             
             NSLayoutConstraint.activate([
@@ -290,23 +297,22 @@ class AutoStitchViewController: UIViewController {
                 container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
                 container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
                 heightConstraint,
-                
-                // 图片在容器内的约束
-                imgTopConstraint,
+                imgInternalTopConstraint,
                 imageView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
                 imageView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
                 imageView.heightAnchor.constraint(equalToConstant: displayHeight)
             ])
-            
-            // 添加调整气泡
+
+            // 添加中间调整气泡
             if index > 0 {
+                let isMatched = matchedIndices.contains(index)
                 let adjustmentView = StitchAdjustmentView(type: .middle)
                 adjustmentView.onAdjust = { [weak self] deltaY in
                     self?.adjustOffset(at: index, deltaY: deltaY)
                 }
+                adjustmentView.isHidden = isMatched
                 contentView.addSubview(adjustmentView)
                 adjustmentViews.append(adjustmentView)
-                
                 NSLayoutConstraint.activate([
                     adjustmentView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
                     adjustmentView.centerYAnchor.constraint(equalTo: container.topAnchor),
@@ -331,7 +337,7 @@ class AutoStitchViewController: UIViewController {
         }
         
         // 最后一张图底部的裁剪气泡
-        if let lastContainer = contentView.subviews.filter({ $0.clipsToBounds }).last {
+        if let lastContainer = lastContainer {
             let bottomAdjustment = StitchAdjustmentView(type: .bottom)
             bottomAdjustment.onAdjust = { [weak self] deltaY in
                 self?.adjustBottomCrop(deltaY: deltaY)
@@ -343,108 +349,78 @@ class AutoStitchViewController: UIViewController {
                 bottomAdjustment.topAnchor.constraint(equalTo: lastContainer.bottomAnchor, constant: -15),
                 bottomAdjustment.widthAnchor.constraint(equalToConstant: 60),
                 bottomAdjustment.heightAnchor.constraint(equalToConstant: 30),
-                bottomAdjustment.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
+                // 关键：底部气泡决定了 contentView 的底部，从而让 ScrollView 能滑动
+                bottomAdjustment.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
             ])
         }
         
-        // 强制布局更新以确保 ScrollView 内容大小正确
-        contentView.layoutIfNeeded()
-        print("AutoStitch: ContentView height: \(contentView.frame.height)")
-    }
+        // 确保气泡在最上层，图片在最下层
+         contentView.subviews.forEach { subview in
+             if subview is StitchAdjustmentView {
+                 contentView.bringSubviewToFront(subview)
+             } else {
+                 contentView.sendSubviewToBack(subview)
+             }
+         }
+         
+         contentView.layoutIfNeeded()
+     }
     
     private func adjustOffset(at index: Int, deltaY: CGFloat) {
         guard index > 0 && index < imageViewTopConstraints.count else { return }
-        
-        // 更新约束 (现在是 container 的 top 约束)
-        imageViewTopConstraints[index].constant += deltaY
-        
-        // 更新 currentOffsets 数据 (用于最终合成)
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
-        let image = viewModel.images[index]
-        let displayScale = containerWidth / image.size.width
+        let displayScale = containerWidth / viewModel.images[index].size.width
         let imageDeltaY = deltaY / displayScale
+        
+        // 调整偏移量时，我们需要移除“自动匹配”标记，因为用户开始手动调整了
+        matchedIndices.remove(index)
         
         for i in index..<currentOffsets.count {
             currentOffsets[i] += imageDeltaY
         }
         
-        view.layoutIfNeeded()
+        // 重新布局
+        setupImageDisplay()
     }
     
     private func adjustTopCrop(deltaY: CGFloat) {
         let newTopCrop = max(0, topCrop + deltaY)
-        
-        // 限制不能裁剪超过第一张图片的高度 (留至少10像素)
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
         let firstImage = viewModel.images.first
         let firstImageDisplayHeight = (firstImage?.size.height ?? 0) * (containerWidth / (firstImage?.size.width ?? 1))
         
-        if firstImageDisplayHeight > 0 && newTopCrop >= firstImageDisplayHeight - 10 {
-            return
-        }
+        if firstImageDisplayHeight > 0 && newTopCrop >= firstImageDisplayHeight - 10 { return }
         
         let diff = newTopCrop - topCrop
         topCrop = newTopCrop
-        
-        // 更新第一个容器的 top 和 height，以及图片的 top
         firstImageTopConstraint?.constant += diff
         firstImageViewTopConstraint?.constant -= diff
         firstImageHeightConstraint?.constant -= diff
-        
         view.layoutIfNeeded()
     }
     
     private func adjustBottomCrop(deltaY: CGFloat) {
-        // 向上拖拽 (deltaY < 0) 增加裁剪量
         let newBottomCrop = max(0, bottomCrop - deltaY)
-        
-        // 限制不能裁剪超过最后一张图片的高度
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
         let lastImage = viewModel.images.last
         let lastImageDisplayHeight = (lastImage?.size.height ?? 0) * (containerWidth / (lastImage?.size.width ?? 1))
         
-        if lastImageDisplayHeight > 0 && newBottomCrop >= lastImageDisplayHeight - 10 {
-            return
-        }
+        if lastImageDisplayHeight > 0 && newBottomCrop >= lastImageDisplayHeight - 10 { return }
         
         let diff = newBottomCrop - bottomCrop
         bottomCrop = newBottomCrop
-        
-        // 更新最后一个容器的高度
         lastImageHeightConstraint?.constant -= diff
-        
         view.layoutIfNeeded()
     }
-    
+
     private func showWarningTip(_ message: String) {
-        let label = UILabel()
-        label.text = message
-        label.textColor = .white
-        label.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 14)
-        label.layer.cornerRadius = 8
-        label.clipsToBounds = true
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor, constant: -20),
-            label.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
-            label.heightAnchor.constraint(equalToConstant: 36)
-        ])
-        
-        UIView.animate(withDuration: 0.3, delay: 2.0, options: .curveEaseOut, animations: {
-            label.alpha = 0
-        }) { _ in
-            label.removeFromSuperview()
-        }
+        showToast(message: message)
     }
     
     private func showError(_ message: String) {
-        // 使用Toast代替AlertController，不返回上一页
-        showToast(message: message, duration: 2.0)
+        let alert = UIAlertController(title: "错误", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "确定", style: .default))
+        present(alert, animated: true)
     }
     
     @objc private func backTapped() {
@@ -452,18 +428,13 @@ class AutoStitchViewController: UIViewController {
     }
     
     @objc private func shareTapped() {
-        // 生成拼接后的完整图片 (包含裁剪)
-        // 隐藏调整气泡进行截图
         adjustmentViews.forEach { $0.isHidden = true }
-        
         let renderer = UIGraphicsImageRenderer(bounds: contentView.bounds)
         let stitchedImage = renderer.image { ctx in
             contentView.drawHierarchy(in: contentView.bounds, afterScreenUpdates: true)
         }
-        
         adjustmentViews.forEach { $0.isHidden = false }
         
-        // 保存到相册
         UIImageWriteToSavedPhotosAlbum(stitchedImage, self, #selector(imageSaved(_:didFinishSavingWithError:contextInfo:)), nil)
     }
     
@@ -509,12 +480,9 @@ class StitchAdjustmentView: UIView {
         addSubview(icon)
         
         switch type {
-        case .top:
-            icon.image = UIImage(systemName: "arrow.up")
-        case .middle:
-            icon.image = UIImage(systemName: "arrow.up.arrow.down")
-        case .bottom:
-            icon.image = UIImage(systemName: "arrow.down")
+        case .top: icon.image = UIImage(systemName: "arrow.up")
+        case .middle: icon.image = UIImage(systemName: "arrow.up.arrow.down")
+        case .bottom: icon.image = UIImage(systemName: "arrow.down")
         }
         
         NSLayoutConstraint.activate([
@@ -524,11 +492,6 @@ class StitchAdjustmentView: UIView {
             icon.heightAnchor.constraint(equalToConstant: 20)
         ])
         
-        // 添加点击效果或勾选图标 (如截图中所示，有时是勾选)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped))
-        addGestureRecognizer(tap)
-        
-        // 添加拖拽手势用于微调
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         addGestureRecognizer(pan)
     }
@@ -543,20 +506,11 @@ class StitchAdjustmentView: UIView {
             lastLocation = .zero
         }
     }
-    
-    @objc private func tapped() {
-        // 切换图标为勾选 (演示用)
-        if let icon = subviews.first as? UIImageView {
-            icon.image = UIImage(systemName: "checkmark")
-            backgroundColor = UIColor.systemYellow.withAlphaComponent(0.8)
-        }
-    }
 }
 
 // MARK: - ToastView
 
 class ToastView: UIView {
-    
     private let messageLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
@@ -581,9 +535,7 @@ class ToastView: UIView {
         backgroundColor = UIColor.black.withAlphaComponent(0.7)
         layer.cornerRadius = 8
         clipsToBounds = true
-        
         addSubview(messageLabel)
-        
         NSLayoutConstraint.activate([
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
@@ -597,29 +549,19 @@ class ToastView: UIView {
 
 extension UIViewController {
     func showToast(message: String, duration: TimeInterval = 2.0) {
-        // 创建ToastView
         let toastView = ToastView(message: message)
         toastView.translatesAutoresizingMaskIntoConstraints = false
-        
-        // 添加到当前视图
         view.addSubview(toastView)
-        
-        // 设置约束
         NSLayoutConstraint.activate([
             toastView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             toastView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
             toastView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 20),
             toastView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
         ])
-        
-        // 初始透明度为0
         toastView.alpha = 0
-        
-        // 显示动画
         UIView.animate(withDuration: 0.3) {
             toastView.alpha = 1
         } completion: { _ in
-            // 延迟后隐藏
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                 UIView.animate(withDuration: 0.3) {
                     toastView.alpha = 0
