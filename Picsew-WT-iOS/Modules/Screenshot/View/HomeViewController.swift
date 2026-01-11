@@ -173,7 +173,7 @@ class HomeViewController: UIViewController {
     }
     
     @objc private func autoStitchTapped() {
-        guard viewModel.selectedAssets.count >= 2 else { return }
+        guard viewModel.selectedAssets.count == 2 else { return }
         loadingIndicator.startAnimating()
         viewModel.fetchSelectedImages { [weak self] images in
             self?.loadingIndicator.stopAnimating()
@@ -206,7 +206,13 @@ class HomeViewController: UIViewController {
     }
     
     private func updateBottomBar() {
-        bottomActionBar.isHidden = viewModel.selectedAssets.count < 2
+        let count = viewModel.selectedAssets.count
+        bottomActionBar.isHidden = count < 2
+        
+        // 自动拼图目前仅支持 2 张图片
+        let isAutoStitchEnabled = (count == 2)
+        autoStitchButton.isEnabled = isAutoStitchEnabled
+        autoStitchButton.alpha = isAutoStitchEnabled ? 1.0 : 0.5
     }
 }
 
@@ -223,8 +229,30 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // 记录操作前所有已选中的 asset，用于后续精准刷新
+        let previouslySelectedAssets = viewModel.selectedAssets
+        
         viewModel.toggleSelection(at: indexPath.item)
-        collectionView.reloadItems(at: [indexPath])
+        
+        // 收集需要更新的 IndexPaths：
+        // 1. 当前点击的 cell (状态改变)
+        // 2. 之前已选中的所有 cell (序号可能因重排而改变)
+        var indexPathsToUpdate = Set<IndexPath>()
+        indexPathsToUpdate.insert(indexPath)
+        
+        for asset in previouslySelectedAssets {
+            if let index = viewModel.assets.firstIndex(of: asset) {
+                indexPathsToUpdate.insert(IndexPath(item: index, section: 0))
+            }
+        }
+        
+        // 使用 reconfigureItems 仅更新 Cell 内容，不触发重新加载或动画，彻底解决闪烁问题
+        if #available(iOS 15.0, *) {
+            collectionView.reconfigureItems(at: Array(indexPathsToUpdate))
+        } else {
+            collectionView.reloadItems(at: Array(indexPathsToUpdate))
+        }
+        
         updateBottomBar()
     }
 }
