@@ -161,9 +161,12 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         return isAnySelected
     }
     
+    private let isManualMode: Bool
+    
     // MARK: - Lifecycle
     
-    init() {
+    init(isManualMode: Bool = false) {
+        self.isManualMode = isManualMode
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
@@ -175,7 +178,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        startAutoStitch()
+        
+        if isManualMode {
+            titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+            startManualInitialStitch()
+        } else {
+            startAutoStitch()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -274,6 +283,21 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 self?.setupImageDisplay()
             }
         }
+    }
+
+    private func startManualInitialStitch() {
+        // 手动模式下，直接按原图顺序排列，不寻找重合点
+        let images = viewModel.images
+        var offsets: [CGFloat] = [0]
+        var currentY: CGFloat = 0
+        for i in 0..<(images.count - 1) {
+            currentY += images[i].size.height
+            offsets.append(currentY)
+        }
+        self.currentOffsets = offsets
+        self.currentBottomStarts = Array(repeating: 0, count: images.count)
+        self.matchedIndices.removeAll() // 手动模式下所有气泡都显示（不隐藏）
+        self.setupImageDisplay()
     }
     
     private var imageViewTopConstraints: [NSLayoutConstraint] = []

@@ -168,26 +168,13 @@ class HomeViewController: UIViewController {
     
     @objc private func manualStitchTapped() {
         guard viewModel.selectedAssets.count >= 2 else { return }
-        
-        let alert = UIAlertController(title: NSLocalizedString("manual_stitch", comment: "手动拼图"), message: nil, preferredStyle: .actionSheet)
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("vertical_stitch", comment: "垂直拼图"), style: .default, handler: { _ in
-            self.startManualStitch(mode: .vertical)
-        }))
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("horizontal_stitch", comment: "横向拼图"), style: .default, handler: { _ in
-            self.startManualStitch(mode: .horizontal)
-        }))
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        
-        // For iPad support
-        if let popoverController = alert.popoverPresentationController {
-            popoverController.sourceView = manualStitchButton
-            popoverController.sourceRect = manualStitchButton.bounds
+        loadingIndicator.startAnimating()
+        viewModel.fetchSelectedImages { [weak self] images in
+            self?.loadingIndicator.stopAnimating()
+            let vc = AutoStitchViewController(isManualMode: true)
+            vc.setInputImages(images)
+            self?.navigationController?.pushViewController(vc, animated: true)
         }
-        
-        present(alert, animated: true, completion: nil)
     }
 
     private func startManualStitch(mode: StitchMode) {
