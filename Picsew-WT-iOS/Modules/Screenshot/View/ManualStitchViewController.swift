@@ -150,8 +150,9 @@ class ManualStitchViewController: UIViewController {
         imageViews.removeAll()
         
         // 创建图片视图
-        var currentX: CGFloat = 20
-        var currentY: CGFloat = 20
+        let horizontalMargin: CGFloat = 16
+        var currentX: CGFloat = horizontalMargin
+        var currentY: CGFloat = horizontalMargin
         let containerWidth = stitchContainerView.frame.width
         let containerHeight = stitchContainerView.frame.height
         
@@ -160,15 +161,15 @@ class ManualStitchViewController: UIViewController {
             imageView.contentMode = .scaleAspectFit
             
             if mode == .vertical {
-                let displayWidth = containerWidth - 40
+                let displayWidth = containerWidth - (horizontalMargin * 2)
                 let displayHeight = image.size.height * (displayWidth / image.size.width)
-                imageView.frame = CGRect(x: 20, y: currentY, width: displayWidth, height: displayHeight)
-                currentY += displayHeight + 20
+                imageView.frame = CGRect(x: horizontalMargin, y: currentY, width: displayWidth, height: displayHeight)
+                currentY += displayHeight + horizontalMargin
             } else {
-                let displayHeight = containerHeight - 40
+                let displayHeight = containerHeight - (horizontalMargin * 2)
                 let displayWidth = image.size.width * (displayHeight / image.size.height)
-                imageView.frame = CGRect(x: currentX, y: 20, width: displayWidth, height: displayHeight)
-                currentX += displayWidth + 20
+                imageView.frame = CGRect(x: currentX, y: horizontalMargin, width: displayWidth, height: displayHeight)
+                currentX += displayWidth + horizontalMargin
             }
             
             imageView.isUserInteractionEnabled = true

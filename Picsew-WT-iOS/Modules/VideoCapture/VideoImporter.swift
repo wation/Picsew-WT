@@ -1,7 +1,7 @@
 import UIKit
 import Photos
 import AVFoundation
-import MobileCoreServices
+import UniformTypeIdentifiers
 
 class VideoImporter: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     static let shared = VideoImporter()
@@ -30,7 +30,7 @@ class VideoImporter: NSObject, UIImagePickerControllerDelegate, UINavigationCont
         
         let imagePicker = UIImagePickerController()
         imagePicker.sourceType = .photoLibrary
-        imagePicker.mediaTypes = [kUTTypeMovie as String]
+        imagePicker.mediaTypes = [UTType.movie.identifier]
         imagePicker.delegate = self
         
         viewController.present(imagePicker, animated: true, completion: nil)

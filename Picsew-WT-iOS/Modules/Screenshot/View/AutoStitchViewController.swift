@@ -302,9 +302,10 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         imageViewInternalTopConstraints.removeAll()
         adjustmentViewCenterYConstraints.removeAll()
         
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
-        contentView.backgroundColor = .white
-        let paddingTop: CGFloat = 0
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
+        contentView.backgroundColor = .systemGray6
+        let paddingTop: CGFloat = 16
         var lastContainer: UIView?
         var totalHeight: CGFloat = 0
         
@@ -378,8 +379,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             
             NSLayoutConstraint.activate([
                 topConstraint,
-                container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: horizontalMargin),
+                container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -horizontalMargin),
                 heightConstraint,
                 imgInternalTopConstraint,
                 imageView.leadingAnchor.constraint(equalTo: container.leadingAnchor),

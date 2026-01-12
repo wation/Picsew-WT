@@ -20,13 +20,16 @@ class PhotoCell: UICollectionViewCell {
         contentView.addSubview(selectionOverlay)
         selectionOverlay.addSubview(orderLabel)
         
+        contentView.layer.cornerRadius = 8
+        contentView.clipsToBounds = true
+        
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
         selectionOverlay.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.3)
         selectionOverlay.layer.borderColor = UIColor.systemBlue.cgColor
-        selectionOverlay.layer.borderWidth = 2
+        selectionOverlay.layer.borderWidth = 3
         selectionOverlay.translatesAutoresizingMaskIntoConstraints = false
         selectionOverlay.isHidden = true
         

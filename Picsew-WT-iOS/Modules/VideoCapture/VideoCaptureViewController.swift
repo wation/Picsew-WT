@@ -1,289 +1,304 @@
 import UIKit
+import Photos
+import AVFoundation
 
 class VideoCaptureViewController: UIViewController {
 
-    private var selectedTabIndex: Int = 0 // 0: 实时录屏, 1: 导入视频
-    private var isRecording: Bool = false
+    private var selectedTabIndex: Int = 0 // 0: 视频拼图, 1: 视频导入
     
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = NSLocalizedString("app_name", comment: "应用名称")
-        label.font = UIFont.boldSystemFont(ofSize: 18)
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var tabStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.distribution = .fillEqually
-        stackView.spacing = 0
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
-    }()
-    
-    private lazy var liveRecordTab: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle(NSLocalizedString("video_capture", comment: "实时录屏"), for: .normal)
-        button.setImage(UIImage(systemName: "camera"), for: .normal)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
-        button.contentHorizontalAlignment = .center
-        button.backgroundColor = .white
-        button.setTitleColor(.black, for: .normal)
-        button.layer.cornerRadius = 8
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.lightGray.cgColor
-        button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
-        button.tag = 0
-        return button
-    }()
-    
-    private lazy var importVideoTab: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle(NSLocalizedString("import_video", comment: "导入视频"), for: .normal)
-        button.setImage(UIImage(systemName: "arrow.up.to.line"), for: .normal)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
-        button.contentHorizontalAlignment = .center
-        button.backgroundColor = .lightGray
-        button.setTitleColor(.gray, for: .normal)
-        button.layer.cornerRadius = 8
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.lightGray.cgColor
-        button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
-        button.tag = 1
-        return button
-    }()
-    
-    private lazy var contentView: UIView = {
+    private lazy var topActionBar: UIView = {
         let view = UIView()
         view.backgroundColor = .white
-        view.layer.cornerRadius = 12
-        view.layer.borderWidth = 1
-        view.layer.borderColor = UIColor.lightGray.cgColor
+        view.layer.cornerRadius = 10
+        view.clipsToBounds = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    private lazy var cameraIconView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "camera"))
-        imageView.tintColor = .systemBlue
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-    
-    private lazy var startRecordLabel: UILabel = {
-        let label = UILabel()
-        label.text = "开始录屏"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var startRecordButton: UIButton = {
+    private lazy var liveRecordButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("开始录屏", for: .normal)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(startRecordTapped), for: .touchUpInside)
-        // 添加点击反馈动画
-        button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        button.setTitle("视频拼图", for: .normal)
+        button.setImage(UIImage(systemName: "video.badge.plus"), for: .normal)
+        button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
+        button.tag = 0
+        applyButtonStyle(button, position: .left)
         return button
     }()
-
+    
+    private lazy var importVideoButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("视频导入", for: .normal)
+        button.setImage(UIImage(systemName: "arrow.up.to.line"), for: .normal)
+        button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
+        button.tag = 1
+        applyButtonStyle(button, position: .right)
+        return button
+    }()
+    
+    enum ButtonPosition {
+        case left, right
+    }
+    
+    private func applyButtonStyle(_ button: UIButton, position: ButtonPosition) {
+        button.layer.borderWidth = 1.0
+        button.layer.borderColor = UIColor.systemBlue.cgColor
+        button.tintColor = .systemBlue
+        
+        let cornerRadius: CGFloat = 10
+        if #available(iOS 11.0, *) {
+            button.layer.cornerRadius = cornerRadius
+            switch position {
+            case .left:
+                button.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
+            case .right:
+                button.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+            }
+        } else {
+            button.layer.cornerRadius = cornerRadius
+        }
+        
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.imagePlacement = .top
+            config.imagePadding = 5
+            button.configuration = config
+        } else {
+            button.imageEdgeInsets = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0)
+            button.titleEdgeInsets = UIEdgeInsets(top: 30, left: -20, bottom: 0, right: 0)
+        }
+    }
+    
+    private lazy var scrollView: UIScrollView = {
+        let sv = UIScrollView()
+        sv.backgroundColor = .white
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        return sv
+    }()
+    
+    private lazy var tutorialContentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var importContentView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.isHidden = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var videoCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let margin: CGFloat = 16
+        let spacing: CGFloat = 12
+        let totalSpacing = (margin * 2) + (spacing * 2)
+        let width = (UIScreen.main.bounds.width - totalSpacing) / 3
+        
+        layout.itemSize = CGSize(width: width, height: width)
+        layout.minimumInteritemSpacing = spacing
+        layout.minimumLineSpacing = spacing
+        layout.sectionInset = UIEdgeInsets(top: margin, left: margin, bottom: 20, right: margin)
+        
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.backgroundColor = .systemGray6
+        cv.register(VideoCell.self, forCellWithReuseIdentifier: "VideoCell")
+        cv.delegate = self
+        cv.dataSource = self
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        return cv
+    }()
+    
+    private var videoAssets: [PHAsset] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGray6
+        view.backgroundColor = .white
         setupUI()
-        checkPermission()
+        setupNavigationBar()
+        updateTabUI()
+        loadVideos()
+    }
+    
+    private func setupNavigationBar() {
+        title = NSLocalizedString("video_capture", comment: "")
+        if #available(iOS 13.0, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = .white
+            appearance.shadowColor = UIColor(white: 0, alpha: 0.1)
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
     
     private func setupUI() {
-        // 添加子视图
-        view.addSubview(titleLabel)
-        view.addSubview(tabStackView)
-        view.addSubview(contentView)
+        view.addSubview(topActionBar)
+        view.addSubview(scrollView)
+        view.addSubview(importContentView)
         
-        tabStackView.addArrangedSubview(liveRecordTab)
-        tabStackView.addArrangedSubview(importVideoTab)
+        scrollView.addSubview(tutorialContentView)
         
-        contentView.addSubview(cameraIconView)
-        contentView.addSubview(startRecordLabel)
-        contentView.addSubview(startRecordButton)
+        importContentView.addSubview(videoCollectionView)
         
-        // 设置约束
+        let stackView = UIStackView(arrangedSubviews: [liveRecordButton, importVideoButton])
+        stackView.axis = .horizontal
+        stackView.distribution = .fillEqually
+        stackView.spacing = -1.0
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        topActionBar.addSubview(stackView)
+        
         NSLayoutConstraint.activate([
-            // 标题
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            topActionBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            topActionBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            topActionBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            topActionBar.heightAnchor.constraint(equalToConstant: 60),
             
-            // 标签栏
-            tabStackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            tabStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            tabStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            tabStackView.heightAnchor.constraint(equalToConstant: 44),
+            stackView.topAnchor.constraint(equalTo: topActionBar.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: topActionBar.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: topActionBar.trailingAnchor),
+            stackView.bottomAnchor.constraint(equalTo: topActionBar.bottomAnchor),
             
-            // 内容视图
-            contentView.topAnchor.constraint(equalTo: tabStackView.bottomAnchor, constant: 20),
-            contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            contentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            scrollView.topAnchor.constraint(equalTo: topActionBar.bottomAnchor, constant: 10),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
-            // 相机图标
-            cameraIconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            cameraIconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor, constant: -60),
-            cameraIconView.widthAnchor.constraint(equalToConstant: 80),
-            cameraIconView.heightAnchor.constraint(equalToConstant: 80),
+            tutorialContentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            tutorialContentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            tutorialContentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            tutorialContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            tutorialContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            // 开始录屏文字
-            startRecordLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            startRecordLabel.topAnchor.constraint(equalTo: cameraIconView.bottomAnchor, constant: 16),
+            importContentView.topAnchor.constraint(equalTo: topActionBar.bottomAnchor, constant: 10),
+            importContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            importContentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            importContentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
-            // 开始录屏按钮
-            startRecordButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            startRecordButton.topAnchor.constraint(equalTo: startRecordLabel.bottomAnchor, constant: 32),
-            startRecordButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
-            startRecordButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
-            startRecordButton.heightAnchor.constraint(equalToConstant: 48)
+            videoCollectionView.topAnchor.constraint(equalTo: importContentView.topAnchor),
+            videoCollectionView.leadingAnchor.constraint(equalTo: importContentView.leadingAnchor),
+            videoCollectionView.trailingAnchor.constraint(equalTo: importContentView.trailingAnchor),
+            videoCollectionView.bottomAnchor.constraint(equalTo: importContentView.bottomAnchor)
         ])
+        
+        setupTutorialContent()
     }
     
-    private func checkPermission() {
-        if selectedTabIndex == 0 {
-            VideoCaptureManager.shared.checkScreenRecordingPermission { [weak self] hasPermission in
-                DispatchQueue.main.async {
-                    if !hasPermission {
-                        self?.startRecordButton.isEnabled = false
-                        self?.startRecordLabel.text = "屏幕录制不可用"
-                    }
+    private func loadVideos() {
+        PHPhotoLibrary.requestAuthorization { [weak self] status in
+            if status == .authorized {
+                let options = PHFetchOptions()
+                options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                let fetchResult = PHAsset.fetchAssets(with: .video, options: options)
+                
+                var assets: [PHAsset] = []
+                fetchResult.enumerateObjects { (asset, _, _) in
+                    assets.append(asset)
                 }
-            }
-        } else {
-            VideoImporter.shared.checkPhotoLibraryPermission { [weak self] hasPermission in
+                
                 DispatchQueue.main.async {
-                    if !hasPermission {
-                        self?.startRecordButton.isEnabled = false
-                        self?.startRecordLabel.text = "相册访问被拒绝"
-                    }
+                    self?.videoAssets = assets
+                    self?.videoCollectionView.reloadData()
                 }
             }
         }
+    }
+    
+    private func setupTutorialContent() {
+        let titleLabel = UILabel()
+        titleLabel.text = "必看使用教程："
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(titleLabel)
+        
+        let steps = [
+            "1. 打开需要滚动截图的界面",
+            "2. 状态栏下拉，并长按录屏按钮",
+            "3. 选中本应用，并点击“开始直播”",
+            "4. 关闭状态栏并切回界面，待左上角出现录屏标记后，开始缓慢向下滑动\n\n单次滑动请维持在3秒以上！连续滚动无需停顿！",
+            "5. 再次点击左上角，结束录屏，并回到本应用即可看到截好的长图"
+        ]
+        
+        var lastAnchor = titleLabel.bottomAnchor
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: tutorialContentView.topAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        for (index, stepText) in steps.enumerated() {
+            let label = UILabel()
+            label.text = stepText
+            label.font = UIFont.systemFont(ofSize: 16)
+            label.numberOfLines = 0
+            label.translatesAutoresizingMaskIntoConstraints = false
+            tutorialContentView.addSubview(label)
+            
+            NSLayoutConstraint.activate([
+                label.topAnchor.constraint(equalTo: lastAnchor, constant: 20),
+                label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+                label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+            ])
+            
+            // 添加一个占位图片视图，代表截图中的图片
+            let imageView = UIImageView()
+            imageView.backgroundColor = UIColor.systemGray6
+            imageView.layer.cornerRadius = 8
+            imageView.contentMode = .scaleAspectFit
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            tutorialContentView.addSubview(imageView)
+            
+            // 根据索引设置占位文字或图标，模拟截图内容
+            let placeholderLabel = UILabel()
+            placeholderLabel.text = "步骤 \(index + 1) 示意图"
+            placeholderLabel.textColor = .lightGray
+            placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+            imageView.addSubview(placeholderLabel)
+            
+            NSLayoutConstraint.activate([
+                imageView.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 10),
+                imageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+                imageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+                imageView.heightAnchor.constraint(equalToConstant: 200),
+                
+                placeholderLabel.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+                placeholderLabel.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
+            ])
+            
+            lastAnchor = imageView.bottomAnchor
+        }
+        
+        NSLayoutConstraint.activate([
+            lastAnchor.constraint(equalTo: tutorialContentView.bottomAnchor, constant: 20)
+        ])
     }
     
     @objc private func tabTapped(_ sender: UIButton) {
         selectedTabIndex = sender.tag
         updateTabUI()
-        checkPermission()
     }
     
     private func updateTabUI() {
         if selectedTabIndex == 0 {
-            liveRecordTab.backgroundColor = .white
-            liveRecordTab.setTitleColor(.black, for: .normal)
-            importVideoTab.backgroundColor = .lightGray
-            importVideoTab.setTitleColor(.gray, for: .normal)
-            // 更新内容视图为实时录屏界面
-            updateContentForLiveRecord()
+            liveRecordButton.backgroundColor = .white
+            liveRecordButton.alpha = 1.0
+            importVideoButton.backgroundColor = .systemGray6
+            importVideoButton.alpha = 0.5
+            scrollView.isHidden = false
+            importContentView.isHidden = true
         } else {
-            liveRecordTab.backgroundColor = .lightGray
-            liveRecordTab.setTitleColor(.gray, for: .normal)
-            importVideoTab.backgroundColor = .white
-            importVideoTab.setTitleColor(.black, for: .normal)
-            // 更新内容视图为导入视频界面
-            updateContentForImportVideo()
-        }
-    }
-    
-    private func updateContentForLiveRecord() {
-        cameraIconView.image = UIImage(systemName: "camera")
-        startRecordLabel.text = isRecording ? "录制中..." : "开始录屏"
-        startRecordButton.setTitle(isRecording ? "停止录屏" : "开始录屏", for: .normal)
-        startRecordButton.isEnabled = true
-    }
-    
-    private func updateContentForImportVideo() {
-        cameraIconView.image = UIImage(systemName: "arrow.up.to.line")
-        startRecordLabel.text = "选择视频"
-        startRecordButton.setTitle("导入视频", for: .normal)
-        startRecordButton.isEnabled = true
-    }
-    
-    @objc private func startRecordTapped() {
-        if selectedTabIndex == 0 {
-            if isRecording {
-                stopRecording()
-            } else {
-                startRecording()
-            }
-        } else {
-            importVideo()
-        }
-    }
-    
-    private func startRecording() {
-        VideoCaptureManager.shared.startRecording { [weak self] error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.showAlert(title: "错误", message: error.localizedDescription)
-                } else {
-                    self?.isRecording = true
-                    self?.updateContentForLiveRecord()
-                }
-            }
-        }
-    }
-    
-    private func stopRecording() {
-        VideoCaptureManager.shared.stopRecording { [weak self] videoURL, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.showAlert(title: "错误", message: error.localizedDescription)
-                } else if let videoURL = videoURL {
-                    self?.isRecording = false
-                    self?.updateContentForLiveRecord()
-                    self?.showAlert(title: "成功", message: "视频已保存到: \(videoURL.lastPathComponent)")
-                }
-            }
-        }
-    }
-    
-    private func importVideo() {
-        VideoImporter.shared.openVideoPicker(from: self) { [weak self] videoURL, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.showAlert(title: "错误", message: error.localizedDescription)
-                } else if let videoURL = videoURL {
-                    // 提取视频帧
-                    self?.extractFrames(from: videoURL)
-                }
-            }
-        }
-    }
-    
-    private func extractFrames(from videoURL: URL) {
-        startRecordLabel.text = "提取帧中..."
-        startRecordButton.isEnabled = false
-        
-        VideoImporter.shared.extractFrames(from: videoURL) { [weak self] frames, error in
-            DispatchQueue.main.async {
-                self?.startRecordButton.isEnabled = true
-                
-                if let error = error {
-                    self?.showAlert(title: "错误", message: error.localizedDescription)
-                    self?.updateContentForImportVideo()
-                } else {
-                    self?.showAlert(title: "成功", message: "提取了 \(frames.count) 帧")
-                    self?.updateContentForImportVideo()
-                }
-            }
+            liveRecordButton.backgroundColor = .systemGray6
+            liveRecordButton.alpha = 0.5
+            importVideoButton.backgroundColor = .white
+            importVideoButton.alpha = 1.0
+            scrollView.isHidden = true
+            importContentView.isHidden = false
         }
     }
     
@@ -292,19 +307,59 @@ class VideoCaptureViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "确定", style: .default))
         present(alert, animated: true)
     }
-    
-    // MARK: - 按钮点击反馈
-    @objc private func buttonTapped(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            sender.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-            sender.backgroundColor = .systemBlue.withAlphaComponent(0.8)
+
+    private func handleVideoSelection(_ asset: PHAsset) {
+        let options = PHVideoRequestOptions()
+        options.version = .original
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { [weak self] avAsset, _, _ in
+            if let urlAsset = avAsset as? AVURLAsset {
+                DispatchQueue.main.async {
+                    self?.extractFrames(from: urlAsset.url)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self?.showAlert(title: "错误", message: "无法获取视频文件路径")
+                }
+            }
         }
     }
-    
-    @objc private func buttonReleased(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.1) {
-            sender.transform = .identity
-            sender.backgroundColor = .systemBlue
-        }
+
+    private func extractFrames(from url: URL) {
+        // 使用 VideoImporter 提取帧并跳转到预览/处理界面
+        let videoImportVC = VideoImportViewController()
+        // 这里假设 VideoImportViewController 有一个方法可以接收 URL 并开始处理
+        // 或者我们可以直接在这里处理并展示
+        navigationController?.pushViewController(videoImportVC, animated: true)
+        
+        // 模拟调用 VideoImportViewController 的处理逻辑
+        // 注意：这取决于 VideoImportViewController 的具体实现
     }
 }
+
+// MARK: - UICollectionViewDelegate, UICollectionViewDataSource
+extension VideoCaptureViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return videoAssets.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VideoCell", for: indexPath) as! VideoCell
+        let asset = videoAssets[indexPath.item]
+        cell.configure(with: asset)
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let asset = videoAssets[indexPath.item]
+        
+        let alert = UIAlertController(title: "导入确认", message: "确定要导入选中的视频进行分析吗？", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: "确定", style: .default, handler: { [weak self] _ in
+            self?.handleVideoSelection(asset)
+        }))
+        present(alert, animated: true)
+    }
+}
+

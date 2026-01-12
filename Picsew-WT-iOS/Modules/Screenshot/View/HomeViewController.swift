@@ -6,16 +6,21 @@ class HomeViewController: UIViewController {
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        let width = (view.bounds.width - 4) / 3
+        let margin: CGFloat = 16
+        let spacing: CGFloat = 12
+        let totalSpacing = (margin * 2) + (spacing * 2)
+        let width = (UIScreen.main.bounds.width - totalSpacing) / 3
         layout.itemSize = CGSize(width: width, height: width)
-        layout.minimumInteritemSpacing = 2
-        layout.minimumLineSpacing = 2
+        layout.minimumInteritemSpacing = spacing
+        layout.minimumLineSpacing = spacing
+        layout.sectionInset = UIEdgeInsets(top: margin, left: margin, bottom: 100, right: margin)
         
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .white
+        cv.backgroundColor = .systemGray6
         cv.register(PhotoCell.self, forCellWithReuseIdentifier: "PhotoCell")
         cv.delegate = self
         cv.dataSource = self
+        cv.showsVerticalScrollIndicator = false
         return cv
     }()
     

@@ -1,132 +1,471 @@
 import UIKit
+import MessageUI
+import StoreKit
 
 class SettingsViewController: UIViewController {
     
-    // MARK: - UI 组件
-    private let titleLabel = UILabel()
-    private let settingsTableView = UITableView()
+    private let viewModel = SettingsViewModel()
     
-    // MARK: - 数据
-    private let settingsItems = [
-        (title: NSLocalizedString("export_settings", comment: "导出设置"), subtitle: "调整导出图片的质量和格式", icon: "square.and.arrow.up", viewController: ExportSettingsViewController()),
-        (title: NSLocalizedString("scroll_settings", comment: "滚动设置"), subtitle: "调整自动滚动的速度和灵敏度", icon: "arrow.down.to.line", viewController: ScrollSettingsViewController()),
-        (title: NSLocalizedString("tutorial", comment: "教程"), subtitle: "查看如何使用应用的详细教程", icon: "book", viewController: TutorialViewController()),
-        (title: "关于", subtitle: NSLocalizedString("version", comment: "版本") + " 1.0.0", icon: "info.circle", viewController: nil)
-    ]
+    // MARK: - UI 组件
+    private let scrollView: UIScrollView = {
+        let sv = UIScrollView()
+        sv.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.98, alpha: 1.0)
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        return sv
+    }()
+    
+    private let contentView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 16
+        stack.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 32, right: 16)
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
+    private let versionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "版本号 1.0"
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .systemGray
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGray6
         setupUI()
-        setupConstraints()
-        setupTableView()
+        setupNavigationBar()
     }
     
-    // MARK: - UI 设置
-    private func setupUI() {
-        // 设置标题
-        titleLabel.text = NSLocalizedString("settings", comment: "设置")
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
-        
-        // 设置表格视图
-        settingsTableView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(settingsTableView)
-    }
-    
-    private func setupTableView() {
-        settingsTableView.dataSource = self
-        settingsTableView.delegate = self
-        settingsTableView.backgroundColor = .systemGray6
-        settingsTableView.separatorStyle = .none
-        settingsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingsCell")
-    }
-    
-    // MARK: - 约束设置
-    private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            // 标题
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            // 表格视图
-            settingsTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-            settingsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            settingsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            settingsTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        ])
-    }
-    
-    // MARK: - 导航方法
-    private func navigateToViewController(_ viewController: UIViewController) {
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-}
-
-// MARK: - UITableViewDataSource
-
-extension SettingsViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return settingsItems.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SettingsCell", for: indexPath)
-        let settingsItem = settingsItems[indexPath.row]
-        
-        // 配置单元格
-        var content = cell.defaultContentConfiguration()
-        content.text = settingsItem.title
-        content.secondaryText = settingsItem.subtitle
-        content.image = UIImage(systemName: settingsItem.icon)
-        content.imageProperties.tintColor = .systemBlue
-        content.textProperties.font = UIFont.systemFont(ofSize: 16)
-        content.secondaryTextProperties.font = UIFont.systemFont(ofSize: 14)
-        content.secondaryTextProperties.color = .secondaryLabel
-        cell.contentConfiguration = content
-        
-        // 添加右侧箭头
-        cell.accessoryType = .disclosureIndicator
-        cell.backgroundColor = .systemGray6
-        
-        return cell
-    }
-}
-
-// MARK: - UITableViewDelegate
-
-extension SettingsViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        
-        let settingsItem = settingsItems[indexPath.row]
-        if let viewController = settingsItem.viewController {
-            navigateToViewController(viewController)
-        } else {
-            // 处理关于按钮点击
-            showAboutAlert()
+    private func setupNavigationBar() {
+        if #available(iOS 13.0, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = .white
+            appearance.shadowColor = UIColor(white: 0, alpha: 0.1)
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
         }
     }
     
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 70
+    private func setupUI() {
+        view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.98, alpha: 1.0)
+        title = "设置"
+        
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        view.addSubview(versionLabel)
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: versionLabel.topAnchor, constant: -10),
+            
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            versionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            versionLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
+        ])
+        
+        setupCards()
     }
     
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        return nil
+    private func setupCards() {
+        contentView.addArrangedSubview(createExportSettingsCard())
+        contentView.addArrangedSubview(createScrollSettingsCard())
+        contentView.addArrangedSubview(createGeneralFunctionsCard())
     }
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 0
+    @objc private func formatFieldTapped(_ gesture: UITapGestureRecognizer) {
+        guard let fieldView = gesture.view else { return }
+        
+        let alert = UIAlertController(title: "选择图片格式", message: nil, preferredStyle: .actionSheet)
+        
+        for format in ImageFormat.allCases {
+            let action = UIAlertAction(title: format.rawValue, style: .default) { [weak self] _ in
+                self?.viewModel.selectedFormat = format
+                // 更新 UI
+                if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
+                    valueLabel.text = format.rawValue
+                }
+            }
+            alert.addAction(action)
+        }
+        
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = fieldView
+            popover.sourceRect = fieldView.bounds
+        }
+        
+        present(alert, animated: true)
     }
     
-    // MARK: - 关于弹窗
-    private func showAboutAlert() {
-        let alertController = UIAlertController(title: "关于 Picsew-WT", message: "版本 1.0.0\n\nPicsew-WT 是一款功能强大的长截图和图片拼接工具，支持视频截图和手动拼接。\n\n© 2026 MagiXun", preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "确定", style: .default)
-        alertController.addAction(okAction)
-        present(alertController, animated: true)
+    @objc private func resolutionFieldTapped(_ gesture: UITapGestureRecognizer) {
+        guard let fieldView = gesture.view else { return }
+        
+        let alert = UIAlertController(title: "选择分辨率", message: nil, preferredStyle: .actionSheet)
+        
+        for res in Resolution.allCases {
+            let action = UIAlertAction(title: res.rawValue, style: .default) { [weak self] _ in
+                self?.viewModel.selectedResolution = res
+                // 更新 UI
+                if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
+                    valueLabel.text = res.rawValue
+                }
+            }
+            alert.addAction(action)
+        }
+        
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = fieldView
+            popover.sourceRect = fieldView.bounds
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    @objc private func stopDurationFieldTapped(_ gesture: UITapGestureRecognizer) {
+        guard let fieldView = gesture.view else { return }
+        
+        let alert = UIAlertController(title: "选择自动停止等待时长", message: nil, preferredStyle: .actionSheet)
+        
+        for duration in StopDuration.allCases {
+            let action = UIAlertAction(title: duration.rawValue, style: .default) { [weak self] _ in
+                self?.viewModel.selectedStopDuration = duration
+                // 更新 UI
+                if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
+                    valueLabel.text = duration.rawValue
+                }
+            }
+            alert.addAction(action)
+        }
+        
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = fieldView
+            popover.sourceRect = fieldView.bounds
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    // MARK: - 卡片创建方法
+    
+    private func createCardContainer() -> UIView {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        return view
+    }
+    
+    private func createHeaderView(icon: String, title: String) -> UIView {
+        let view = UIView()
+        
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = .systemBlue
+        iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let label = UILabel()
+        label.text = title
+        label.font = .systemFont(ofSize: 17, weight: .bold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(iconView)
+        view.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            iconView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            iconView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 22),
+            iconView.heightAnchor.constraint(equalToConstant: 22),
+            
+            label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            view.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        let line = UIView()
+        line.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+        line.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(line)
+        NSLayoutConstraint.activate([
+            line.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            line.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            line.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            line.heightAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        return view
+    }
+    
+    private func createDropdownField(title: String, value: String, action: Selector? = nil) -> UIView {
+        let view = UIView()
+        if let action = action {
+            let tap = UITapGestureRecognizer(target: self, action: action)
+            view.addGestureRecognizer(tap)
+            view.isUserInteractionEnabled = true
+        }
+        
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 15)
+        titleLabel.textColor = .black
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let dropdownView = UIView()
+        dropdownView.backgroundColor = UIColor(white: 0.97, alpha: 1.0)
+        dropdownView.layer.cornerRadius = 8
+        dropdownView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let valueLabel = UILabel()
+        valueLabel.text = value
+        valueLabel.tag = 100 // 用于后续查找和更新
+        valueLabel.font = .systemFont(ofSize: 15)
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let arrowIcon = UIImageView(image: UIImage(systemName: "chevron.down"))
+        arrowIcon.tintColor = .systemGray3
+        arrowIcon.contentMode = .scaleAspectFit
+        arrowIcon.translatesAutoresizingMaskIntoConstraints = false
+        
+        dropdownView.addSubview(valueLabel)
+        dropdownView.addSubview(arrowIcon)
+        view.addSubview(titleLabel)
+        view.addSubview(dropdownView)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            
+            dropdownView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            dropdownView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            dropdownView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            dropdownView.heightAnchor.constraint(equalToConstant: 44),
+            dropdownView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -4),
+            
+            valueLabel.leadingAnchor.constraint(equalTo: dropdownView.leadingAnchor, constant: 12),
+            valueLabel.centerYAnchor.constraint(equalTo: dropdownView.centerYAnchor),
+            
+            arrowIcon.trailingAnchor.constraint(equalTo: dropdownView.trailingAnchor, constant: -12),
+            arrowIcon.centerYAnchor.constraint(equalTo: dropdownView.centerYAnchor),
+            arrowIcon.widthAnchor.constraint(equalToConstant: 14),
+            arrowIcon.heightAnchor.constraint(equalToConstant: 14)
+        ])
+        
+        return view
+    }
+    
+    private func createExportSettingsCard() -> UIView {
+        let card = createCardContainer()
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(stack)
+        
+        stack.addArrangedSubview(createHeaderView(icon: "doc.text.image", title: "导出设置"))
+        
+        let formatField = createDropdownField(title: "图片格式", value: viewModel.selectedFormat.rawValue, action: #selector(formatFieldTapped))
+        stack.addArrangedSubview(formatField)
+        
+        let resolutionField = createDropdownField(title: "分辨率", value: viewModel.selectedResolution.rawValue, action: #selector(resolutionFieldTapped))
+        stack.addArrangedSubview(resolutionField)
+        
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: card.topAnchor),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+        ])
+        
+        return card
+    }
+    
+    private func createScrollSettingsCard() -> UIView {
+        let card = createCardContainer()
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(stack)
+        
+        stack.addArrangedSubview(createHeaderView(icon: "clock", title: "滚动设置"))
+        
+        let durationField = createDropdownField(title: "自动停止等待时长", value: viewModel.selectedStopDuration.rawValue, action: #selector(stopDurationFieldTapped))
+        stack.addArrangedSubview(durationField)
+        
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: card.topAnchor),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+        ])
+        
+        return card
+    }
+    
+    private func createGeneralFunctionsCard() -> UIView {
+        let card = createCardContainer()
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(stack)
+        
+        let items = [
+            (icon: "envelope.fill", title: "联系我们", showArrow: true, showStars: false, action: #selector(contactUsTapped)),
+            (icon: "star.fill", title: "去 App Store 评分", showArrow: false, showStars: true, action: #selector(rateAppTapped)),
+            (icon: "square.and.arrow.up", title: "推荐给好友", showArrow: false, showStars: false, action: #selector(recommendFriendsTapped))
+        ]
+        
+        for (index, item) in items.enumerated() {
+            let itemView = UIView()
+            let tap = UITapGestureRecognizer(target: self, action: item.action)
+            itemView.addGestureRecognizer(tap)
+            itemView.isUserInteractionEnabled = true
+            
+            let iconView = UIImageView(image: UIImage(systemName: item.icon))
+            iconView.tintColor = .black
+            iconView.contentMode = .scaleAspectFit
+            iconView.translatesAutoresizingMaskIntoConstraints = false
+            
+            let label = UILabel()
+            label.text = item.title
+            label.font = .systemFont(ofSize: 17)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            
+            itemView.addSubview(iconView)
+            itemView.addSubview(label)
+            
+            NSLayoutConstraint.activate([
+                iconView.leadingAnchor.constraint(equalTo: itemView.leadingAnchor, constant: 16),
+                iconView.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                iconView.widthAnchor.constraint(equalToConstant: 22),
+                iconView.heightAnchor.constraint(equalToConstant: 22),
+                
+                label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 16),
+                label.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                
+                itemView.heightAnchor.constraint(equalToConstant: 60)
+            ])
+            
+            if item.showArrow {
+                let arrowIcon = UIImageView(image: UIImage(systemName: "chevron.right"))
+                arrowIcon.tintColor = UIColor(white: 0.8, alpha: 1.0)
+                arrowIcon.contentMode = .scaleAspectFit
+                arrowIcon.translatesAutoresizingMaskIntoConstraints = false
+                itemView.addSubview(arrowIcon)
+                NSLayoutConstraint.activate([
+                    arrowIcon.trailingAnchor.constraint(equalTo: itemView.trailingAnchor, constant: -16),
+                    arrowIcon.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                    arrowIcon.widthAnchor.constraint(equalToConstant: 14),
+                    arrowIcon.heightAnchor.constraint(equalToConstant: 14)
+                ])
+            }
+            
+            if item.showStars {
+                let starsStack = UIStackView()
+                starsStack.axis = .horizontal
+                starsStack.spacing = 2
+                starsStack.translatesAutoresizingMaskIntoConstraints = false
+                for _ in 0..<5 {
+                    let star = UIImageView(image: UIImage(systemName: "star.fill"))
+                    star.tintColor = UIColor(red: 0.95, green: 0.65, blue: 0.31, alpha: 1.0) // 截图同款橙色
+                    star.contentMode = .scaleAspectFit
+                    NSLayoutConstraint.activate([
+                        star.widthAnchor.constraint(equalToConstant: 16),
+                        star.heightAnchor.constraint(equalToConstant: 16)
+                    ])
+                    starsStack.addArrangedSubview(star)
+                }
+                itemView.addSubview(starsStack)
+                NSLayoutConstraint.activate([
+                    starsStack.trailingAnchor.constraint(equalTo: itemView.trailingAnchor, constant: -16),
+                    starsStack.centerYAnchor.constraint(equalTo: itemView.centerYAnchor)
+                ])
+            }
+            
+            stack.addArrangedSubview(itemView)
+            
+            if index < items.count - 1 {
+                let line = UIView()
+                line.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
+                line.translatesAutoresizingMaskIntoConstraints = false
+                itemView.addSubview(line)
+                NSLayoutConstraint.activate([
+                    line.leadingAnchor.constraint(equalTo: label.leadingAnchor),
+                    line.trailingAnchor.constraint(equalTo: itemView.trailingAnchor),
+                    line.bottomAnchor.constraint(equalTo: itemView.bottomAnchor),
+                    line.heightAnchor.constraint(equalToConstant: 0.5)
+                ])
+            }
+        }
+        
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: card.topAnchor),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor)
+        ])
+        
+        return card
+    }
+    
+    // MARK: - Actions
+    
+    @objc private func contactUsTapped() {
+        if MFMailComposeViewController.canSendMail() {
+            let mail = MFMailComposeViewController()
+            mail.mailComposeDelegate = self
+            mail.setToRecipients(["support@magixun.com"])
+            mail.setSubject("Picsew-WT 反馈")
+            mail.setMessageBody("\n\n---\nDevice: \(UIDevice.current.model)\nSystem: \(UIDevice.current.systemVersion)", isHTML: false)
+            present(mail, animated: true)
+        } else {
+            let email = "support@magixun.com"
+            if let url = URL(string: "mailto:\(email)") {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+    
+    @objc private func rateAppTapped() {
+        if let scene = view.window?.windowScene {
+            SKStoreReviewController.requestReview(in: scene)
+        }
+    }
+    
+    @objc private func recommendFriendsTapped() {
+        let appLink = "https://apps.apple.com/app/id123456789" // 替换为实际的 App ID
+        let text = "推荐你使用这款长截图工具：Picsew-WT，非常方便！"
+        let activityVC = UIActivityViewController(activityItems: [text, appLink], applicationActivities: nil)
+        
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        present(activityVC, animated: true)
+    }
+}
+
+// MARK: - MFMailComposeViewControllerDelegate
+extension SettingsViewController: MFMailComposeViewControllerDelegate {
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true)
     }
 }
