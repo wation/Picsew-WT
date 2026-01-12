@@ -309,32 +309,33 @@ class VideoCaptureViewController: UIViewController {
     }
 
     private func handleVideoSelection(_ asset: PHAsset) {
-        let options = PHVideoRequestOptions()
-        options.version = .original
-        options.isNetworkAccessAllowed = true
+        let loadingAlert = UIAlertController(title: "正在分析视频", message: "\n\n", preferredStyle: .alert)
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingAlert.view.addSubview(indicator)
         
-        PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { [weak self] avAsset, _, _ in
-            if let urlAsset = avAsset as? AVURLAsset {
-                DispatchQueue.main.async {
-                    self?.extractFrames(from: urlAsset.url)
+        NSLayoutConstraint.activate([
+            indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
+            indicator.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
+        ])
+        indicator.startAnimating()
+        
+        present(loadingAlert, animated: true)
+        
+        VideoStitcher.shared.processVideo(asset: asset) { [weak self] images, error in
+            loadingAlert.dismiss(animated: true) {
+                if let error = error {
+                    self?.showAlert(title: "处理失败", message: error.localizedDescription)
+                    return
                 }
-            } else {
-                DispatchQueue.main.async {
-                    self?.showAlert(title: "错误", message: "无法获取视频文件路径")
+                
+                if let images = images, !images.isEmpty {
+                    let autoStitchVC = AutoStitchViewController()
+                    autoStitchVC.setInputImages(images)
+                    self?.navigationController?.pushViewController(autoStitchVC, animated: true)
                 }
             }
         }
-    }
-
-    private func extractFrames(from url: URL) {
-        // 使用 VideoImporter 提取帧并跳转到预览/处理界面
-        let videoImportVC = VideoImportViewController()
-        // 这里假设 VideoImportViewController 有一个方法可以接收 URL 并开始处理
-        // 或者我们可以直接在这里处理并展示
-        navigationController?.pushViewController(videoImportVC, animated: true)
-        
-        // 模拟调用 VideoImportViewController 的处理逻辑
-        // 注意：这取决于 VideoImportViewController 的具体实现
     }
 }
 
