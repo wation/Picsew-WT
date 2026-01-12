@@ -13,53 +13,6 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     // MARK: - UI Components
     
-    private lazy var topNavigationBar: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let separator = UIView()
-        separator.backgroundColor = UIColor(white: 0, alpha: 0.1)
-        separator.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(separator)
-        
-        NSLayoutConstraint.activate([
-            separator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            separator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            separator.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            separator.heightAnchor.constraint(equalToConstant: 0.5)
-        ])
-        
-        return view
-    }()
-    
-    private lazy var backButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        button.tintColor = .black
-        button.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = NSLocalizedString("auto_stitch", comment: "")
-        label.font = .systemFont(ofSize: 17, weight: .semibold)
-        label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var shareButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "square.and.arrow.up"), for: .normal)
-        button.tintColor = .black
-        button.addTarget(self, action: #selector(shareTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     private lazy var bottomToolbar: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -139,22 +92,31 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 .min(by: { abs($0.center.y - location.y) < abs($1.center.y - location.y) })
         } else if gesture.state == .changed {
             guard let activeView = activeAdjustmentView else { return }
+            let translation = gesture.translation(in: contentView)
+            
             // 方向修正：为了让“图片跟着手指走”，需要将手势位移取反
-            // 因为在我们的 adjustOffset/adjustTopCrop 中，deltaY 是加到偏移上的
-            // 原本的逻辑是拖拽控件，现在是拖拽图片，所以方向需要反转
             var deltaY = -(translation.y - lastPanLocation.y)
             
-            // 特殊处理：对于顶部和底部气泡，在打勾状态下，拖拽图片的方向逻辑
-            if activeView.type == .top {
-                // 向上滑动图片 (translation.y < 0, deltaY > 0) -> 减少顶部裁剪
-                deltaY = -deltaY
-            } else if activeView.type == .bottom {
-                // 向上滑动图片 (translation.y < 0, deltaY > 0) -> 增加底部裁剪
-                // 这里不需要取反，因为 adjustBottomCrop 已经改为加法
+            if activeView.type == .middle {
+                // 中间按钮：判断是在按钮上方还是下方拖拽图片
+                // 我们在开始时已经记录了 activeAdjustmentView
+                let buttonIndex = adjustmentViews.firstIndex(of: activeView) ?? 0
+                // middle 气泡的索引是 1...n-1，对应控制的是 image[buttonIndex]
+                
+                if location.y < activeView.center.y {
+                    // 在按钮上方拖拽：移动上方的图片
+                    adjustUpperOffset(at: buttonIndex, deltaY: deltaY)
+                } else {
+                    // 在按钮下方拖拽：移动下方的图片（原有逻辑）
+                    adjustOffset(at: buttonIndex, deltaY: deltaY)
+                }
+            } else {
+                // 特殊处理：对于顶部和底部气泡，在打勾状态下，拖拽图片的方向逻辑
+                if activeView.type == .top {
+                    deltaY = -deltaY
+                }
+                activeView.onAdjust?(deltaY)
             }
-            
-            // 执行裁剪逻辑：打勾状态下，图片动，控件不动
-            activeView.onAdjust?(deltaY)
             
             lastPanLocation = translation
         } else if gesture.state == .ended || gesture.state == .cancelled {
@@ -187,9 +149,12 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupNavigationBar()
         
         if isManualMode {
-            titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+            title = NSLocalizedString("manual_stitch", comment: "")
+        } else {
+            title = NSLocalizedString("auto_stitch", comment: "")
         }
         
         // 无论是自动还是手动进入，都先尝试自动识别重合点
@@ -198,12 +163,35 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .default
+    }
+    
+    private func setupNavigationBar() {
+        let backItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backTapped))
+        backItem.tintColor = .black
+        navigationItem.leftBarButtonItem = backItem
+        
+        let shareItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareTapped))
+        shareItem.tintColor = .black
+        navigationItem.rightBarButtonItem = shareItem
+        
+        // 设置导航栏外观
+        if #available(iOS 13.0, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = .white
+            appearance.shadowColor = UIColor(white: 0, alpha: 0.1)
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        }
     }
     
     func setInputImages(_ images: [UIImage]) {
@@ -213,32 +201,18 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     private func setupUI() {
         view.backgroundColor = .white
         
-        view.addSubview(topNavigationBar)
-        topNavigationBar.addSubview(backButton)
-        topNavigationBar.addSubview(titleLabel)
-        topNavigationBar.addSubview(shareButton)
-        
+        // 调整层级顺序：先添加内容视图，最后添加工具栏，确保它们始终在最上层
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         view.addSubview(bottomToolbar)
         view.addSubview(loadingIndicator)
         
+        // 修正：确保 contentView 的约束完整
+        let bottomConstraint = contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor)
+        bottomConstraint.priority = .defaultHigh // 设置优先级，允许通过 constant 调整高度
+        
         NSLayoutConstraint.activate([
-            topNavigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            topNavigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            topNavigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            topNavigationBar.heightAnchor.constraint(equalToConstant: 44),
-            
-            backButton.leadingAnchor.constraint(equalTo: topNavigationBar.leadingAnchor, constant: 16),
-            backButton.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
-            
-            titleLabel.centerXAnchor.constraint(equalTo: topNavigationBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
-            
-            shareButton.trailingAnchor.constraint(equalTo: topNavigationBar.trailingAnchor, constant: -16),
-            shareButton.centerYAnchor.constraint(equalTo: topNavigationBar.centerYAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: topNavigationBar.bottomAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor),
@@ -246,13 +220,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            bottomConstraint,
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
             bottomToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            bottomToolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            bottomToolbar.heightAnchor.constraint(equalToConstant: 60),
+            bottomToolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomToolbar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
             
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
@@ -281,11 +255,11 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                         
                         if let isManual = self?.isManualMode, isManual {
                             // 手动模式进入，不需要弹出警告 toast，直接设置标题
-                            self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                            self?.title = NSLocalizedString("manual_stitch", comment: "")
                         } else {
                             // 自动识别失败降级到手动，弹出提示
                             self?.showWarningTip(nsError.localizedDescription) { [weak self] in
-                                self?.titleLabel.text = NSLocalizedString("manual_stitch", comment: "")
+                                self?.title = NSLocalizedString("manual_stitch", comment: "")
                             }
                         }
                     }
@@ -309,6 +283,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     private var firstImageHeightConstraint: NSLayoutConstraint?
     private var lastImageHeightConstraint: NSLayoutConstraint?
     private var contentViewHeightConstraint: NSLayoutConstraint?
+
+    private var lastContainerBottomConstraint: NSLayoutConstraint?
 
     private func setupImageDisplay(lockingIndex: Int? = nil) {
         let images = viewModel.images
@@ -468,6 +444,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         }
         
         if let lastContainer = lastContainer {
+            // 关键：不再使用固定的 contentViewHeightConstraint，而是通过将 contentView 的底部
+            // 与最后一个容器的底部对齐，让内容自然撑开。
+            lastContainerBottomConstraint?.isActive = false
+            let bottomAnchor = contentView.bottomAnchor.constraint(equalTo: lastContainer.bottomAnchor)
+            bottomAnchor.isActive = true
+            lastContainerBottomConstraint = bottomAnchor
+            
             let bottomAdjustment = StitchAdjustmentView(type: .bottom)
             bottomAdjustment.onAdjust = { [weak self] deltaY in
                 self?.adjustBottomCrop(deltaY: deltaY)
@@ -495,14 +478,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             ])
         }
         
-        // 关键：显式更新 contentView 的高度约束，撑开 UIScrollView
-        if let existingHeightConstraint = contentViewHeightConstraint {
-            existingHeightConstraint.constant = totalHeight
-        } else {
-            let heightConstraint = contentView.heightAnchor.constraint(equalToConstant: totalHeight)
-            heightConstraint.isActive = true
-            contentViewHeightConstraint = heightConstraint
-        }
+        // 修正：不再使用手动计算的 totalHeight，而是让 Auto Layout 自动撑开
+        // contentViewHeightConstraint?.isActive = false
+        contentViewHeightConstraint?.constant = 0 // 实际上已经没用了，设为0确保不干扰
+        
+        // 关键：确保 contentView 的背景色是白色，且在 setupImageDisplay 结束时强制刷新 layout
+        contentView.backgroundColor = .white
+        contentView.layoutIfNeeded()
         
         contentView.subviews.forEach { subview in
             if subview is StitchAdjustmentView { contentView.bringSubviewToFront(subview) }
@@ -515,6 +497,29 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         // 如果有任何一个控件处于打勾（选中）状态，禁用滚动视图的滚动
         let isAnySelected = adjustmentViews.contains(where: { $0.isSelected })
         scrollView.isScrollEnabled = !isAnySelected
+        
+        // 如果取消了所有选中状态，恢复长截图到顶部（消除 adjustUpperOffset 产生的整体位移）
+        if !isAnySelected {
+            resetLayoutToCompact()
+        }
+    }
+    
+    private func resetLayoutToCompact() {
+        guard let firstTop = imageViewTopConstraints.first?.constant, firstTop != 0 else { return }
+        
+        let diff = -firstTop
+        
+        // 1. 调整所有容器的 top 约束，使第一张图回到顶部
+        for constraint in imageViewTopConstraints {
+            constraint.constant += diff
+        }
+        
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
+        
+        // 3. 动画恢复位置
+        UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseOut, animations: {
+            self.view.layoutIfNeeded()
+        }, completion: nil)
     }
 
     private func adjustTopCrop(deltaY: CGFloat) {
@@ -529,21 +534,15 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         let diff = newTopCrop - topCrop
         topCrop = newTopCrop
         
-        // 关键：所有图片的容器都要跟着动，实现“整体上移”的效果
-        // 1. 第一张图内部偏移并减小高度
+        // 原地更新：不重绘，直接改约束，这是性能最好且最直接的方式
         firstImageViewTopConstraint?.constant -= diff
         firstImageHeightConstraint?.constant -= diff
         
-        // 2. 所有后续图片的容器位置也要同步上移 diff
-        // 这样整个长截图看起来就是整体往上滑动了，而顶部准星（firstImageTopConstraint 对应的位置）保持不动
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
+        
+        // 同时调整后续所有容器的 top，使它们整体上移，确保底部不会留出空白
         for i in 1..<imageViewTopConstraints.count {
             imageViewTopConstraints[i].constant -= diff
-        }
-        
-        // 3. 所有气泡的位置也要同步上移
-        // 顶部气泡固定在第一张图顶部，所以从索引 1 开始移动
-        for i in 1..<adjustmentViewCenterYConstraints.count {
-            adjustmentViewCenterYConstraints[i].constant -= diff
         }
         
         view.layoutIfNeeded()
@@ -566,15 +565,81 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         // 原地更新：不重绘，直接改约束，这是性能最好且最直接的方式
         lastImageHeightConstraint?.constant -= diff
         
-        // 更新 contentView 高度
-        if let existingHeightConstraint = contentViewHeightConstraint {
-            existingHeightConstraint.constant -= diff
-        }
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
         
-        // 强制布局生效
         view.layoutIfNeeded()
     }
     
+    private func adjustUpperOffset(at index: Int, deltaY: CGFloat) {
+        guard index > 0 && index < viewModel.images.count else { return }
+        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let displayScale = containerWidth / viewModel.images[index-1].size.width
+        let imageDeltaY = deltaY / displayScale
+        
+        matchedIndices.remove(index)
+        
+        // 记录原始偏移量，计算差值
+        let oldOffset = currentOffsets[index]
+        // 这里我们要改变的是 index-1 相对于 index 的位置
+        // 逻辑上相当于：index 保持不动，index-1 移动
+        // 但在我们的数据结构中，偏移是累加的，所以我们通过减少 index-1 之前的偏移来实现 index-1 向上移动
+        let newOffset = currentOffsets[index] + imageDeltaY
+        
+        // 限制：不能超过上一张图的范围
+        let prevOffset = currentOffsets[index-1]
+        if newOffset < prevOffset { return }
+        
+        let diff = newOffset - oldOffset
+        let displayDiff = diff * displayScale
+        
+        // 新增限制：当图片底部到达按钮位置时，限制继续下滑（即 newOffset 不能再增加了）
+        // image[index-1] 的底部在画布上的坐标是 currentOffsets[index-1] + image[index-1].height
+        // 按钮在画布上的坐标是 currentOffsets[index]
+        // 当 currentOffsets[index] 减小到接近上一张图底部时，应该限制
+        // 不过在这里，用户是在向上滑动上方图片，所以是增加 overlap
+        
+        // 1. 更新数据：因为 index 及其以后的要保持不动，所以我们调整 0...index-1 的偏移
+        // 这相当于将整个坐标系向上移动，然后把 index 及其以后的移回来。
+        // 更简单的做法是：直接调整 currentOffsets[index...count-1]，
+        // 然后通过视图层的位移来补偿，使得 index 看起来没动。
+        // 这正是 adjustOffset 的逻辑！
+        
+        // 实际上，“移动上方图片”和“移动下方图片”在数据层面是一样的：改变的是 index 处的重合度。
+        // 区别仅在于视觉上哪个部分作为参考点保持不动。
+        
+        // 如果我们要移动上方图片，参考点是 container[index] 及其以后的所有东西。
+        // 所以我们调整 currentOffsets[index...count-1] (这是 diff)，
+        // 然后同时将整个内容（或者 0...index-1 部分）反向移动相同的距离。
+        
+        // 1. 更新数据 (同 adjustOffset，但方向相反)
+        // 这里的 diff 计算：如果用户上滑上方图片 (deltaY < 0)，表示增加重合度，offset 应该减小
+        let actualDiff = -diff 
+        for i in index..<currentOffsets.count {
+            currentOffsets[i] += actualDiff
+        }
+        
+        let actualDisplayDiff = actualDiff * displayScale
+        
+        // 2. 视觉补偿：
+        // 我们希望 container[index...n] 和按钮 index 保持不动。
+        // 在 adjustOffset 中，我们让 container[index] 不动，container[index+1...n] 动。
+        // 在这里，我们要让 container[index...n] 全部不动。
+        // 而 image[0...index-1] 整体向上移动 actualDisplayDiff。
+        
+        // 移动上方所有容器
+        for i in 0..<index {
+            imageViewTopConstraints[i].constant += actualDisplayDiff
+        }
+        
+        // 为了让按钮 index 不动，container[index-1] 的高度必须改变
+        // 因为 container[index-1].top 变了，而 bottom (即按钮) 要保持在原位
+        imageViewHeightConstraints[index-1].constant -= actualDisplayDiff
+        
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
+        
+        view.layoutIfNeeded()
+    }
+
     private func adjustOffset(at index: Int, deltaY: CGFloat) {
         guard index > 0 && index < viewModel.images.count else { return }
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
@@ -613,22 +678,19 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             imageViewTopConstraints[i].constant += displayDiff
         }
         
-        // 3. 原地更新内部图片偏移
-        // 当前容器 index 的图片相对于容器向上滑动（constant 减小）
-        imageViewInternalTopConstraints[index].constant += displayDiff
-        
-        // 4. 原地更新后续所有气泡的 centerY
-        // adjustmentViewCenterYConstraints 索引 0 是 top, 索引 1...count-2 是 middle, 索引 count-1 是 bottom
-        // 对应 index 的 middle 气泡索引也是 index。
-        // 为了让当前正在拖拽的按钮保持不动，我们要从 index + 1 开始移动气泡
+        // 关键：原地更新后续所有气泡的 centerY
+        // 虽然容器动了，但气泡需要同步更新它们的 centerY 约束
+        // 索引 0 是 top, 1...n-1 是 middle, n 是 bottom
+        // 我们需要移动 index 之后的所有气泡（包括 bottom 气泡）
         for i in (index + 1)..<adjustmentViewCenterYConstraints.count {
             adjustmentViewCenterYConstraints[i].constant += displayDiff
         }
         
-        // 5. 更新 contentView 高度
-        if let existingHeightConstraint = contentViewHeightConstraint {
-            existingHeightConstraint.constant += displayDiff
-        }
+        // 3. 原地更新内部图片偏移
+        // 当前容器 index 的图片相对于容器向上滑动（constant 减小）
+        imageViewInternalTopConstraints[index].constant += displayDiff
+        
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
         
         // 6. 强制布局生效
         view.layoutIfNeeded()

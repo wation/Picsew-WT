@@ -1,9 +1,11 @@
 import UIKit
 
 class MainTabBarController: UITabBarController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        // 使用自定义 TabBar 以统一高度
+        setValue(CustomTabBar(), forKey: "tabBar")
         setupTabBar()
     }
     
@@ -39,5 +41,22 @@ class MainTabBarController: UITabBarController {
             tabBar.standardAppearance = appearance
             tabBar.scrollEdgeAppearance = appearance
         }
+    }
+}
+
+class CustomTabBar: UITabBar {
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        var sizeThatFits = super.sizeThatFits(size)
+        let bottomPadding: CGFloat = {
+            if #available(iOS 11.0, *) {
+                // 优先从窗口获取安全区域，如果获取不到则使用默认值
+                let window = UIApplication.shared.windows.first { $0.isKeyWindow } ?? UIApplication.shared.windows.first
+                return window?.safeAreaInsets.bottom ?? 0
+            }
+            return 0
+        }()
+        // 统一高度为 60pt (安全区域上方) + 安全区域高度
+        sizeThatFits.height = 60 + bottomPadding
+        return sizeThatFits
     }
 }
