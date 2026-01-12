@@ -142,7 +142,16 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             // 方向修正：为了让“图片跟着手指走”，需要将手势位移取反
             // 因为在我们的 adjustOffset/adjustTopCrop 中，deltaY 是加到偏移上的
             // 原本的逻辑是拖拽控件，现在是拖拽图片，所以方向需要反转
-            let deltaY = -(translation.y - lastPanLocation.y)
+            var deltaY = -(translation.y - lastPanLocation.y)
+            
+            // 特殊处理：对于顶部和底部气泡，在打勾状态下，拖拽图片的方向逻辑
+            if activeView.type == .top {
+                // 向上滑动图片 (translation.y < 0, deltaY > 0) -> 减少顶部裁剪
+                deltaY = -deltaY
+            } else if activeView.type == .bottom {
+                // 向上滑动图片 (translation.y < 0, deltaY > 0) -> 增加底部裁剪
+                // 这里不需要取反，因为 adjustBottomCrop 已经改为加法
+            }
             
             // 执行裁剪逻辑：打勾状态下，图片动，控件不动
             activeView.onAdjust?(deltaY)
@@ -294,10 +303,12 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     private var imageViewTopConstraints: [NSLayoutConstraint] = []
     private var imageViewHeightConstraints: [NSLayoutConstraint] = []
     private var imageViewInternalTopConstraints: [NSLayoutConstraint] = []
+    private var adjustmentViewCenterYConstraints: [NSLayoutConstraint] = []
     private var firstImageTopConstraint: NSLayoutConstraint?
     private var firstImageViewTopConstraint: NSLayoutConstraint?
     private var firstImageHeightConstraint: NSLayoutConstraint?
     private var lastImageHeightConstraint: NSLayoutConstraint?
+    private var contentViewHeightConstraint: NSLayoutConstraint?
 
     private func setupImageDisplay(lockingIndex: Int? = nil) {
         let images = viewModel.images
@@ -313,11 +324,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         imageViewTopConstraints.removeAll()
         imageViewHeightConstraints.removeAll()
         imageViewInternalTopConstraints.removeAll()
+        adjustmentViewCenterYConstraints.removeAll()
         
         let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
         contentView.backgroundColor = .white
         let paddingTop: CGFloat = 0
         var lastContainer: UIView?
+        var totalHeight: CGFloat = 0
         
         var adjViewIndex = 0
         for (index, image) in images.enumerated() {
@@ -348,6 +361,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 containerHeight = max(0, nextCanvasY - canvasY)
             }
             
+            totalHeight = max(totalHeight, containerStartY + containerHeight)
+            
             let container = UIView()
             container.clipsToBounds = true
             container.backgroundColor = .clear
@@ -366,9 +381,9 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             // 内部偏移计算：
             // 我们要显示图片的哪一部分？
             // 如果 containerStartY 是固定的，但 canvasY 变了，
-            // 那么内部偏移 imgTop 必须补偿这个差值：imgTop = -(canvasY - (containerStartY - paddingTop))
+            // 那么内部偏移 imgTop 必须同步变化：imgTop = (canvasY - (containerStartY - paddingTop))
             // 同时，必须考虑到 AutoStitchManager 识别出的图片起始偏移 (selfStartY)
-            let internalTopOffset = -(canvasY - (containerStartY - paddingTop)) - selfStartY - (index == 0 ? topCrop : 0)
+            let internalTopOffset = (canvasY - (containerStartY - paddingTop)) - selfStartY
             let imgInternalTopConstraint = imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: internalTopOffset)
             
             imageViewTopConstraints.append(topConstraint)
@@ -413,9 +428,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 adjustmentView.isHidden = matchedIndices.contains(index)
                 contentView.addSubview(adjustmentView)
                 adjustmentViews.append(adjustmentView)
+                
+                let centerYConstraint = adjustmentView.centerYAnchor.constraint(equalTo: container.topAnchor)
+                adjustmentViewCenterYConstraints.append(centerYConstraint)
+                
                 NSLayoutConstraint.activate([
                     adjustmentView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-                    adjustmentView.centerYAnchor.constraint(equalTo: container.topAnchor),
+                    centerYConstraint,
                     adjustmentView.widthAnchor.constraint(equalToConstant: 60),
                     adjustmentView.heightAnchor.constraint(equalToConstant: 30)
                 ])
@@ -435,9 +454,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 contentView.addSubview(topAdjustment)
                 adjustmentViews.append(topAdjustment)
                 topAdjustment.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                
+                let topConstraint = topAdjustment.topAnchor.constraint(equalTo: container.topAnchor)
+                adjustmentViewCenterYConstraints.append(topConstraint) // 虽然是 top，也存在这里统一管理
+                
                 NSLayoutConstraint.activate([
                     topAdjustment.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-                    topAdjustment.topAnchor.constraint(equalTo: container.topAnchor),
+                    topConstraint,
                     topAdjustment.widthAnchor.constraint(equalToConstant: 60),
                     topAdjustment.heightAnchor.constraint(equalToConstant: 30)
                 ])
@@ -460,13 +483,25 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             contentView.addSubview(bottomAdjustment)
             adjustmentViews.append(bottomAdjustment)
             bottomAdjustment.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            
+            let bottomConstraint = bottomAdjustment.bottomAnchor.constraint(equalTo: lastContainer.bottomAnchor)
+            adjustmentViewCenterYConstraints.append(bottomConstraint)
+            
             NSLayoutConstraint.activate([
                 bottomAdjustment.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-                bottomAdjustment.bottomAnchor.constraint(equalTo: lastContainer.bottomAnchor),
+                bottomConstraint,
                 bottomAdjustment.widthAnchor.constraint(equalToConstant: 60),
-                bottomAdjustment.heightAnchor.constraint(equalToConstant: 30),
-                bottomAdjustment.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+                bottomAdjustment.heightAnchor.constraint(equalToConstant: 30)
             ])
+        }
+        
+        // 关键：显式更新 contentView 的高度约束，撑开 UIScrollView
+        if let existingHeightConstraint = contentViewHeightConstraint {
+            existingHeightConstraint.constant = totalHeight
+        } else {
+            let heightConstraint = contentView.heightAnchor.constraint(equalToConstant: totalHeight)
+            heightConstraint.isActive = true
+            contentViewHeightConstraint = heightConstraint
         }
         
         contentView.subviews.forEach { subview in
@@ -505,6 +540,12 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             imageViewTopConstraints[i].constant -= diff
         }
         
+        // 3. 所有气泡的位置也要同步上移
+        // 顶部气泡固定在第一张图顶部，所以从索引 1 开始移动
+        for i in 1..<adjustmentViewCenterYConstraints.count {
+            adjustmentViewCenterYConstraints[i].constant -= diff
+        }
+        
         view.layoutIfNeeded()
     }
     
@@ -513,19 +554,24 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         let lastImage = viewModel.images.last
         let displayScale = containerWidth / (lastImage?.size.width ?? 1)
         
-        // 用户向上拖拽气泡 (deltaY < 0)
+        // 用户向上拖拽气泡 (deltaY > 0)
         // 效果：底部向上裁剪 (bottomCrop 增加)
-        let newBottomCrop = max(0, bottomCrop - deltaY)
+        let newBottomCrop = max(0, bottomCrop + deltaY)
         let lastImageDisplayHeight = (lastImage?.size.height ?? 0) * displayScale
         if lastImageDisplayHeight > 0 && newBottomCrop >= lastImageDisplayHeight - 10 { return }
         
         let diff = newBottomCrop - bottomCrop
         bottomCrop = newBottomCrop
         
-        // 关键：控件位置不动
-        // 高度缩减，底边上移
+        // 原地更新：不重绘，直接改约束，这是性能最好且最直接的方式
         lastImageHeightConstraint?.constant -= diff
         
+        // 更新 contentView 高度
+        if let existingHeightConstraint = contentViewHeightConstraint {
+            existingHeightConstraint.constant -= diff
+        }
+        
+        // 强制布局生效
         view.layoutIfNeeded()
     }
     
@@ -537,28 +583,62 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         
         matchedIndices.remove(index)
         
-        // 中间气泡打勾状态下，滑动图片实现裁剪
-        // 我们通过调整 currentOffsets[index] 来改变重合度
-        // 这样会影响整张长截图的拼接，而不是仅仅在容器内滑动
+        // 记录原始偏移量，计算差值
+        let oldOffset = currentOffsets[index]
         let newOffset = currentOffsets[index] - imageDeltaY
         
-        // 限制：不能超过上一张图的范围，也不能让图片完全脱离
+        // 限制：不能超过上一张图的范围
         let prevOffset = currentOffsets[index-1]
         if newOffset < prevOffset { return }
         
-        let diff = newOffset - currentOffsets[index]
+        let diff = newOffset - oldOffset
+        let displayDiff = diff * displayScale
         
-        // 更新当前及后续所有图片的偏移
+        // 新增限制：当图片顶部（Pixel 0）到达按钮位置时，限制继续下滑
+        // 只有当用户试图通过下滑增加 offset (displayDiff > 0) 时，才触发这个边界限制
+        // imageViewInternalTopConstraints[index].constant 是图片相对于容器顶部的偏移
+        // 当它为 0 时，图片顶部刚好在按钮位置；当它为负时，图片顶部在按钮上方（被裁剪）
+        if displayDiff > 0 && imageViewInternalTopConstraints[index].constant + displayDiff > 0 {
+            return
+        }
+        
+        // 1. 更新数据
         for i in index..<currentOffsets.count {
             currentOffsets[i] += diff
         }
         
-        // 重要：为了实现“控件不动图片动”，我们需要调整 setupImageDisplay 的逻辑
-        // 让它在重绘时，保持当前正在操作的这个容器的 top 不变
-        setupImageDisplay(lockingIndex: index)
+        // 2. 原地更新后续所有容器的 top
+        // 注意：index 处的容器 top 不动（实现控件不动图片动），从 index + 1 开始移动
+        for i in (index + 1)..<imageViewTopConstraints.count {
+            imageViewTopConstraints[i].constant += displayDiff
+        }
+        
+        // 3. 原地更新内部图片偏移
+        // 当前容器 index 的图片相对于容器向上滑动（constant 减小）
+        imageViewInternalTopConstraints[index].constant += displayDiff
+        
+        // 4. 原地更新后续所有气泡的 centerY
+        // adjustmentViewCenterYConstraints 索引 0 是 top, 索引 1...count-2 是 middle, 索引 count-1 是 bottom
+        // 对应 index 的 middle 气泡索引也是 index。
+        // 为了让当前正在拖拽的按钮保持不动，我们要从 index + 1 开始移动气泡
+        for i in (index + 1)..<adjustmentViewCenterYConstraints.count {
+            adjustmentViewCenterYConstraints[i].constant += displayDiff
+        }
+        
+        // 5. 更新 contentView 高度
+        if let existingHeightConstraint = contentViewHeightConstraint {
+            existingHeightConstraint.constant += displayDiff
+        }
+        
+        // 6. 强制布局生效
+        view.layoutIfNeeded()
     }
 
     private func showWarningTip(_ message: String, completion: (() -> Void)? = nil) {
+        if isManualMode {
+            completion?()
+            return
+        }
         showToast(message: message, completion: completion)
     }
     
@@ -659,7 +739,7 @@ enum AdjustmentType {
 }
 
 class StitchAdjustmentView: UIView {
-    private let type: AdjustmentType
+    let type: AdjustmentType
     var onAdjust: ((CGFloat) -> Void)?
     var onStateChanged: ((Bool) -> Void)?
     
@@ -721,8 +801,8 @@ class StitchAdjustmentView: UIView {
         
         translatesAutoresizingMaskIntoConstraints = false
         
-        addSubview(iconImageView)
         addSubview(lineView)
+        addSubview(iconImageView)
         
         // 箭头动画容器
         superview?.addSubview(arrowContainer) // 注意：这里需要添加到父视图才能显示在气泡外
@@ -845,7 +925,15 @@ class StitchAdjustmentView: UIView {
         
         let translation = gesture.translation(in: superview)
         if gesture.state == .changed {
-            let deltaY = translation.y - lastLocation.y
+            var deltaY = translation.y - lastLocation.y
+            
+            // 调整方向逻辑：
+            // 对于中间和底部气泡，向上拖拽 (deltaY < 0) 应该增加重合度/裁剪量
+            // 所以我们需要将 deltaY 取反，使其变成正值传给 adjustOffset/adjustBottomCrop
+            if type == .middle || type == .bottom {
+                deltaY = -deltaY
+            }
+            
             onAdjust?(deltaY)
             lastLocation = translation
         } else if gesture.state == .began {
