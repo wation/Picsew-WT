@@ -928,7 +928,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         guard !images.isEmpty, currentOffsets.count == images.count, currentBottomStarts.count == images.count else { return nil }
         
         let firstImage = images[0]
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         let displayScale = containerWidth / firstImage.size.width
         
         let origTopCrop = topCrop / displayScale
@@ -973,8 +974,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 ctx.cgContext.saveGState()
                 ctx.cgContext.clip(to: drawRect)
                 
-                // 绘制图片，需要考虑 selfStartY 和如果是第一张图的 origTopCrop
-                let imageDrawY = drawY - selfStartY - (index == 0 ? origTopCrop : 0)
+                // 绘制图片，需要考虑 selfStartY
+                let imageDrawY = drawY - selfStartY
                 let imageDrawRect = CGRect(x: 0, y: imageDrawY, width: image.size.width, height: image.size.height)
                 image.draw(in: imageDrawRect)
                 
