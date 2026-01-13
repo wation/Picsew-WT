@@ -1,0 +1,19 @@
+/* Chinese Traditional */
+"app_name" = "Picsew-WT";
+"video_capture" = "視頻拼圖";
+"image_stitch" = "圖片拼圖";
+"import_video" = "導入視頻";
+"auto_stitch" = "自動拼圖";
+"vertical_stitch" = "垂直拼圖";
+"horizontal_stitch" = "橫向拼圖";
+"manual_stitch" = "手動拼圖";
+"settings" = "設置";
+"export_settings" = "導出設置";
+"scroll_settings" = "滾動設置";
+"tutorial" = "操作教程";
+"version" = "版本";
+"contact_us" = "聯繫我們";
+"rate_app" = "評分應用";
+"share_app" = "分享應用";
+"no_overlap_found" = "沒有找到重合點";
+"stitch_warning_auto_to_manual" = "部分圖片未找到重合點，自動切換到手動拼圖";

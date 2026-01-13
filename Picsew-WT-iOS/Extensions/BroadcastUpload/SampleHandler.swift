@@ -2,7 +2,7 @@ import ReplayKit
 import AVFoundation
 
 @objc(SampleHandler)
-public class SampleHandler: RPBroadcastSampleHandler {
+class SampleHandler: RPBroadcastSampleHandler {
     
     private var assetWriter: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
@@ -10,7 +10,7 @@ public class SampleHandler: RPBroadcastSampleHandler {
     private let appGroupId = "group.com.magixun.picsewwt"
     private let recordingFileName = "broadcast_recording.mp4"
     
-    public override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
+    override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
         // 获取共享容器路径
         guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) else {
             finishBroadcastWithError(NSError(domain: "BroadcastError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法访问共享容器"]))
@@ -52,15 +52,15 @@ public class SampleHandler: RPBroadcastSampleHandler {
         }
     }
     
-    public override func broadcastPaused() {
+    override func broadcastPaused() {
         // 暂停逻辑
     }
     
-    public override func broadcastResumed() {
+    override func broadcastResumed() {
         // 恢复逻辑
     }
     
-    public override func broadcastFinished() {
+    override func broadcastFinished() {
         isRecording = false
         videoInput?.markAsFinished()
         assetWriter?.finishWriting { [weak self] in
@@ -70,7 +70,7 @@ public class SampleHandler: RPBroadcastSampleHandler {
         }
     }
     
-    public override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
+    override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
         switch sampleBufferType {
         case .video:
             if isRecording, assetWriter?.status == .writing {

@@ -3,12 +3,12 @@ import ReplayKit
 
 /// 控制中心录屏设置界面控制器
 @objc(BroadcastSetupViewController)
-public class BroadcastSetupViewController: UIViewController {
+internal class BroadcastSetupViewController: UIViewController {
     
     // 开始录屏按钮
     private let startButton = UIButton(type: .system)
     
-    override public func viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
         
         setupUI()
