@@ -28,7 +28,8 @@ class VideoStitcher {
         }
     }
     
-    private func extractKeyFrames(from url: URL, completion: @escaping VideoProcessCompletion) {
+    /// 从本地视频 URL 提取关键帧
+    func extractKeyFrames(from url: URL, completion: @escaping VideoProcessCompletion) {
         let asset = AVAsset(url: url)
         let reader: AVAssetReader
         do {

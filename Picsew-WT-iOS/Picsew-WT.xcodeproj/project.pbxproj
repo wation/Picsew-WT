@@ -30,54 +30,105 @@
 		7E1757B294699F34E1EA9EBA /* ManualStitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F81FE085F389BAD601CCFC3 /* ManualStitchViewController.swift */; };
 		84FC16540947C5B69DB5E9BE /* VideoCaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B2DDEF5DC25F047BEC41B1 /* VideoCaptureViewController.swift */; };
 		84FC16540947C5B69DB5E9C0 /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */; };
-		D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33679812D35349900C30A91 /* VideoStitcher.swift */; };
 		AD264FA329ED58AC6FB4BA43 /* AutoStitchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */; };
 		AF82491391379B367154A838 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */; };
 		D03ED9C21DBC34C0A1E1DE33 /* ManualStitchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36046280D85FE090120EE50 /* ManualStitchViewModel.swift */; };
+		D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33679812D35349900C30A91 /* VideoStitcher.swift */; };
+		D33679842D35349900C30A91 /* BroadcastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33679832D35349900C30A91 /* BroadcastManager.swift */; };
 		D7C4E71919DE97489B2AA18A /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CB842D508FF292CBAFF6A3 /* SettingsViewModel.swift */; };
+		D896B4B42F1566A30064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
+		D896B4BB2F1566A30064430C /* PicsewWTExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B4B22F1566A30064430C /* PicsewWTExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D896B4C72F1566A30064430C /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B4C52F1566A30064430C /* SampleHandler.swift */; };
+		D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
+		D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B55C2F164E9C0064430C /* UIKit.framework */; };
+		D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */; };
+		D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D896B5822F164E9C0064430C /* MainInterface.storyboard */; };
+		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D896B4B92F1566A30064430C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64AA5F53877692CF12653E5C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D896B4B12F1566A30064430C;
+			remoteInfo = "Picsew-WT-Extension";
+		};
+		D896B5622F164E9C0064430C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64AA5F53877692CF12653E5C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D896B5592F164E9B0064430C;
+			remoteInfo = BroadcastSetup;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D896B4BC2F1566A30064430C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */,
+				D896B4BB2F1566A30064430C /* PicsewWTExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		07FDFFBC846630D7D244A3DE /* es */ = {isa = PBXFileReference; lastKnownFileType = text; name = "es"; path = "Resources/i18n/es.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		07FDFFBC846630D7D244A3DE /* es */ = {isa = PBXFileReference; lastKnownFileType = text; name = es; path = Resources/i18n/es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0F81FE085F389BAD601CCFC3 /* ManualStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualStitchViewController.swift; path = Modules/Screenshot/View/ManualStitchViewController.swift; sourceTree = "<group>"; };
 		1AA2B2FDE5E357069AEAC277 /* VideoImportViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewModel.swift; path = Modules/VideoCapture/VideoImportViewModel.swift; sourceTree = "<group>"; };
-		2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = PicsewWT/PicsewWT/SceneDelegate.swift; sourceTree = "<group>"; };
+		2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = "Picsew-WT/Picsew-WT/SceneDelegate.swift"; sourceTree = "<group>"; };
 		2C231FE0FA6FD11E4B841746 /* ImageStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageStitchViewController.swift; path = Modules/Screenshot/View/ImageStitchViewController.swift; sourceTree = "<group>"; };
-		2EFE44F7BFF48834F5A30938 /* PicsewWT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PicsewWT.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
+		2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Picsew-WT.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StitchAlgorithm.swift; path = Modules/Screenshot/Model/StitchAlgorithm.swift; sourceTree = "<group>"; };
+		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
 		424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LocalizationManager.swift; path = Modules/Common/LocalizationManager.swift; sourceTree = "<group>"; };
 		468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewModel.swift; path = Modules/VideoCapture/VideoCaptureViewModel.swift; sourceTree = "<group>"; };
 		48802182790D1942E3391AE8 /* VideoImportViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewController.swift; path = Modules/VideoCapture/VideoImportViewController.swift; sourceTree = "<group>"; };
-		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = PicsewWT/PicsewWT/Info.plist; sourceTree = "<group>"; };
-		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = PicsewWT/PicsewWT/AppDelegate.swift; sourceTree = "<group>"; };
-		58F4FFCC6EECB6E315CF3428 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "pt"; path = "Resources/i18n/pt.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Picsew-WT/Picsew-WT/Info.plist"; sourceTree = "<group>"; };
+		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = "Picsew-WT/Picsew-WT/AppDelegate.swift"; sourceTree = "<group>"; };
+		58F4FFCC6EECB6E315CF3428 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pt; path = Resources/i18n/pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImporter.swift; path = Modules/VideoCapture/VideoImporter.swift; sourceTree = "<group>"; };
 		5D421C57E02336E52A544300 /* HomeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = Modules/Screenshot/View/HomeViewController.swift; sourceTree = "<group>"; };
-		66B8E5F12B2F4E7A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = PicsewWT/PicsewWT/Assets.xcassets; sourceTree = "<group>"; };
+		66B8E5F12B2F4E7A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = "Picsew-WT/Picsew-WT/Assets.xcassets"; sourceTree = "<group>"; };
 		6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScrollSettingsViewController.swift; path = Modules/Settings/ScrollSettingsViewController.swift; sourceTree = "<group>"; };
 		74F65661F512D0E38B1F14D5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		934AD1DA33F71414722136A2 /* HomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeViewModel.swift; path = Modules/Screenshot/ViewModel/HomeViewModel.swift; sourceTree = "<group>"; };
 		9FC07250DED4A0210B34547C /* SettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewController.swift; path = Modules/Settings/SettingsViewController.swift; sourceTree = "<group>"; };
 		A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoCell.swift; path = Modules/Screenshot/View/PhotoCell.swift; sourceTree = "<group>"; };
 		A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewModel.swift; path = Modules/Screenshot/ViewModel/AutoStitchViewModel.swift; sourceTree = "<group>"; };
-		A72DFECFB938BA125356538E /* MainTabBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MainTabBarController.swift; path = PicsewWT/PicsewWT/MainTabBarController.swift; sourceTree = "<group>"; };
+		A72DFECFB938BA125356538E /* MainTabBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MainTabBarController.swift; path = "Picsew-WT/Picsew-WT/MainTabBarController.swift"; sourceTree = "<group>"; };
 		B72AD488BBB37475479483D4 /* TutorialViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TutorialViewController.swift; path = Modules/Settings/TutorialViewController.swift; sourceTree = "<group>"; };
-		B73BF305651DC1572398539A /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = PicsewWT/PicsewWT/ViewController.swift; sourceTree = "<group>"; };
+		B73BF305651DC1572398539A /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = "Picsew-WT/Picsew-WT/ViewController.swift"; sourceTree = "<group>"; };
 		C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewController.swift; path = Modules/Screenshot/View/AutoStitchViewController.swift; sourceTree = "<group>"; };
 		C1B134EA4B61146CCF2B408F /* VideoCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureManager.swift; path = Modules/VideoCapture/VideoCaptureManager.swift; sourceTree = "<group>"; };
 		CC102A0107AA24D2C3D9416A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hans"; path = "Resources/i18n/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		D026CA1840FDEE3ABD940681 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text; name = "ja"; path = "Resources/i18n/ja.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		D026CA1840FDEE3ABD940681 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text; name = ja; path = Resources/i18n/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1CB842D508FF292CBAFF6A3 /* SettingsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewModel.swift; path = Modules/Settings/SettingsViewModel.swift; sourceTree = "<group>"; };
+		D33679812D35349900C30A91 /* VideoStitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoStitcher.swift; path = Modules/VideoCapture/VideoStitcher.swift; sourceTree = "<group>"; };
+		D33679832D35349900C30A91 /* BroadcastManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BroadcastManager.swift; path = Modules/VideoCapture/BroadcastManager.swift; sourceTree = "<group>"; };
+		D896B4B22F1566A30064430C /* PicsewWTExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PicsewWTExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D896B4B32F1566A30064430C /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		D896B4C22F1569320064430C /* Picsew-WT-Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Picsew-WT-Extension.entitlements"; sourceTree = "<group>"; };
+		D896B4C52F1566A30064430C /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = Extensions/BroadcastUpload/SampleHandler.swift; sourceTree = "<group>"; };
+		D896B4C62F1566A30064430C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Extensions/BroadcastUpload/Info.plist; sourceTree = "<group>"; };
+		D896B55A2F164E9B0064430C /* BroadcastSetup.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastSetup.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BroadcastSetupViewController.swift; path = BroadcastSetupViewController.swift; sourceTree = "<group>"; };
+		D896B5822F164E9C0064430C /* MainInterface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = MainInterface.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
+		D896B55C2F164E9C0064430C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		DC1775436335E1083E0DA3EB /* ExportSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportSettingsViewController.swift; path = Modules/Settings/ExportSettingsViewController.swift; sourceTree = "<group>"; };
 		DF3592BB3688062A97EB2B08 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/i18n/en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		E27D400A6CE98E942AE4DB46 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text; name = "ko"; path = "Resources/i18n/ko.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		E27D400A6CE98E942AE4DB46 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text; name = ko; path = Resources/i18n/ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E2B2DDEF5DC25F047BEC41B1 /* VideoCaptureViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewController.swift; path = Modules/VideoCapture/VideoCaptureViewController.swift; sourceTree = "<group>"; };
 		E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCell.swift; path = Modules/VideoCapture/VideoCell.swift; sourceTree = "<group>"; };
-		D33679812D35349900C30A91 /* VideoStitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoStitcher.swift; path = Modules/VideoCapture/VideoStitcher.swift; sourceTree = "<group>"; };
 		E36046280D85FE090120EE50 /* ManualStitchViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualStitchViewModel.swift; path = Modules/Screenshot/ViewModel/ManualStitchViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,6 +138,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D896B4AF2F1566A30064430C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D896B4B42F1566A30064430C /* ReplayKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D896B5572F164E9B0064430C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */,
+				D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +168,7 @@
 				468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */,
 				E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */,
 				D33679812D35349900C30A91 /* VideoStitcher.swift */,
+				D33679832D35349900C30A91 /* BroadcastManager.swift */,
 				E2B2DDEF5DC25F047BEC41B1 /* VideoCaptureViewController.swift */,
 				C1B134EA4B61146CCF2B408F /* VideoCaptureManager.swift */,
 				1AA2B2FDE5E357069AEAC277 /* VideoImportViewModel.swift */,
@@ -120,8 +189,6 @@
 			isa = PBXGroup;
 			children = (
 				934AD1DA33F71414722136A2 /* HomeViewModel.swift */,
-				A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */,
-				E36046280D85FE090120EE50 /* ManualStitchViewModel.swift */,
 			);
 			name = ViewModel;
 			sourceTree = "<group>";
@@ -144,6 +211,8 @@
 			isa = PBXGroup;
 			children = (
 				07700E263C78433292E0A951 /* iOS */,
+				D896B4B32F1566A30064430C /* ReplayKit.framework */,
+				D896B55C2F164E9C0064430C /* UIKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -185,7 +254,7 @@
 			name = Common;
 			sourceTree = "<group>";
 		};
-		6572C418C0F2EC7783C9F1EF /* PicsewWT */ = {
+		6572C418C0F2EC7783C9F1EF /* Picsew-WT */ = {
 			isa = PBXGroup;
 			children = (
 				B73BF305651DC1572398539A /* ViewController.swift */,
@@ -195,15 +264,36 @@
 				2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */,
 				66B8E5F12B2F4E7A00000001 /* Assets.xcassets */,
 			);
-			name = PicsewWT;
+			name = "Picsew-WT";
+			sourceTree = "<group>";
+		};
+		D896B4C42F1566A30064430C /* BroadcastUpload */ = {
+			isa = PBXGroup;
+			children = (
+				D896B4C52F1566A30064430C /* SampleHandler.swift */,
+				D896B4C62F1566A30064430C /* Info.plist */,
+			);
+			name = BroadcastUpload;
+			sourceTree = "<group>";
+		};
+		D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */ = {
+			isa = PBXGroup;
+			children = (
+				D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */,
+				D896B5822F164E9C0064430C /* MainInterface.storyboard */,
+			);
+			path = Extensions/BroadcastSetup;
 			sourceTree = "<group>";
 		};
 		DA593C1FA715D769CF8035A3 = {
 			isa = PBXGroup;
 			children = (
+				D896B4C22F1569320064430C /* Picsew-WT-Extension.entitlements */,
+				D896B4C42F1566A30064430C /* BroadcastUpload */,
+				D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */,
 				DC5AE1E0B521D1B510CCAEC3 /* Products */,
 				31E2A887363079AB0BC15D62 /* Frameworks */,
-				6572C418C0F2EC7783C9F1EF /* PicsewWT */,
+				6572C418C0F2EC7783C9F1EF /* Picsew-WT */,
 				375A04630C1D19CA2618E7B9 /* Modules */,
 				326DD289B665FC1F5AB88783 /* Resources */,
 			);
@@ -212,7 +302,9 @@
 		DC5AE1E0B521D1B510CCAEC3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2EFE44F7BFF48834F5A30938 /* PicsewWT.app */,
+				2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */,
+				D896B4B22F1566A30064430C /* PicsewWTExtension.appex */,
+				D896B55A2F164E9B0064430C /* BroadcastSetup.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -249,22 +341,66 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4B1C595114FB1EA67386A941 /* PicsewWT */ = {
+		4B1C595114FB1EA67386A941 /* Picsew-WT */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "PicsewWT" */;
+			buildConfigurationList = C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "Picsew-WT" */;
 			buildPhases = (
 				1CC90E50920FEA02CB7F90FA /* Sources */,
 				AB4D7612CF2AEBC0EA662987 /* Frameworks */,
 				499763A83400D53127C2EC42 /* Resources */,
+				D896B4BC2F1566A30064430C /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D896B4BA2F1566A30064430C /* PBXTargetDependency */,
+				D896B5632F164E9C0064430C /* PBXTargetDependency */,
+			);
+			name = "Picsew-WT";
+			productName = "Picsew-WT";
+			productReference = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D896B4B12F1566A30064430C /* Picsew-WT-Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "Picsew-WT-Extension" */;
+			buildPhases = (
+				D896B4AE2F1566A30064430C /* Sources */,
+				D896B4AF2F1566A30064430C /* Frameworks */,
+				D896B4B02F1566A30064430C /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = PicsewWT;
-			productName = PicsewWT;
-			productReference = 2EFE44F7BFF48834F5A30938 /* PicsewWT.app */;
-			productType = "com.apple.product-type.application";
+			name = "Picsew-WT-Extension";
+			packageProductDependencies = (
+			);
+			productName = PicsewWTExtension;
+			productReference = D896B4B22F1566A30064430C /* PicsewWTExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		D896B5592F164E9B0064430C /* BroadcastSetup */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D896B5682F164E9C0064430C /* Build configuration list for PBXNativeTarget "BroadcastSetup" */;
+			buildPhases = (
+				D896B5562F164E9B0064430C /* Sources */,
+				D896B5572F164E9B0064430C /* Frameworks */,
+				D896B5582F164E9B0064430C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */,
+			);
+			name = BroadcastSetup;
+			packageProductDependencies = (
+			);
+			productName = BroadcastSetup;
+			productReference = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -272,17 +408,28 @@
 		64AA5F53877692CF12653E5C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1600;
+				ORGANIZATIONNAME = com.magixun.picsewwt;
 				TargetAttributes = {
 					4B1C595114FB1EA67386A941 = {
 						CreatedOnToolsVersion = 16.0;
 						DevelopmentTeam = RH28D37T36;
 						ProvisioningStyle = Automatic;
 					};
+					D896B4B12F1566A30064430C = {
+						CreatedOnToolsVersion = 16.3;
+						DevelopmentTeam = RH28D37T36;
+						ProvisioningStyle = Automatic;
+					};
+					D896B5592F164E9B0064430C = {
+						CreatedOnToolsVersion = 16.3;
+						DevelopmentTeam = RH28D37T36;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
-			buildConfigurationList = FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewWT" */;
+			buildConfigurationList = FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "Picsew-WT" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
@@ -300,7 +447,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4B1C595114FB1EA67386A941 /* PicsewWT */,
+				4B1C595114FB1EA67386A941 /* Picsew-WT */,
+				D896B4B12F1566A30064430C /* Picsew-WT-Extension */,
+				D896B5592F164E9B0064430C /* BroadcastSetup */,
 			);
 		};
 /* End PBXProject section */
@@ -312,6 +461,21 @@
 			files = (
 				21EA098FC5107484E44C6009 /* Localizable.strings in Resources */,
 				66B8E5F22B2F4E7A00000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D896B4B02F1566A30064430C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D896B5582F164E9B0064430C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -338,6 +502,7 @@
 				25B6DD309AA2F221BAFAC219 /* VideoCaptureViewModel.swift in Sources */,
 				84FC16540947C5B69DB5E9C0 /* VideoCell.swift in Sources */,
 				D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */,
+				D33679842D35349900C30A91 /* BroadcastManager.swift in Sources */,
 				84FC16540947C5B69DB5E9BE /* VideoCaptureViewController.swift in Sources */,
 				6ED47E0603C2209154993FE8 /* VideoCaptureManager.swift in Sources */,
 				774678F632C42E871C16FD00 /* VideoImportViewModel.swift in Sources */,
@@ -353,7 +518,36 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D896B4AE2F1566A30064430C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D896B4C72F1566A30064430C /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D896B5562F164E9B0064430C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D896B4BA2F1566A30064430C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D896B4B12F1566A30064430C /* Picsew-WT-Extension */;
+			targetProxy = D896B4B92F1566A30064430C /* PBXContainerItemProxy */;
+		};
+		D896B5632F164E9C0064430C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D896B5592F164E9B0064430C /* BroadcastSetup */;
+			targetProxy = D896B5622F164E9C0064430C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		66B8E5F32B2F4E7A00000001 /* Localizable.strings */ = {
@@ -378,13 +572,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = "Picsew-WT/Picsew-WT.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				INFOPLIST_FILE = PicsewWT/PicsewWT/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt;
+				PRODUCT_NAME = "Picsew-WT";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -513,13 +709,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = "Picsew-WT/Picsew-WT.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				INFOPLIST_FILE = PicsewWT/PicsewWT/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt;
+				PRODUCT_NAME = "Picsew-WT";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -527,10 +725,134 @@
 			};
 			name = Debug;
 		};
+		D896B4BD2F1566A30064430C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = "Picsew-WT-Extension.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RH28D37T36;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.extension;
+				PRODUCT_NAME = PicsewWTExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D896B4BE2F1566A30064430C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = "Picsew-WT-Extension.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RH28D37T36;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.extension;
+				PRODUCT_NAME = PicsewWTExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D896B5652F164E9C0064430C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RH28D37T36;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏设置";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.BroadcastSetup;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D896B5662F164E9C0064430C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RH28D37T36;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏设置";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.BroadcastSetup;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "PicsewWT" */ = {
+		C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "Picsew-WT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0233A8127CD5D5AD1AF07DEA /* Release */,
@@ -539,7 +861,25 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewWT" */ = {
+		D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "Picsew-WT-Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D896B4BD2F1566A30064430C /* Debug */,
+				D896B4BE2F1566A30064430C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D896B5682F164E9C0064430C /* Build configuration list for PBXNativeTarget "BroadcastSetup" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D896B5652F164E9C0064430C /* Debug */,
+				D896B5662F164E9C0064430C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "Picsew-WT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4F14FC7C145AB0617C316741 /* Debug */,
