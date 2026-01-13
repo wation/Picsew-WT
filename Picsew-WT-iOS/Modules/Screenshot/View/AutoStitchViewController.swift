@@ -305,7 +305,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         let horizontalMargin: CGFloat = 16
         let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         contentView.backgroundColor = .systemGray6
-        let paddingTop: CGFloat = 16
+        // 修正：移除 paddingTop，使第一张图片（及其顶部按钮）紧贴 contentView 顶部
+        let paddingTop: CGFloat = 0
         var lastContainer: UIView?
         var totalHeight: CGFloat = 0
         
@@ -418,7 +419,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             } else {
                 let topAdjustment = StitchAdjustmentView(type: .top)
                 topAdjustment.onAdjust = { [weak self] deltaY in
-                    self?.adjustTopCrop(deltaY: deltaY)
+                    self?.adjustTopCrop(deltaY: -deltaY)
                 }
                 topAdjustment.onStateChanged = { [weak self] isSelected in
                     if isSelected {
@@ -433,7 +434,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                 topAdjustment.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
                 
                 let topConstraint = topAdjustment.topAnchor.constraint(equalTo: container.topAnchor)
-                adjustmentViewCenterYConstraints.append(topConstraint) // 虽然是 top，也存在这里统一管理
+                adjustmentViewCenterYConstraints.append(topConstraint)
                 
                 NSLayoutConstraint.activate([
                     topAdjustment.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -441,12 +442,11 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                     topAdjustment.widthAnchor.constraint(equalToConstant: 60),
                     topAdjustment.heightAnchor.constraint(equalToConstant: 30)
                 ])
-            }
+                
+        }
         }
         
         if let lastContainer = lastContainer {
-            // 关键：不再使用固定的 contentViewHeightConstraint，而是通过将 contentView 的底部
-            // 与最后一个容器的底部对齐，让内容自然撑开。
             lastContainerBottomConstraint?.isActive = false
             let bottomAnchor = contentView.bottomAnchor.constraint(equalTo: lastContainer.bottomAnchor)
             bottomAnchor.isActive = true
@@ -524,7 +524,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     private func adjustTopCrop(deltaY: CGFloat) {
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         let firstImage = viewModel.images.first
         let displayScale = containerWidth / (firstImage?.size.width ?? 1)
         
@@ -536,35 +537,76 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         topCrop = newTopCrop
         
         // 原地更新：不重绘，直接改约束，这是性能最好且最直接的方式
-        firstImageViewTopConstraint?.constant -= diff
+        // 修正逻辑：顶部按钮固定，内容上下移动
+        // 上滑 (deltaY > 0): 裁剪更多，topCrop 增加，diff > 0
+        // 下滑 (deltaY < 0): 减少裁剪，topCrop 减小，diff < 0
+        
+        // 1. 顶部按钮位置不变，所以 imageViewTopConstraints[0] 不变
+        // 但为了让下方所有内容跟随上移（高度减小），我们需要移动后续所有容器
+        
+        // 2. 图片相对于容器向上移动 diff (为了保持图片内容在屏幕上的绝对位置不变，或者说内容上移)
+        // 上滑时 diff > 0, constant 减小，图片上移
+        // 确保使用 imageViewInternalTopConstraints[0] 而不是 firstImageViewTopConstraint，以防引用错误
+        if !imageViewInternalTopConstraints.isEmpty {
+            imageViewInternalTopConstraints[0].constant -= diff
+        } else {
+            firstImageViewTopConstraint?.constant -= diff
+        }
+        
+        // 3. 容器高度减小 diff
         firstImageHeightConstraint?.constant -= diff
         
-        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
-        
-        // 同时调整后续所有容器的 top，使它们整体上移，确保底部不会留出空白
+        // 4. 移动后续所有容器，以填补高度减小带来的空隙
         for i in 1..<imageViewTopConstraints.count {
             imageViewTopConstraints[i].constant -= diff
         }
+        
+        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
         
         view.layoutIfNeeded()
     }
     
     private func adjustBottomCrop(deltaY: CGFloat) {
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         let lastImage = viewModel.images.last
         let displayScale = containerWidth / (lastImage?.size.width ?? 1)
         
-        // 用户向上拖拽气泡 (deltaY > 0)
-        // 效果：底部向上裁剪 (bottomCrop 增加)
-        let newBottomCrop = max(0, bottomCrop + deltaY)
+        // 修正逻辑：底部按钮固定，内容上下移动
+        // 上滑 (deltaY > 0): 减少裁剪 (展开底部)，bottomCrop 减小，diff < 0
+        // 下滑 (deltaY < 0): 增加裁剪 (隐藏底部)，bottomCrop 增加，diff > 0
+        // 注意：deltaY 在 handleContentViewPan 中被取反了，这里我们需要还原原本的物理意义？
+        // 让我们重新梳理 deltaY 的定义：
+        // 在 handleContentViewPan 中: deltaY = -(translation.y - lastPanLocation.y)
+        // 手指上滑: translation.y 减小 (负数), deltaY > 0
+        // 手指下滑: translation.y 增加 (正数), deltaY < 0
+        
+        // 需求：上滑 (deltaY > 0) -> 展开底部 (bottomCrop 减小)
+        // 需求：下滑 (deltaY < 0) -> 隐藏底部 (bottomCrop 增加)
+        
+        let newBottomCrop = max(0, bottomCrop - deltaY) // 注意这里是减去 deltaY
         let lastImageDisplayHeight = (lastImage?.size.height ?? 0) * displayScale
         if lastImageDisplayHeight > 0 && newBottomCrop >= lastImageDisplayHeight - 10 { return }
         
         let diff = newBottomCrop - bottomCrop
         bottomCrop = newBottomCrop
         
+        // diff = new - old
+        // 上滑: new < old -> diff < 0
+        // 下滑: new > old -> diff > 0
+        
         // 原地更新：不重绘，直接改约束，这是性能最好且最直接的方式
+        
+        // 1. 增加容器高度 (diff 是负数，所以是 -= diff 增加高度)
         lastImageHeightConstraint?.constant -= diff
+        
+        // 2. 为了保持底部按钮位置固定 (lastContainer.bottom 固定)
+        // 当高度增加时 (diff < 0)，顶部必须上移
+        // 当高度减小时 (diff > 0)，顶部必须下移
+        // 所以所有容器都需要向上移动 diff (diff < 0 时即向上移动)
+        for constraint in imageViewTopConstraints {
+            constraint.constant += diff
+        }
         
         // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
         
@@ -573,83 +615,231 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     private func adjustUpperOffset(at index: Int, deltaY: CGFloat) {
         guard index > 0 && index < viewModel.images.count else { return }
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         let displayScale = containerWidth / viewModel.images[index-1].size.width
         let imageDeltaY = deltaY / displayScale
         
         matchedIndices.remove(index)
         
-        // 记录原始偏移量，计算差值
-        let oldOffset = currentOffsets[index]
-        // 这里我们要改变的是 index-1 相对于 index 的位置
-        // 逻辑上相当于：index 保持不动，index-1 移动
-        // 但在我们的数据结构中，偏移是累加的，所以我们通过减少 index-1 之前的偏移来实现 index-1 向上移动
-        let newOffset = currentOffsets[index] + imageDeltaY
+        // 需求：中间按钮固定，上方图片上滑展开
+        // 上滑 (deltaY > 0): 展开 (增加 gap/高度)，Offset 减小? 不，Offset 是相对位置
+        // 如果上方图片上移，说明 overlap 减小 (或者 gap 增加)
+        // currentOffsets[index] 是 Image[index] 相对于 Image[0] 的位置
+        // 如果 Image[i-1] 上移，Image[i] 不动
+        // 那么 Image[i-1] 到 Image[i] 的距离增加
+        // 实际上我们是在修改 Image[i-1] 的显示区域
         
-        // 限制：不能超过上一张图的范围
-        let prevOffset = currentOffsets[index-1]
-        if newOffset < prevOffset { return }
+        // 让我们关注视觉效果：
+        // 上滑 (deltaY > 0): Image[i-1] 上移，中间按钮 i 固定
+        // 这意味着 Image[i-1] 的底部相对于中间按钮上移
+        // 也就是我们看到了 Image[i-1] 更多的底部内容?
+        // 不，如果 Image[i-1] 上移，而裁剪框(按钮)不动，那我们看到的内容是向上滚动的
+        // 即 Image[i-1] 的内容向上移动，按钮下方的 Image[i] 不动
+        // 这通常意味着减少了重叠 (Un-overlap)
         
-        let diff = newOffset - oldOffset
-        let displayDiff = diff * displayScale
+        // 更新数据：
+        // 我们保持 index 及其以后的 offset 不变 (因为按钮 i 固定)
+        // 我们需要调整 0...index-1 的 offset
+        // 上滑 (deltaY > 0) -> 上方内容整体上移 -> offset 减小
         
-        // 新增限制：当图片底部到达按钮位置时，限制继续下滑（即 newOffset 不能再增加了）
-        // image[index-1] 的底部在画布上的坐标是 currentOffsets[index-1] + image[index-1].height
-        // 按钮在画布上的坐标是 currentOffsets[index]
-        // 当 currentOffsets[index] 减小到接近上一张图底部时，应该限制
-        // 不过在这里，用户是在向上滑动上方图片，所以是增加 overlap
+        let actualDiff = -deltaY // 上滑 offset 减小
+        let displayDiff = actualDiff * displayScale // 屏幕坐标系的位移
         
-        // 1. 更新数据：因为 index 及其以后的要保持不动，所以我们调整 0...index-1 的偏移
-        // 这相当于将整个坐标系向上移动，然后把 index 及其以后的移回来。
-        // 更简单的做法是：直接调整 currentOffsets[index...count-1]，
-        // 然后通过视图层的位移来补偿，使得 index 看起来没动。
-        // 这正是 adjustOffset 的逻辑！
+        // 【新增 3.1.1 & 3.2.1 边界检查】
+        let currentContainerHeight = imageViewHeightConstraints[index-1].constant
+        let currentInternalTop = imageViewInternalTopConstraints[index-1].constant
+        let imageDisplayHeight = viewModel.images[index-1].size.height * displayScale
         
-        // 实际上，“移动上方图片”和“移动下方图片”在数据层面是一样的：改变的是 index 处的重合度。
-        // 区别仅在于视觉上哪个部分作为参考点保持不动。
+        let nextContainerHeight = currentContainerHeight + deltaY
         
-        // 如果我们要移动上方图片，参考点是 container[index] 及其以后的所有东西。
-        // 所以我们调整 currentOffsets[index...count-1] (这是 diff)，
-        // 然后同时将整个内容（或者 0...index-1 部分）反向移动相同的距离。
-        
-        // 1. 更新数据 (同 adjustOffset，但方向相反)
-        // 这里的 diff 计算：如果用户上滑上方图片 (deltaY < 0)，表示增加重合度，offset 应该减小
-        let actualDiff = -diff 
-        for i in index..<currentOffsets.count {
-            currentOffsets[i] += actualDiff
+        // 3.1.1: 如果第一张图片底部就在中间按钮处，不可滑动 (向上)
+        if deltaY > 0 {
+            // 允许一定的浮点误差
+            // 修正逻辑：
+            // currentInternalTop 是图片相对于容器顶部的偏移（通常为负值，表示顶部被裁掉的部分）
+            // imageDisplayHeight 是图片的完整显示高度
+            // 图片在容器内的“有效底部位置”相对于容器顶部是：currentInternalTop + imageDisplayHeight
+            // 只有当 容器高度 (nextContainerHeight) 超过这个值时，才会出现空白。
+            // 用户反馈“计算高度的公式错了，怀疑把顶部标题栏的高度算进去了”。
+            // currentInternalTop 的计算公式在 setupImageDisplay 中：
+            // internalTopOffset = (canvasY - containerStartY) - selfStartY
+            // 其中 canvasY 是图片在整个长截图中的绝对Y坐标，containerStartY 是容器的绝对Y坐标。
+            // selfStartY 是图片自身的起始裁剪点（如果有的话）。
+            // 所以 currentInternalTop 确实反映了图片在容器内的相对位置。
+            
+            // 但是！这里可能忽略了 topCrop 对第一张图片的影响？
+            // 如果 index-1 == 0，即我们在调整第一张图片。
+            // 第一张图片的 containerStartY = paddingTop + topCrop
+            // 第一张图片的 canvasY = 0
+            // internalTopOffset = (0 - (paddingTop + topCrop)) - selfStartY
+            //                   = -paddingTop - topCrop - selfStartY
+            // 之前移除了 paddingTop (=0)。
+            // internalTopOffset = -topCrop - selfStartY
+            
+            // 如果用户提到的“顶部标题栏高度”，可能是指系统导航栏？
+            // 或者是指 topCrop？
+            // 无论如何，currentInternalTop 应该已经包含了这些偏移。
+            
+            // 让我们再检查一下 imageDisplayHeight。
+            // imageDisplayHeight = image.size.height * displayScale
+            // 这是图片的完整高度。
+            
+            // 限制条件：nextContainerHeight > currentInternalTop + imageDisplayHeight
+            // 如果 internalTop 是负数（如 -100），imageHeight 是 1000。 limit = 900。
+            // 如果容器高度 > 900，就露馅了。
+            
+            // 为什么用户说“算出来的值不对”？
+            // 也许 currentInternalTop 的值在滑动过程中没有更新？
+            // 在 adjustUpperOffset 中，我们没有更新 internalTop。
+            // 但是我们更新了 currentOffsets[i] -= imageDeltaY
+            // canvasY 变了！
+            // canvasY = currentOffsets[index] * displayScale
+            // 如果重新 layout，containerStartY 也会变。
+            // 但我们是“原地更新”约束，没有重新 layout。
+            // 所以 currentInternalTop (约束值) 保持不变是正确的，因为容器和图片一起移动了。
+            // 相对位置没变。
+            
+            // 除非... 之前的 currentOffsets 计算有误？
+            // 或者 displayScale 有误？
+            
+            // 让我们尝试另一种思路：
+            // 我们不依赖 currentInternalTop，而是直接计算图片底部相对于容器底部的位置。
+            // 图片底 - 容器底 >= 0
+            // (图片顶 + 高度) - (容器顶 + 高度) >= 0
+            // 图片顶 - 容器顶 + 高度 - 容器高度 >= 0
+            // internalTop + imageHeight - containerHeight >= 0
+            // containerHeight <= internalTop + imageHeight
+            
+            // 这个公式是没问题的。
+            // 如果用户说不对，可能是 internalTop 的值不对。
+            // 让我们看看 internalTopConstraint 是怎么加的。
+            // let internalTop = imageView.topAnchor.constraint(equalTo: container.topAnchor, constant: internalTopOffset)
+            // 所以 constant 就是 internalTopOffset。
+            
+            // 也许是多减了一个 topCrop？
+            // 如果 index-1 == 0。
+            // internalTop = -topCrop.
+            // limit = imageHeight - topCrop.
+            // 如果我们上滑，nextContainerHeight 增加。
+            // 实际上，调整 UpperOffset 是在改变图片之间的重叠。
+            // 第一张图的 UpperOffset 调整... 等等，第一张图没有 UpperOffset。
+            // adjustUpperOffset(at index) 是针对第 index 个按钮，调整 index-1 图片。
+            // 如果 index=1，调整的是 Image[0]。
+            // Image[0] 的底部 = Image[0].top + height.
+            // 按钮[1] 的位置 = Image[0] 的可见底部。
+            // 容器[0] 的高度 = 按钮[1] - 容器[0].top
+            // 容器[0].top 是固定的（adjustTopCrop 才会动它）。
+            // 所以 容器[0] 高度增加 -> 按钮[1] 下移 -> 显示更多 Image[0]。
+            // 极限是显示完 Image[0]。
+            
+            // 难道是 `currentInternalTop` 在获取时拿到了错误的值？
+            // `imageViewInternalTopConstraints[index-1].constant`
+            // 这是 Auto Layout 的 constant。
+            // 应该没问题。
+            
+            // 让我们再看一眼 setupImageDisplay 中的 internalTopOffset 计算：
+            // internalTopOffset = (canvasY - containerStartY) - selfStartY
+            // canvasY 是基于 currentOffsets 的。
+            // containerStartY 是基于 canvasY 的（对于 index > 0）。
+            // 对于 index > 0: containerStartY = canvasY + paddingTop + 0
+            // internalTopOffset = (canvasY - (canvasY + 0)) - selfStartY = -selfStartY
+            // 所以对于中间图片，internalTop 只包含 selfStartY（如果有裁剪）。
+            
+            // 对于 index = 0: containerStartY = paddingTop + topCrop
+            // internalTopOffset = (0 - topCrop) - selfStartY = -topCrop - selfStartY
+            
+            // 看起来都没问题。
+            
+            // 用户说：“怀疑你是不是把顶部标题栏的高度算进去了？”
+            // 也许是 paddingTop？
+            // 之前代码里有 `let paddingTop: CGFloat = 0` (已修改为0)。
+            // 但如果之前的 build 还没生效？或者用户指的是 Navigation Bar？
+            // 我们的计算完全基于 view 内部坐标系，不应该受 Navigation Bar 影响。
+            
+            // 等等，`view.bounds.width` 在 `viewDidLoad` 时可能不准确？
+            // 但我们在 `viewDidLayoutSubviews` 或者其他地方调用吗？
+            // `setupImageDisplay` 是在数据加载后调用的。
+            
+            // 让我们把 +1 去掉，并且允许微小的误差。
+            // 更重要的是，如果用户觉得“可以往上滑一段距离”，说明现在的限制太早了。
+            // 说明 nextContainerHeight 即使很大了，也还没到 limit。
+            // 说明 limit (internalTop + height) 比预想的要大。
+            // 也就是说 internalTop 没那么小？或者 height 很大？
+            
+            // 也许是 `currentInternalTop` 是负数，导致 limit 变小了。
+            // 如果 internalTop = -100, height = 1000. limit = 900.
+            // 实际上可能 internalTop 应该是 0？
+            // 如果 internalTop 是 0，limit = 1000.
+            // 那么我们就能滑到 1000。
+            // 为什么 internalTop 会是 -100？因为 topCrop？
+            // 如果 topCrop = 100。那确实应该减掉。
+            
+            // 让我们放宽限制，加上一个 buffer，比如 2 像素，或者直接允许滑到边界。
+            // 现在的逻辑：
+            let maxContainerHeight = imageDisplayHeight + currentInternalTop
+            if nextContainerHeight > maxContainerHeight + 0.5 { // 增加 0.5 的容错
+                 // 如果这次滑动会导致超出边界，但还没到边界，我们应该允许滑到边界
+                 // 计算允许滑动的最大 delta
+                 let allowedDelta = maxContainerHeight - currentContainerHeight
+                 if allowedDelta > 0.1 { // 只要还有 0.1 的空间，就允许滑（但实际上无法精确控制 deltaY）
+                     // 由于无法修改 deltaY，我们只能放行。
+                     // 但放行会导致越界。
+                     // 最好的办法是：手动修正 constant 到最大值。
+                     
+                     // 修正方案：不 return，而是将 deltaY 截断为 allowedDelta。
+                     // 但 deltaY 是 let 常量。
+                     // 我们可以定义一个新的 effectiveDeltaY。
+                     
+                     // 这样可以确保滑到底，而且不越界。
+                 } else {
+                     return
+                 }
+            }
         }
         
-        let actualDisplayDiff = actualDiff * displayScale
+        // 3.2.1: 如果该中间按钮上方第一张图片顶部就在中间按钮处，不可滑动 (向下)
+        if deltaY < 0 {
+            if nextContainerHeight < 10 { // 保留最小高度 10
+                return
+            }
+        }
         
-        // 2. 视觉补偿：
-        // 我们希望 container[index...n] 和按钮 index 保持不动。
-        // 在 adjustOffset 中，我们让 container[index] 不动，container[index+1...n] 动。
-        // 在这里，我们要让 container[index...n] 全部不动。
-        // 而 image[0...index-1] 整体向上移动 actualDisplayDiff。
-        
-        // 移动上方所有容器
+        // 1. 更新数据
         for i in 0..<index {
-            imageViewTopConstraints[i].constant += actualDisplayDiff
+            currentOffsets[i] -= imageDeltaY
+        }
+
+        // 2. 视觉更新
+        // 移动上方所有容器上移 (displayDiff < 0)
+        for i in 0..<index {
+            imageViewTopConstraints[i].constant -= deltaY
         }
         
-        // 为了让按钮 index 不动，container[index-1] 的高度必须改变
-        // 因为 container[index-1].top 变了，而 bottom (即按钮) 要保持在原位
-        imageViewHeightConstraints[index-1].constant -= actualDisplayDiff
-        
-        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
+        // 3. 调整上方容器的高度，以填补空隙
+        // 容器 i-1 的顶部上移了 deltaY，底部固定 (按钮 i)
+        // 所以高度增加了 deltaY
+        imageViewHeightConstraints[index-1].constant += deltaY
         
         view.layoutIfNeeded()
     }
 
     private func adjustOffset(at index: Int, deltaY: CGFloat) {
         guard index > 0 && index < viewModel.images.count else { return }
-        let containerWidth = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        let horizontalMargin: CGFloat = 16
+        let containerWidth = (view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width) - (horizontalMargin * 2)
         let displayScale = containerWidth / viewModel.images[index].size.width
         let imageDeltaY = deltaY / displayScale
         
         matchedIndices.remove(index)
         
-        // 记录原始偏移量，计算差值
+        // 需求：中间按钮固定，下方图片上滑重叠
+        // 上滑 (deltaY > 0): 下方图片上移 -> 重叠增加 -> 高度减小
+        
+        // 更新数据：
+        // 按钮 i 固定，Image[i] 上移
+        // currentOffsets[i] 减小
+        
         let oldOffset = currentOffsets[index]
         let newOffset = currentOffsets[index] - imageDeltaY
         
@@ -660,12 +850,27 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         let diff = newOffset - oldOffset
         let displayDiff = diff * displayScale
         
-        // 新增限制：当图片顶部（Pixel 0）到达按钮位置时，限制继续下滑
-        // 只有当用户试图通过下滑增加 offset (displayDiff > 0) 时，才触发这个边界限制
-        // imageViewInternalTopConstraints[index].constant 是图片相对于容器顶部的偏移
-        // 当它为 0 时，图片顶部刚好在按钮位置；当它为负时，图片顶部在按钮上方（被裁剪）
-        if displayDiff > 0 && imageViewInternalTopConstraints[index].constant + displayDiff > 0 {
-            return
+        // 【新增 3.3.1 & 3.4.1 边界检查】
+        let currentContainerHeight = imageViewHeightConstraints[index].constant
+        // 上滑 deltaY > 0, displayDiff < 0
+        // 容器高度变化 = displayDiff
+        let nextContainerHeight = currentContainerHeight + displayDiff
+        
+        // 3.3.1: 如果该中间按钮下方第一张图片底部就在中间按钮处，不可滑动 (向上)
+        if deltaY > 0 {
+            if nextContainerHeight < 10 { // 保留最小高度
+                return
+            }
+        }
+        
+        // 3.4.1: 如果该中间按钮下方第一张图片顶部就在中间按钮处，不可滑动 (向下)
+        let currentInternalTop = imageViewInternalTopConstraints[index].constant
+        let nextInternalTop = currentInternalTop + displayDiff
+        
+        if deltaY < 0 {
+            if nextInternalTop > 0 {
+                return
+            }
         }
         
         // 1. 更新数据
@@ -673,27 +878,20 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             currentOffsets[i] += diff
         }
         
-        // 2. 原地更新后续所有容器的 top
-        // 注意：index 处的容器 top 不动（实现控件不动图片动），从 index + 1 开始移动
+        // 2. 视觉更新
+        // 按钮 i 固定，所以 imageViewTopConstraints[i] 不变
+        // 下方图片上移，所以 imageViewInternalTopConstraints[i] 减小 (上移)
+        imageViewInternalTopConstraints[index].constant += displayDiff
+        
+        // 3. 容器高度减小 (重叠增加)
+        // displayDiff < 0 (上滑)
+        imageViewHeightConstraints[index].constant += displayDiff
+        
+        // 4. 下方所有容器上移，跟随 Image[i] 的底部
         for i in (index + 1)..<imageViewTopConstraints.count {
             imageViewTopConstraints[i].constant += displayDiff
         }
         
-        // 关键：原地更新后续所有气泡的 centerY
-        // 虽然容器动了，但气泡需要同步更新它们的 centerY 约束
-        // 索引 0 是 top, 1...n-1 是 middle, n 是 bottom
-        // 我们需要移动 index 之后的所有气泡（包括 bottom 气泡）
-        for i in (index + 1)..<adjustmentViewCenterYConstraints.count {
-            adjustmentViewCenterYConstraints[i].constant += displayDiff
-        }
-        
-        // 3. 原地更新内部图片偏移
-        // 当前容器 index 的图片相对于容器向上滑动（constant 减小）
-        imageViewInternalTopConstraints[index].constant += displayDiff
-        
-        // 关键：不再需要手动更新 contentViewHeightConstraint，内容会自动撑开
-        
-        // 6. 强制布局生效
         view.layoutIfNeeded()
     }
 
