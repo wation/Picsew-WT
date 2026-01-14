@@ -935,49 +935,135 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         let origTopCrop = topCrop / displayScale
         let origBottomCrop = bottomCrop / displayScale
         
-        // 计算原始总高度
-        let lastIndex = images.count - 1
-        let lastImage = images[lastIndex]
-        let lastCanvasY = currentOffsets[lastIndex]
-        let lastSelfStartY = currentBottomStarts[lastIndex]
-        let lastImageHeight = lastImage.size.height
+        let originalOffsets = currentOffsets
         
-        let firstCanvasY = currentOffsets[0]
+        // 计算最终画布的总高度
+        guard let firstY = originalOffsets.first, let lastY = originalOffsets.last, let lastImage = images.last else { return nil }
         
-        // 总高度 = (最后一张图的底部在画布的位置 - 底部裁剪) - (第一张图的顶部在画布的位置 + 顶部裁剪)
-        let totalFullHeight = (lastCanvasY + lastImageHeight - lastSelfStartY - origBottomCrop) - (firstCanvasY + origTopCrop)
+        // 有效内容的起始 Y = 第一张图位置 + 顶部裁剪
+        let startY = firstY + origTopCrop
+        
+        // 有效内容的结束 Y
+        // 结束位置 = 最后一张图的位置 + 最后一张图的可见高度 - 底部裁剪
+        // 注意：最后一张图的可见高度 = 图片高度 - 内部裁剪(如果有)
+        // 实际上，总高度应该是“所有可见片段的高度之和”。
+        
+        // 为了精确裁剪，我们必须模拟屏幕上的 Mask 逻辑。
+        // 屏幕上：
+        // Image[i] 被放置在 Container[i] 中。
+        // Container[i] 的高度 = Offset[i+1] - Offset[i] (对于非最后一张)
+        // Image[i] 在 Container[i] 中的位置由 imageViewInternalTopConstraints[i] 决定。
+        // 如果 constraint = -50，说明图片上移50，即 top 50 被裁掉。
+        
+        // 获取所有图片的内部裁剪值（转换为原图坐标系）
+        var internalCrops: [CGFloat] = []
+        if imageViewInternalTopConstraints.count == images.count {
+            internalCrops = imageViewInternalTopConstraints.map { -($0.constant / displayScale) }
+        } else {
+            // Fallback: 如果约束还没生成，使用 currentBottomStarts (仅自动模式有效，但手动模式下 constraints 应该有了)
+            // 手动调整时，我们更新的是 constraint。
+            // 注意：adjustTopCrop 中，我们更新了 internalTopConstraints[0]。
+            // 所以这里必须用 constraints。
+            // 如果 constraints 数量不对（比如还没 layout），则无法生成。
+            return nil
+        }
+        
+        // 修正：adjustTopCrop 更新了 internalTopConstraints[0]，这包含了 topCrop 的变化。
+        // 但 origTopCrop 变量是单独存储的 UI 状态。
+        // 在屏幕上，Image 0 的显示：
+        // Container 0 Top = 0 (固定)
+        // Image 0 Top = internalConstraint (变化)
+        // 所以，Image 0 的“有效内容”是从 internalConstraint 定义的位置开始的。
+        // origTopCrop 实际上是冗余的？不，topCrop 变量用于 UI 逻辑。
+        // 在 saveImage 中，我们应该完全信任 constraints。
+        
+        // 计算总高度：
+        // 我们需要遍历每个 container，计算其高度，累加。
+        var totalFullHeight: CGFloat = 0
+        var segmentHeights: [CGFloat] = []
+        
+        for i in 0..<images.count {
+            let height: CGFloat
+            if i == images.count - 1 {
+                // 最后一张图的高度
+                // Container Height = Image Height - Internal Crop - Bottom Crop
+                let internalCrop = internalCrops[i]
+                height = images[i].size.height - internalCrop - origBottomCrop
+            } else {
+                // 中间图的高度 = 下一张图的 Offset - 当前图的 Offset
+                // 这里的 Offset 指的是 Canvas 上的 Container 位置。
+                // 屏幕上：imageViewTopConstraints[i] 是 Container Top。
+                // 让我们获取所有 Container 的 Canvas Y 位置（原图坐标系）
+                // let containerY = imageViewTopConstraints[i].constant / displayScale
+                // 但是 imageViewTopConstraints 在 adjustTopCrop 中被修改了！
+                // 它是相对于 view 的。
+                // 所以我们应该使用 imageViewTopConstraints 来确定布局！
+                
+                // 方案 B：完全模拟屏幕布局
+                // 1. 获取所有 Container 的 Y 坐标 (imageViewTopConstraints)
+                // 2. 获取所有 Container 的 Height (imageViewHeightConstraints)
+                // 3. 绘制。
+                
+                // 这是最稳妥的，因为“所见即所得”。
+                // 屏幕上的 Container Y 是 Points。 / displayScale -> Pixels。
+                // Container Height 是 Points。 / displayScale -> Pixels。
+                // Image 内部偏移 是 Points。 / displayScale -> Pixels。
+                
+                // 这种方式不需要 currentOffsets，也不需要 topCrop/bottomCrop 变量（因为它们已经反映在 constraints 里了）。
+                
+                // 唯一的问题：imageViewTopConstraints[0] 可能不是 0。
+                // 我们需要将整个画布向上平移，使得 (Container 0 Top) 变为 0。
+                
+                // 让我们验证一下 constraints 是否可用。
+                // 在 generateFullResolutionImage 中，self 是 VC，view 是加载的。constraints 存在。
+                
+                let containerH = imageViewHeightConstraints[i].constant / displayScale
+                height = containerH
+            }
+            segmentHeights.append(max(0, height))
+            totalFullHeight += max(0, height)
+        }
         
         if totalFullHeight <= 0 { return nil }
         
         let format = UIGraphicsImageRendererFormat()
-        format.scale = 1.0 // 使用原图像素
+        format.scale = 1.0
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: firstImage.size.width, height: totalFullHeight), format: format)
         
         return renderer.image { ctx in
+            UIColor.white.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: firstImage.size.width, height: totalFullHeight))
+            
+            // 基础 Y 坐标：Container 0 的 Top。
+            guard let baseTop = imageViewTopConstraints.first?.constant else { return }
+            let baseTopPixel = baseTop / displayScale
+            
             for (index, image) in images.enumerated() {
-                let canvasY = currentOffsets[index]
-                let selfStartY = currentBottomStarts[index]
+                // 1. 计算当前 Container 在画布上的位置
+                // Canvas Y = (Container Screen Y / Scale) - Base Top
+                let containerScreenY = imageViewTopConstraints[index].constant
+                let containerCanvasY = (containerScreenY / displayScale) - baseTopPixel
                 
-                // 该图片在结果图中的起始 Y
-                let drawY = canvasY - (firstCanvasY + origTopCrop)
+                // 2. 计算 Container 高度 (Clip Rect Height)
+                // 注意：最后一张图的高度约束也被 adjustBottomCrop 更新了，所以可以直接用。
+                let containerHeight = imageViewHeightConstraints[index].constant / displayScale
                 
-                // 确定该段的裁剪高度
-                let segmentHeight: CGFloat
-                if index == lastIndex {
-                    segmentHeight = image.size.height - selfStartY - origBottomCrop
-                } else {
-                    segmentHeight = currentOffsets[index+1] - canvasY
-                }
+                // 3. 计算图片在 Container 内的绘制位置
+                // Image Screen Y = Container Screen Y + Internal Constant
+                // Relative Y = Internal Constant / Scale
+                let internalConstant = imageViewInternalTopConstraints[index].constant
+                let relativeY = internalConstant / displayScale
                 
-                let drawRect = CGRect(x: 0, y: drawY, width: image.size.width, height: segmentHeight)
+                // 4. 绘制
+                // 我们限制绘制区域为 Container 的区域
+                let drawRect = CGRect(x: 0, y: containerCanvasY, width: image.size.width, height: containerHeight)
                 
                 ctx.cgContext.saveGState()
                 ctx.cgContext.clip(to: drawRect)
                 
-                // 绘制图片，需要考虑 selfStartY
-                let imageDrawY = drawY - selfStartY
-                let imageDrawRect = CGRect(x: 0, y: imageDrawY, width: image.size.width, height: image.size.height)
-                image.draw(in: imageDrawRect)
+                // 图片绘制位置：Container Top + Relative Y
+                let imageDrawY = containerCanvasY + relativeY
+                image.draw(in: CGRect(x: 0, y: imageDrawY, width: image.size.width, height: image.size.height))
                 
                 ctx.cgContext.restoreGState()
             }
