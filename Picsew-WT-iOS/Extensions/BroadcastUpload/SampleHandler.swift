@@ -1,7 +1,6 @@
 import ReplayKit
 import AVFoundation
 
-@objc(SampleHandler)
 class SampleHandler: RPBroadcastSampleHandler {
     
     private var assetWriter: AVAssetWriter?

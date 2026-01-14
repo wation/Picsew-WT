@@ -25,7 +25,7 @@
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>RPBroadcastHostBundleIdentifier</key>
-			<string>com.magixun.picsewwt</string>
+			<string>com.magixun.picsewwt.extension</string>
 			<key>RPBroadcastProcessMode</key>
 			<string>RPBroadcastProcessModeSampleBuffer</string>
 		</dict>

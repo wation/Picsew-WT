@@ -41,9 +41,9 @@
 		D896B4C72F1566A30064430C /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B4C52F1566A30064430C /* SampleHandler.swift */; };
 		D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
 		D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B55C2F164E9C0064430C /* UIKit.framework */; };
+		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */; };
 		D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D896B5822F164E9C0064430C /* MainInterface.storyboard */; };
-		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
@@ -111,7 +111,6 @@
 		C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewController.swift; path = Modules/Screenshot/View/AutoStitchViewController.swift; sourceTree = "<group>"; };
 		C1B134EA4B61146CCF2B408F /* VideoCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureManager.swift; path = Modules/VideoCapture/VideoCaptureManager.swift; sourceTree = "<group>"; };
 		CC102A0107AA24D2C3D9416A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hans"; path = "Resources/i18n/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		D896B58F2F164E9C0064430D /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hant"; path = "Resources/i18n/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		D026CA1840FDEE3ABD940681 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text; name = ja; path = Resources/i18n/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1CB842D508FF292CBAFF6A3 /* SettingsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewModel.swift; path = Modules/Settings/SettingsViewModel.swift; sourceTree = "<group>"; };
 		D33679812D35349900C30A91 /* VideoStitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoStitcher.swift; path = Modules/VideoCapture/VideoStitcher.swift; sourceTree = "<group>"; };
@@ -122,9 +121,10 @@
 		D896B4C52F1566A30064430C /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = Extensions/BroadcastUpload/SampleHandler.swift; sourceTree = "<group>"; };
 		D896B4C62F1566A30064430C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Extensions/BroadcastUpload/Info.plist; sourceTree = "<group>"; };
 		D896B55A2F164E9B0064430C /* BroadcastSetup.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastSetup.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BroadcastSetupViewController.swift; path = BroadcastSetupViewController.swift; sourceTree = "<group>"; };
-		D896B5822F164E9C0064430C /* MainInterface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = MainInterface.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
 		D896B55C2F164E9C0064430C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastSetupViewController.swift; sourceTree = "<group>"; };
+		D896B5822F164E9C0064430C /* MainInterface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
+		D896B58F2F164E9C0064430D /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hant"; path = "Resources/i18n/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		DC1775436335E1083E0DA3EB /* ExportSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportSettingsViewController.swift; path = Modules/Settings/ExportSettingsViewController.swift; sourceTree = "<group>"; };
 		DF3592BB3688062A97EB2B08 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/i18n/en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E27D400A6CE98E942AE4DB46 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text; name = ko; path = Resources/i18n/ko.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -579,6 +579,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					PicsewWTExtension.appex,
+					BroadcastSetup.appex,
+				);
 				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -588,7 +592,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "PicsewWTExtension.appex BroadcastSetup.appex";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -717,6 +720,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					PicsewWTExtension.appex,
+					BroadcastSetup.appex,
+				);
 				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -726,7 +733,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "PicsewWTExtension.appex BroadcastSetup.appex";
 			};
 			name = Debug;
 		};

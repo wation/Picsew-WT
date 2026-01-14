@@ -17,7 +17,7 @@ class LocalizationManager {
     
     // 支持的语言列表
     func supportedLanguages() -> [String] {
-        return ["en", "zh-Hans", "ja", "ko", "es", "pt"]
+        return ["en", "zh-Hans", "zh-Hant", "ja", "ko", "es", "pt"]
     }
 }
 
