@@ -211,9 +211,17 @@ class VideoCaptureViewController: UIViewController {
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
         
+        // 设置对话框高度为屏幕高度的1/4
+        let screenHeight = UIScreen.main.bounds.height
+        let alertHeight = screenHeight / 4
+        
         NSLayoutConstraint.activate([
+            // 设置对话框高度
+            loadingAlert.view.heightAnchor.constraint(equalToConstant: alertHeight),
+            
+            // 指示器居中
             indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
-            indicator.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
+            indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor)
         ])
         indicator.startAnimating()
         
@@ -499,9 +507,17 @@ class VideoCaptureViewController: UIViewController {
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
         
+        // 设置对话框高度为屏幕高度的1/4
+        let screenHeight = UIScreen.main.bounds.height
+        let alertHeight = screenHeight / 4
+        
         NSLayoutConstraint.activate([
+            // 设置对话框高度
+            loadingAlert.view.heightAnchor.constraint(equalToConstant: alertHeight),
+            
+            // 指示器居中
             indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
-            indicator.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
+            indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor)
         ])
         indicator.startAnimating()
         
