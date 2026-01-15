@@ -431,7 +431,7 @@ class SettingsViewController: UIViewController {
             let mail = MFMailComposeViewController()
             mail.mailComposeDelegate = self
             mail.setToRecipients(["support@magixun.com"])
-            mail.setSubject("Picsew-WT 反馈")
+            mail.setSubject("PicsewAI 反馈")
             mail.setMessageBody("\n\n---\nDevice: \(UIDevice.current.model)\nSystem: \(UIDevice.current.systemVersion)", isHTML: false)
             present(mail, animated: true)
         } else {
@@ -450,7 +450,7 @@ class SettingsViewController: UIViewController {
     
     @objc private func recommendFriendsTapped() {
         let appLink = "https://apps.apple.com/app/id123456789" // 替换为实际的 App ID
-        let text = "推荐你使用这款长截图工具：Picsew-WT，非常方便！"
+        let text = "推荐你使用这款长截图工具：PicsewAI，非常方便！"
         let activityVC = UIActivityViewController(activityItems: [text, appLink], applicationActivities: nil)
         
         if let popover = activityVC.popoverPresentationController {

@@ -2,7 +2,7 @@
 
 ## 问题描述
 
-当前Picsew-WT iOS应用无法在iPhone控制中心的屏幕录制菜单中显示。
+当前PicsewAI iOS应用无法在iPhone控制中心的屏幕录制菜单中显示。
 
 ## 根本原因
 
@@ -18,14 +18,14 @@
 
 ### 步骤1：添加Broadcast Setup UI Extension目标
 
-1. 打开Xcode项目 `Picsew-WT.xcodeproj`
+1. 打开Xcode项目 `PicsewAI.xcodeproj`
 2. 在项目导航器中，右键点击项目名称，选择 `New Target...`
 3. 在弹出的模板选择窗口中，选择 `iOS` > `Application Extension` > `Broadcast Setup UI Extension`
 4. 点击 `Next`
 5. 配置扩展信息：
    - Product Name: `BroadcastSetup`
-   - Organization Identifier: `com.magixun.picsewwt`
-   - Bundle Identifier: 自动生成为 `com.magixun.picsewwt.BroadcastSetup`
+   - Organization Identifier: `com.magixun.picsewai`
+   - Bundle Identifier: 自动生成为 `com.magixun.picsewai.BroadcastSetup`
    - Team: 选择与主应用相同的开发团队
    - Language: Swift
 6. 点击 `Finish`
@@ -35,9 +35,9 @@
 
 1. 在项目导航器中，找到 `BroadcastSetup` 扩展的 `Info.plist` 文件
 2. 确保以下配置正确：
-   - Bundle Identifier: `com.magixun.picsewwt.BroadcastSetup`
+   - Bundle Identifier: `com.magixun.picsewai.BroadcastSetup`
    - NSExtension > NSExtensionPointIdentifier: `com.apple.broadcast-setup-ui-extension`
-   - NSExtension > NSExtensionAttributes > RPBroadcastHostBundleIdentifier: `com.magixun.picsewwt`
+   - NSExtension > NSExtensionAttributes > RPBroadcastHostBundleIdentifier: `com.magixun.picsewai`
    - NSExtension > NSExtensionAttributes > RPBroadcastProcessMode: `RPBroadcastProcessModeSampleBuffer`
    - NSExtension > NSExtensionMainStoryboard: `MainInterface`
 
@@ -47,7 +47,7 @@
 2. 切换到 `Signing & Capabilities` 标签
 3. 点击 `+ Capability` 按钮
 4. 搜索并添加 `App Groups` 权限
-5. 勾选与主应用和Upload扩展相同的App Group: `group.com.magixun.picsewwt`
+5. 勾选与主应用和Upload扩展相同的App Group: `group.com.magixun.picsewai`
 
 ### 步骤4：实现Broadcast Setup UI Extension代码
 
@@ -115,7 +115,7 @@ class BroadcastSetupViewController: RPBroadcastPickerExtensionViewController {
 
 ### 步骤6：将扩展嵌入到主应用
 
-1. 选择主应用目标 `Picsew-WT`
+1. 选择主应用目标 `PicsewAI`
 2. 切换到 `General` 标签
 3. 在 `Frameworks, Libraries, and Embedded Content` 部分
 4. 点击 `+` 按钮，选择 `BroadcastSetup.appex`
@@ -125,10 +125,10 @@ class BroadcastSetupViewController: RPBroadcastPickerExtensionViewController {
 
 1. 连接iPhone设备到Mac
 2. 选择 `BroadcastSetup` 扩展目标，确保运行设备为你的iPhone
-3. 点击Xcode的运行按钮，选择主应用 `Picsew-WT` 进行运行
+3. 点击Xcode的运行按钮，选择主应用 `PicsewAI` 进行运行
 4. 在iPhone上，打开控制中心
 5. 长按屏幕录制按钮
-6. 你应该能看到 `Picsew-WT 录屏设置` 出现在可用的录屏应用列表中
+6. 你应该能看到 `PicsewAI 录屏设置` 出现在可用的录屏应用列表中
 
 ## 技术说明
 
@@ -149,6 +149,6 @@ class BroadcastSetupViewController: RPBroadcastPickerExtensionViewController {
 
 完成上述步骤后，应用将能够：
 1. 在iPhone控制中心的屏幕录制菜单中显示
-2. 用户长按屏幕录制按钮时，能看到Picsew-WT应用
+2. 用户长按屏幕录制按钮时，能看到PicsewAI应用
 3. 点击应用后，显示自定义的录屏设置界面
 4. 成功开始和停止录屏，并将数据传递给主应用处理
