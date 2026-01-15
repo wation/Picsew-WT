@@ -51,13 +51,10 @@ class VideoStitcher {
         reader.add(readerOutput)
         reader.startReading()
         
-        var frames: [UIImage] = []
+        var segments: [[UIImage]] = []
+        var currentSegment: [UIImage] = []
         var lastImage: UIImage?
-        
-        // 采样频率：视频拼图通常不需要每一帧，我们按时间步长采样
-        // 比如每 0.5 秒取一帧，或者根据滑动速度动态调整
-        // 这里先采用简单的固定步长采样，后续可以结合 StitchAlgorithm.evaluateOverlap 过滤掉完全重复或无重合的帧
-        
+
         let fps = videoTrack.nominalFrameRate
         let sampleInterval = Int(fps / 2) // 每秒取 2 帧
         var frameCount = 0
@@ -70,16 +67,33 @@ class VideoStitcher {
             
             if let image = imageFromSampleBuffer(sampleBuffer) {
                 if let last = lastImage {
-                    // 使用 StitchAlgorithm 评估这两帧是否有足够的差异且存在重合
-                    // 如果两帧几乎一样（用户没滑动），则跳过
-                    if let diff = StitchAlgorithm.evaluateOverlap(topImage: last, bottomImage: image), diff < 5.0 {
-                        continue
+                    if let diff = StitchAlgorithm.evaluateOverlap(topImage: last, bottomImage: image) {
+                        if diff < 5.0 {
+                            continue
+                        }
+                        currentSegment.append(image)
+                    } else {
+                        if !currentSegment.isEmpty {
+                            segments.append(currentSegment)
+                        }
+                        currentSegment = [image]
                     }
+                } else {
+                    currentSegment = [image]
                 }
-                
-                frames.append(image)
                 lastImage = image
             }
+        }
+        if !currentSegment.isEmpty {
+            segments.append(currentSegment)
+        }
+        let minSegmentLength = 3
+        let filteredSegments = segments.filter { $0.count >= minSegmentLength }
+        let frames: [UIImage]
+        if filteredSegments.isEmpty {
+            frames = segments.flatMap { $0 }
+        } else {
+            frames = filteredSegments.flatMap { $0 }
         }
         
         DispatchQueue.main.async {

@@ -44,6 +44,8 @@
 		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */; };
 		D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D896B5822F164E9C0064430C /* MainInterface.storyboard */; };
+		D8E6380D2F1921B20007F20E /* Picsew-WT.app in Resources */ = {isa = PBXBuildFile; fileRef = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */; };
+		D8E6380E2F1921B20007F20E /* Picsew-WT.app in Resources */ = {isa = PBXBuildFile; fileRef = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */; };
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
@@ -124,7 +126,6 @@
 		D896B55C2F164E9C0064430C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastSetupViewController.swift; sourceTree = "<group>"; };
 		D896B5822F164E9C0064430C /* MainInterface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
-		D896B58F2F164E9C0064430D /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hant"; path = "Resources/i18n/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		DC1775436335E1083E0DA3EB /* ExportSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportSettingsViewController.swift; path = Modules/Settings/ExportSettingsViewController.swift; sourceTree = "<group>"; };
 		DF3592BB3688062A97EB2B08 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/i18n/en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E27D400A6CE98E942AE4DB46 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text; name = ko; path = Resources/i18n/ko.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -438,7 +439,6 @@
 				en,
 				Base,
 				"zh-Hans",
-				"zh-Hant",
 				ja,
 				ko,
 				es,
@@ -557,7 +557,6 @@
 			children = (
 				DF3592BB3688062A97EB2B08 /* en */,
 				CC102A0107AA24D2C3D9416A /* zh-Hans */,
-				D896B58F2F164E9C0064430D /* zh-Hant */,
 				D026CA1840FDEE3ABD940681 /* ja */,
 				E27D400A6CE98E942AE4DB46 /* ko */,
 				07FDFFBC846630D7D244A3DE /* es */,
@@ -579,10 +578,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
-					PicsewWTExtension.appex,
-					BroadcastSetup.appex,
-				);
 				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -720,10 +715,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
-					PicsewWTExtension.appex,
-					BroadcastSetup.appex,
-				);
 				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -741,6 +732,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastUpload/BroadcastUpload.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -803,6 +795,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -834,6 +827,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;

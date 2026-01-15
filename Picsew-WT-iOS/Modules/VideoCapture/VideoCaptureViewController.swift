@@ -1,10 +1,52 @@
 import UIKit
 import Photos
 import AVFoundation
+import ReplayKit
+
+// 移除错误的导入，ViewModel是同一个target中的本地类
 
 class VideoCaptureViewController: UIViewController {
 
     private var selectedTabIndex: Int = 0 // 0: 视频拼图, 1: 视频导入
+    
+    // 添加ViewModel实例
+    private let viewModel = VideoCaptureViewModel()
+    
+    // 录制状态显示
+    private lazy var statusLabel: UILabel = {
+        let label = UILabel()
+        label.text = viewModel.statusMessage
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .systemBlue
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    // 开始录制按钮
+    private lazy var startRecordingButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("开始录制", for: .normal)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 10
+        button.addTarget(self, action: #selector(startRecordingTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    // 停止录制按钮
+    private lazy var stopRecordingButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("停止录制", for: .normal)
+        button.backgroundColor = .systemRed
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 10
+        button.isEnabled = false
+        button.addTarget(self, action: #selector(stopRecordingTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     
     private lazy var topActionBar: UIView = {
         let view = UIView()
@@ -144,6 +186,9 @@ class VideoCaptureViewController: UIViewController {
         view.addSubview(importContentView)
         
         scrollView.addSubview(tutorialContentView)
+        scrollView.addSubview(statusLabel)
+        scrollView.addSubview(startRecordingButton)
+        scrollView.addSubview(stopRecordingButton)
         
         importContentView.addSubview(videoCollectionView)
         
@@ -173,8 +218,22 @@ class VideoCaptureViewController: UIViewController {
             tutorialContentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             tutorialContentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             tutorialContentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            tutorialContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             tutorialContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            statusLabel.topAnchor.constraint(equalTo: tutorialContentView.bottomAnchor, constant: 30),
+            statusLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
+            statusLabel.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
+            
+            startRecordingButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 20),
+            startRecordingButton.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
+            startRecordingButton.widthAnchor.constraint(equalToConstant: 200),
+            startRecordingButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            stopRecordingButton.topAnchor.constraint(equalTo: startRecordingButton.bottomAnchor, constant: 20),
+            stopRecordingButton.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
+            stopRecordingButton.widthAnchor.constraint(equalToConstant: 200),
+            stopRecordingButton.heightAnchor.constraint(equalToConstant: 50),
+            stopRecordingButton.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
             
             importContentView.topAnchor.constraint(equalTo: topActionBar.bottomAnchor, constant: 10),
             importContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -284,6 +343,53 @@ class VideoCaptureViewController: UIViewController {
         updateTabUI()
     }
     
+    // MARK: - 录制控制方法
+    
+    @objc private func startRecordingTapped() {
+        // 检查权限
+        viewModel.checkPermission { [weak self] granted in
+            DispatchQueue.main.async {
+                if granted {
+                    // 开始录制
+                    self?.viewModel.startRecording { error in
+                        DispatchQueue.main.async {
+                            if let error = error {
+                                self?.showAlert(title: "录制失败", message: error.localizedDescription)
+                            } else {
+                                self?.updateRecordingUI()
+                            }
+                        }
+                    }
+                } else {
+                    self?.showAlert(title: "权限被拒绝", message: "请在设置中允许应用访问屏幕录制权限")
+                }
+            }
+        }
+    }
+    
+    @objc private func stopRecordingTapped() {
+        // 停止录制
+        viewModel.stopRecording { [weak self] videoURL, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self?.showAlert(title: "停止录制失败", message: error.localizedDescription)
+                } else if let videoURL = videoURL {
+                    self?.statusLabel.text = "录制已保存: \(videoURL.lastPathComponent)"
+                    self?.updateRecordingUI()
+                    
+                    // 显示录制完成提示
+                    self?.showAlert(title: "录制完成", message: "视频已保存到: \(videoURL)")
+                }
+            }
+        }
+    }
+    
+    private func updateRecordingUI() {
+        statusLabel.text = viewModel.statusMessage
+        startRecordingButton.isEnabled = !viewModel.isRecording
+        stopRecordingButton.isEnabled = viewModel.isRecording
+    }
+    
     private func updateTabUI() {
         if selectedTabIndex == 0 {
             liveRecordButton.backgroundColor = .white
@@ -331,7 +437,7 @@ class VideoCaptureViewController: UIViewController {
                 
                 if let images = images, !images.isEmpty {
                     let autoStitchVC = AutoStitchViewController()
-                    autoStitchVC.setInputImages(images)
+                    autoStitchVC.setInputImagesFromVideo(images)
                     self?.navigationController?.pushViewController(autoStitchVC, animated: true)
                 }
             }
@@ -363,4 +469,3 @@ extension VideoCaptureViewController: UICollectionViewDelegate, UICollectionView
         present(alert, animated: true)
     }
 }
-

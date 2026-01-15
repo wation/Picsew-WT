@@ -5,6 +5,9 @@ import ReplayKit
 @objc(BroadcastSetupViewController)
 internal class BroadcastSetupViewController: UIViewController {
     
+    // 开始录屏按钮
+    @IBOutlet private weak var startButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
