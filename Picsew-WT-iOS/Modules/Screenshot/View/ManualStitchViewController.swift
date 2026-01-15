@@ -25,16 +25,53 @@ class ManualStitchViewController: UIViewController {
         return button
     }()
     
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save Stitch", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .systemGreen
-        button.layer.cornerRadius = 25
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(saveStitchTapped), for: .touchUpInside)
-        button.isEnabled = false
-        return button
+    private lazy var bottomToolbar: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let separator = UIView()
+        separator.backgroundColor = UIColor(white: 0, alpha: 0.1)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(separator)
+        
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.distribution = .equalSpacing
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // 分享图片，复制图片，导出到相册，导出到文件
+        let buttonsData = [
+            (icon: "square.and.arrow.up", action: #selector(shareImageTapped)),
+            (icon: "doc.on.doc", action: #selector(copyImageTapped)),
+            (icon: "photo", action: #selector(saveToAlbumTapped)),
+            (icon: "folder", action: #selector(exportToFileTapped))
+        ]
+        
+        for buttonData in buttonsData {
+            let btn = UIButton(type: .system)
+            btn.setImage(UIImage(systemName: buttonData.icon), for: .normal)
+            btn.tintColor = .systemBlue
+            btn.contentVerticalAlignment = .center
+            btn.contentHorizontalAlignment = .center
+            btn.addTarget(self, action: buttonData.action, for: .touchUpInside)
+            stackView.addArrangedSubview(btn)
+        }
+        
+        view.addSubview(stackView)
+        NSLayoutConstraint.activate([
+            separator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            separator.topAnchor.constraint(equalTo: view.topAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+            
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            stackView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
+            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
+        ])
+        
+        return view
     }()
     
     private lazy var statusLabel: UILabel = {
@@ -70,7 +107,6 @@ class ManualStitchViewController: UIViewController {
     func setInputImages(_ images: [UIImage], mode: StitchMode = .vertical) {
         self.images = images
         self.mode = mode
-        self.saveButton.isEnabled = !images.isEmpty
         self.statusLabel.text = "Imported \(images.count) images (\(mode == .vertical ? "Vertical" : "Horizontal"))"
         if !images.isEmpty {
             self.stitchScrollView.isHidden = false
@@ -84,8 +120,8 @@ class ManualStitchViewController: UIViewController {
         
         view.addSubview(statusLabel)
         view.addSubview(importButton)
-        view.addSubview(saveButton)
         view.addSubview(stitchScrollView)
+        view.addSubview(bottomToolbar)
         stitchScrollView.addSubview(stitchContainerView)
         
         NSLayoutConstraint.activate([
@@ -97,22 +133,23 @@ class ManualStitchViewController: UIViewController {
             importButton.widthAnchor.constraint(equalToConstant: 200),
             importButton.heightAnchor.constraint(equalToConstant: 50),
             
-            saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            saveButton.topAnchor.constraint(equalTo: importButton.bottomAnchor, constant: 30),
-            saveButton.widthAnchor.constraint(equalToConstant: 200),
-            saveButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            stitchScrollView.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 30),
+            stitchScrollView.topAnchor.constraint(equalTo: importButton.bottomAnchor, constant: 30),
             stitchScrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             stitchScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            stitchScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            stitchScrollView.bottomAnchor.constraint(equalTo: bottomToolbar.topAnchor, constant: -10),
             
             stitchContainerView.topAnchor.constraint(equalTo: stitchScrollView.topAnchor),
             stitchContainerView.leadingAnchor.constraint(equalTo: stitchScrollView.leadingAnchor),
             stitchContainerView.trailingAnchor.constraint(equalTo: stitchScrollView.trailingAnchor),
             stitchContainerView.bottomAnchor.constraint(equalTo: stitchScrollView.bottomAnchor),
             stitchContainerView.widthAnchor.constraint(equalTo: stitchScrollView.widthAnchor),
-            stitchContainerView.heightAnchor.constraint(equalToConstant: 1000) // 初始高度，后续可调整
+            stitchContainerView.heightAnchor.constraint(equalToConstant: 1000), // 初始高度，后续可调整
+            
+            // 底部工具栏约束
+            bottomToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomToolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomToolbar.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -126,20 +163,101 @@ class ManualStitchViewController: UIViewController {
         present(picker, animated: true)
     }
     
-    @objc private func saveStitchTapped() {
-        // 保存拼接结果
-        let stitchedImage = stitchContainerView.asImage()
+    // MARK: - Bottom Toolbar Actions
+    
+    @objc private func shareImageTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
         
-        // 保存到相册
-        UIImageWriteToSavedPhotosAlbum(stitchedImage, self, #selector(imageSaved(_:didFinishSavingWithError:contextInfo:)), nil)
+        let activityViewController = UIActivityViewController(activityItems: [stitchedImage], applicationActivities: nil)
+        activityViewController.popoverPresentationController?.sourceView = view
+        present(activityViewController, animated: true)
     }
     
-    @objc private func imageSaved(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
-        if let error = error {
-            statusLabel.text = "Error saving image: \(error.localizedDescription)"
-        } else {
-            statusLabel.text = "Image saved to相册"
+    @objc private func copyImageTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
         }
+        
+        UIPasteboard.general.image = stitchedImage
+        showAlert(title: "成功", message: "图片已复制到剪贴板")
+    }
+    
+    @objc private func saveToAlbumTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        // 请求相册访问权限
+        PHPhotoLibrary.requestAuthorization { [weak self] status in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                switch status {
+                case .authorized, .limited:
+                    // 保存到相册
+                    PHPhotoLibrary.shared().performChanges {
+                        PHAssetChangeRequest.creationRequestForAsset(from: stitchedImage)
+                    } completionHandler: { [weak self] success, error in
+                        DispatchQueue.main.async {
+                            guard let self = self else { return }
+                            if success {
+                                self.showAlert(title: "成功", message: "图片已保存到相册")
+                            } else {
+                                let errorMessage = error?.localizedDescription ?? "保存失败"
+                                self.showAlert(title: "错误", message: errorMessage)
+                            }
+                        }
+                    }
+                default:
+                    self.showAlert(title: "权限被拒绝", message: "请在设置中允许应用访问相册")
+                }
+            }
+        }
+    }
+    
+    @objc private func exportToFileTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        // 将图片转换为PNG数据
+        guard let pngData = stitchedImage.pngData() else {
+            showAlert(title: "错误", message: "无法将图片转换为PNG格式")
+            return
+        }
+        
+        // 创建临时文件
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("PicsewAI_Stitched.png")
+        do {
+            try pngData.write(to: tempURL)
+        } catch {
+            showAlert(title: "错误", message: "无法创建临时文件")
+            return
+        }
+        
+        // 显示文件选择器
+        let documentPicker = UIDocumentPickerViewController(forExporting: [tempURL], asCopy: true)
+        documentPicker.delegate = self
+        present(documentPicker, animated: true)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func getStitchedImage() -> UIImage? {
+        // 获取拼接结果图片
+        return stitchContainerView.asImage()
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "确定", style: .default))
+        present(alert, animated: true)
     }
     
     private func setupImageViews() {
@@ -255,7 +373,6 @@ extension ManualStitchViewController: PHPickerViewControllerDelegate {
         group.notify(queue: .main) {
             self.images.append(contentsOf: newImages)
             self.statusLabel.text = "Imported \(self.images.count) images"
-            self.saveButton.isEnabled = !self.images.isEmpty
             
             if !self.images.isEmpty {
                 self.stitchScrollView.isHidden = false
@@ -270,6 +387,19 @@ extension ManualStitchViewController: PHPickerViewControllerDelegate {
 extension ManualStitchViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return stitchContainerView
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+
+extension ManualStitchViewController: UIDocumentPickerDelegate {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        // 文件导出成功
+        showAlert(title: "成功", message: "图片已导出到文件")
+    }
+    
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        // 文件导出被取消
     }
 }
 

@@ -28,11 +28,21 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         stackView.distribution = .equalSpacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        let icons = ["line.3.horizontal", "crop", "aspectratio", "slider.horizontal.3"]
-        for icon in icons {
+        // 分享图片，复制图片，导出到相册，导出到文件
+        let buttonsData = [
+            (icon: "square.and.arrow.up", action: #selector(shareImageTapped)),
+            (icon: "doc.on.doc", action: #selector(copyImageTapped)),
+            (icon: "photo", action: #selector(saveToAlbumTapped)),
+            (icon: "folder", action: #selector(exportToFileTapped))
+        ]
+        
+        for buttonData in buttonsData {
             let btn = UIButton(type: .system)
-            btn.setImage(UIImage(systemName: icon), for: .normal)
+            btn.setImage(UIImage(systemName: buttonData.icon), for: .normal)
             btn.tintColor = .systemBlue
+            btn.contentVerticalAlignment = .center
+            btn.contentHorizontalAlignment = .center
+            btn.addTarget(self, action: buttonData.action, for: .touchUpInside)
             stackView.addArrangedSubview(btn)
         }
         
@@ -132,6 +142,104 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         return isAnySelected
     }
     
+    // MARK: - Bottom Toolbar Actions
+    
+    @objc private func shareImageTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        let activityViewController = UIActivityViewController(activityItems: [stitchedImage], applicationActivities: nil)
+        activityViewController.popoverPresentationController?.sourceView = view
+        present(activityViewController, animated: true)
+    }
+    
+    @objc private func copyImageTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        UIPasteboard.general.image = stitchedImage
+        showAlert(title: "成功", message: "图片已复制到剪贴板")
+    }
+    
+    @objc private func saveToAlbumTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        // 请求相册访问权限
+        PHPhotoLibrary.requestAuthorization { [weak self] status in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                switch status {
+                case .authorized, .limited:
+                    // 保存到相册
+                    PHPhotoLibrary.shared().performChanges {
+                        PHAssetChangeRequest.creationRequestForAsset(from: stitchedImage)
+                    } completionHandler: { [weak self] success, error in
+                        DispatchQueue.main.async {
+                            guard let self = self else { return }
+                            if success {
+                                self.showAlert(title: "成功", message: "图片已保存到相册")
+                            } else {
+                                let errorMessage = error?.localizedDescription ?? "保存失败"
+                                self.showAlert(title: "错误", message: errorMessage)
+                            }
+                        }
+                    }
+                default:
+                    self.showAlert(title: "权限被拒绝", message: "请在设置中允许应用访问相册")
+                }
+            }
+        }
+    }
+    
+    @objc private func exportToFileTapped() {
+        guard let stitchedImage = getStitchedImage() else {
+            showAlert(title: "错误", message: "无法获取拼接结果")
+            return
+        }
+        
+        // 将图片转换为PNG数据
+        guard let pngData = stitchedImage.pngData() else {
+            showAlert(title: "错误", message: "无法将图片转换为PNG格式")
+            return
+        }
+        
+        // 创建临时文件
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("PicsewAI_Stitched.png")
+        do {
+            try pngData.write(to: tempURL)
+        } catch {
+            showAlert(title: "错误", message: "无法创建临时文件")
+            return
+        }
+        
+        // 显示文件选择器
+        let documentPicker = UIDocumentPickerViewController(forExporting: [tempURL], asCopy: true)
+        documentPicker.delegate = self
+        present(documentPicker, animated: true)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func getStitchedImage() -> UIImage? {
+        // 这里需要实现获取拼接结果图片的逻辑
+        // 暂时使用contentView.asImage()，实际可能需要更复杂的逻辑
+        return contentView.asImage()
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "确定", style: .default))
+        present(alert, animated: true)
+    }
+    
     private let isManualMode: Bool
     
     // MARK: - Lifecycle
@@ -184,9 +292,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         backItem.tintColor = .black
         navigationItem.leftBarButtonItem = backItem
         
-        let shareItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .plain, target: self, action: #selector(shareTapped))
-        shareItem.tintColor = .black
-        navigationItem.rightBarButtonItem = shareItem
+        // 移除右上角保存图片图标
+        navigationItem.rightBarButtonItem = nil
         
         // 设置导航栏外观
         if #available(iOS 13.0, *) {
@@ -1359,5 +1466,18 @@ extension UIViewController {
                 }
             }
         }
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+
+extension AutoStitchViewController: UIDocumentPickerDelegate {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        // 文件导出成功
+        showToast(message: "图片已导出到文件")
+    }
+    
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        // 文件导出被取消
     }
 }
