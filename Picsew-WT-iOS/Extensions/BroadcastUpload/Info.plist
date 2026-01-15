@@ -27,7 +27,7 @@
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>RPBroadcastSetupUIBundleIdentifier</key>
-			<string>com.magixun.picsewwt.BroadcastSetup</string>
+			<string>com.beverg.picsewai.BroadcastSetup</string>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.broadcast-services-upload</string>

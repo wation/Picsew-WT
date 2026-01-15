@@ -17,7 +17,7 @@
                BlueprintIdentifier = "D896B5592F164E9B0064430C"
                BuildableName = "BroadcastSetup.appex"
                BlueprintName = "BroadcastSetup"
-               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+               ReferencedContainer = "container:PicsewAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

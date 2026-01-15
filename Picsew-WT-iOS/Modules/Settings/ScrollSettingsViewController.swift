@@ -46,7 +46,7 @@ class ScrollSettingsViewController: UIViewController {
     }
     
     private func loadSettings() {
-        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.magixun.picsewwt") {
+        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.beverg.picsewai") {
             if let savedDuration = appGroupUserDefaults.object(forKey: "scrollDuration") as? Int {
                 scrollDuration = savedDuration
                 stepper.value = Double(scrollDuration)
@@ -72,7 +72,7 @@ class ScrollSettingsViewController: UIViewController {
     
     private func saveSettings() {
         // 保存到App Group的UserDefaults
-        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.magixun.picsewwt") {
+        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.beverg.picsewai") {
             appGroupUserDefaults.set(scrollDuration, forKey: "scrollDuration")
         }
         // 同时保存到标准UserDefaults，确保兼容性

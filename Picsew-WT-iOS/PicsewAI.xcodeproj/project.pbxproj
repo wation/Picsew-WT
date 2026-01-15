@@ -55,7 +55,7 @@
 			containerPortal = 64AA5F53877692CF12653E5C /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D896B4B12F1566A30064430C;
-			remoteInfo = "Picsew-WT-Extension";
+			remoteInfo = "PicsewAI-Extension";
 		};
 		D896B5622F164E9C0064430C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -85,29 +85,29 @@
 		07FDFFBC846630D7D244A3DE /* es */ = {isa = PBXFileReference; lastKnownFileType = text; name = es; path = Resources/i18n/es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0F81FE085F389BAD601CCFC3 /* ManualStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualStitchViewController.swift; path = Modules/Screenshot/View/ManualStitchViewController.swift; sourceTree = "<group>"; };
 		1AA2B2FDE5E357069AEAC277 /* VideoImportViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewModel.swift; path = Modules/VideoCapture/VideoImportViewModel.swift; sourceTree = "<group>"; };
-		2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = "Picsew-WT/Picsew-WT/SceneDelegate.swift"; sourceTree = "<group>"; };
+		2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = "PicsewAI/PicsewAI/SceneDelegate.swift"; sourceTree = "<group>"; };
 		2C231FE0FA6FD11E4B841746 /* ImageStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageStitchViewController.swift; path = Modules/Screenshot/View/ImageStitchViewController.swift; sourceTree = "<group>"; };
-		2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Picsew-WT.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EFE44F7BFF48834F5A30938 /* PicsewAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PicsewAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StitchAlgorithm.swift; path = Modules/Screenshot/Model/StitchAlgorithm.swift; sourceTree = "<group>"; };
 		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
 		424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LocalizationManager.swift; path = Modules/Common/LocalizationManager.swift; sourceTree = "<group>"; };
 		468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewModel.swift; path = Modules/VideoCapture/VideoCaptureViewModel.swift; sourceTree = "<group>"; };
 		48802182790D1942E3391AE8 /* VideoImportViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewController.swift; path = Modules/VideoCapture/VideoImportViewController.swift; sourceTree = "<group>"; };
-		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Picsew-WT/Picsew-WT/Info.plist"; sourceTree = "<group>"; };
-		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = "Picsew-WT/Picsew-WT/AppDelegate.swift"; sourceTree = "<group>"; };
+		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "PicsewAI/PicsewAI/Info.plist"; sourceTree = "<group>"; };
+		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = "PicsewAI/PicsewAI/AppDelegate.swift"; sourceTree = "<group>"; };
 		58F4FFCC6EECB6E315CF3428 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text; name = pt; path = Resources/i18n/pt.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImporter.swift; path = Modules/VideoCapture/VideoImporter.swift; sourceTree = "<group>"; };
 		5D421C57E02336E52A544300 /* HomeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = Modules/Screenshot/View/HomeViewController.swift; sourceTree = "<group>"; };
-		66B8E5F12B2F4E7A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = "Picsew-WT/Picsew-WT/Assets.xcassets"; sourceTree = "<group>"; };
+		66B8E5F12B2F4E7A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = "PicsewAI/PicsewAI/Assets.xcassets"; sourceTree = "<group>"; };
 		6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScrollSettingsViewController.swift; path = Modules/Settings/ScrollSettingsViewController.swift; sourceTree = "<group>"; };
 		74F65661F512D0E38B1F14D5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		934AD1DA33F71414722136A2 /* HomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeViewModel.swift; path = Modules/Screenshot/ViewModel/HomeViewModel.swift; sourceTree = "<group>"; };
 		9FC07250DED4A0210B34547C /* SettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewController.swift; path = Modules/Settings/SettingsViewController.swift; sourceTree = "<group>"; };
 		A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoCell.swift; path = Modules/Screenshot/View/PhotoCell.swift; sourceTree = "<group>"; };
 		A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewModel.swift; path = Modules/Screenshot/ViewModel/AutoStitchViewModel.swift; sourceTree = "<group>"; };
-		A72DFECFB938BA125356538E /* MainTabBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MainTabBarController.swift; path = "Picsew-WT/Picsew-WT/MainTabBarController.swift"; sourceTree = "<group>"; };
+		A72DFECFB938BA125356538E /* MainTabBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MainTabBarController.swift; path = "PicsewAI/PicsewAI/MainTabBarController.swift"; sourceTree = "<group>"; };
 		B72AD488BBB37475479483D4 /* TutorialViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TutorialViewController.swift; path = Modules/Settings/TutorialViewController.swift; sourceTree = "<group>"; };
-		B73BF305651DC1572398539A /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = "Picsew-WT/Picsew-WT/ViewController.swift"; sourceTree = "<group>"; };
+		B73BF305651DC1572398539A /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = "PicsewAI/PicsewAI/ViewController.swift"; sourceTree = "<group>"; };
 		C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewController.swift; path = Modules/Screenshot/View/AutoStitchViewController.swift; sourceTree = "<group>"; };
 		C1B134EA4B61146CCF2B408F /* VideoCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureManager.swift; path = Modules/VideoCapture/VideoCaptureManager.swift; sourceTree = "<group>"; };
 		CC102A0107AA24D2C3D9416A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hans"; path = "Resources/i18n/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -117,7 +117,7 @@
 		D33679832D35349900C30A91 /* BroadcastManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BroadcastManager.swift; path = Modules/VideoCapture/BroadcastManager.swift; sourceTree = "<group>"; };
 		D896B4B22F1566A30064430C /* PicsewWTExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PicsewWTExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D896B4B32F1566A30064430C /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
-		D896B4C22F1569320064430C /* Picsew-WT-Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Picsew-WT-Extension.entitlements"; sourceTree = "<group>"; };
+		D896B4C22F1569320064430C /* PicsewAI-Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PicsewAI-Extension.entitlements"; sourceTree = "<group>"; };
 		D896B4C52F1566A30064430C /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = Extensions/BroadcastUpload/SampleHandler.swift; sourceTree = "<group>"; };
 		D896B4C62F1566A30064430C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Extensions/BroadcastUpload/Info.plist; sourceTree = "<group>"; };
 		D896B55A2F164E9B0064430C /* BroadcastSetup.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastSetup.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -254,7 +254,7 @@
 			name = Common;
 			sourceTree = "<group>";
 		};
-		6572C418C0F2EC7783C9F1EF /* Picsew-WT */ = {
+		6572C418C0F2EC7783C9F1EF /* PicsewAI */ = {
 			isa = PBXGroup;
 			children = (
 				B73BF305651DC1572398539A /* ViewController.swift */,
@@ -264,7 +264,7 @@
 				2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */,
 				66B8E5F12B2F4E7A00000001 /* Assets.xcassets */,
 			);
-			name = "Picsew-WT";
+			name = "PicsewAI";
 			sourceTree = "<group>";
 		};
 		D896B4C42F1566A30064430C /* BroadcastUpload */ = {
@@ -288,12 +288,12 @@
 		DA593C1FA715D769CF8035A3 = {
 			isa = PBXGroup;
 			children = (
-				D896B4C22F1569320064430C /* Picsew-WT-Extension.entitlements */,
+				D896B4C22F1569320064430C /* PicsewAI-Extension.entitlements */,
 				D896B4C42F1566A30064430C /* BroadcastUpload */,
 				D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */,
 				DC5AE1E0B521D1B510CCAEC3 /* Products */,
 				31E2A887363079AB0BC15D62 /* Frameworks */,
-				6572C418C0F2EC7783C9F1EF /* Picsew-WT */,
+				6572C418C0F2EC7783C9F1EF /* PicsewAI */,
 				375A04630C1D19CA2618E7B9 /* Modules */,
 				326DD289B665FC1F5AB88783 /* Resources */,
 			);
@@ -302,7 +302,7 @@
 		DC5AE1E0B521D1B510CCAEC3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */,
+				2EFE44F7BFF48834F5A30938 /* PicsewAI.app */,
 				D896B4B22F1566A30064430C /* PicsewWTExtension.appex */,
 				D896B55A2F164E9B0064430C /* BroadcastSetup.appex */,
 			);
@@ -341,9 +341,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4B1C595114FB1EA67386A941 /* Picsew-WT */ = {
+		4B1C595114FB1EA67386A941 /* PicsewAI */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "Picsew-WT" */;
+			buildConfigurationList = C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "PicsewAI" */;
 			buildPhases = (
 				1CC90E50920FEA02CB7F90FA /* Sources */,
 				AB4D7612CF2AEBC0EA662987 /* Frameworks */,
@@ -356,14 +356,14 @@
 				D896B4BA2F1566A30064430C /* PBXTargetDependency */,
 				D896B5632F164E9C0064430C /* PBXTargetDependency */,
 			);
-			name = "Picsew-WT";
-			productName = "Picsew-WT";
-			productReference = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */;
+			name = PicsewAI;
+			productName = "PicsewAI";
+			productReference = 2EFE44F7BFF48834F5A30938 /* PicsewAI.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D896B4B12F1566A30064430C /* Picsew-WT-Extension */ = {
+		D896B4B12F1566A30064430C /* PicsewAI-Extension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "Picsew-WT-Extension" */;
+			buildConfigurationList = D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "PicsewAI-Extension" */;
 			buildPhases = (
 				D896B4AE2F1566A30064430C /* Sources */,
 				D896B4AF2F1566A30064430C /* Frameworks */,
@@ -373,7 +373,7 @@
 			);
 			dependencies = (
 			);
-			name = "Picsew-WT-Extension";
+			name = "PicsewAI-Extension";
 			packageProductDependencies = (
 			);
 			productName = PicsewWTExtension;
@@ -410,7 +410,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1600;
-				ORGANIZATIONNAME = com.magixun.picsewwt;
+				ORGANIZATIONNAME = com.beverg.picsewai;
 				TargetAttributes = {
 					4B1C595114FB1EA67386A941 = {
 						CreatedOnToolsVersion = 16.0;
@@ -429,7 +429,7 @@
 					};
 				};
 			};
-			buildConfigurationList = FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "Picsew-WT" */;
+			buildConfigurationList = FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewAI" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
@@ -447,8 +447,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4B1C595114FB1EA67386A941 /* Picsew-WT */,
-				D896B4B12F1566A30064430C /* Picsew-WT-Extension */,
+				4B1C595114FB1EA67386A941 /* PicsewAI */,
+				D896B4B12F1566A30064430C /* PicsewAI-Extension */,
 				D896B5592F164E9B0064430C /* BroadcastSetup */,
 			);
 		};
@@ -539,7 +539,7 @@
 /* Begin PBXTargetDependency section */
 		D896B4BA2F1566A30064430C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D896B4B12F1566A30064430C /* Picsew-WT-Extension */;
+			target = D896B4B12F1566A30064430C /* PicsewAI-Extension */;
 			targetProxy = D896B4B92F1566A30064430C /* PBXContainerItemProxy */;
 		};
 		D896B5632F164E9C0064430C /* PBXTargetDependency */ = {
@@ -572,15 +572,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = "Picsew-WT/Picsew-WT.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "PicsewAI/PicsewAI.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
+				INFOPLIST_FILE = "PicsewAI/PicsewAI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PicsewAI;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt;
-				PRODUCT_NAME = "Picsew-WT";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai;
+				PRODUCT_NAME = PicsewAI;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -709,15 +712,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = "Picsew-WT/Picsew-WT.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "PicsewAI/PicsewAI.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = RH28D37T36;
-				INFOPLIST_FILE = "Picsew-WT/Picsew-WT/Info.plist";
+				INFOPLIST_FILE = "PicsewAI/PicsewAI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PicsewAI;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt;
-				PRODUCT_NAME = "Picsew-WT";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai;
+				PRODUCT_NAME = PicsewAI;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -740,13 +746,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT";
+				INFOPLIST_KEY_CFBundleDisplayName = PicsewAI;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.extension;
 				PRODUCT_NAME = PicsewWTExtension;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -771,13 +777,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT";
+				INFOPLIST_KEY_CFBundleDisplayName = PicsewAI;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.extension;
 				PRODUCT_NAME = PicsewWTExtension;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -803,13 +809,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏设置";
+				INFOPLIST_KEY_CFBundleDisplayName = "PicsewAI 录屏设置";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.BroadcastSetup;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.BroadcastSetup;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -835,13 +841,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏设置";
+				INFOPLIST_KEY_CFBundleDisplayName = "PicsewAI 录屏设置";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.magixun.picsewwt.BroadcastSetup;
+				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.BroadcastSetup;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -855,7 +861,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "Picsew-WT" */ = {
+		C059AE5807B5FA9678FED2B5 /* Build configuration list for PBXNativeTarget "PicsewAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0233A8127CD5D5AD1AF07DEA /* Release */,
@@ -864,7 +870,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "Picsew-WT-Extension" */ = {
+		D896B4C02F1566A30064430C /* Build configuration list for PBXNativeTarget "PicsewAI-Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D896B4BD2F1566A30064430C /* Debug */,
@@ -882,7 +888,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "Picsew-WT" */ = {
+		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4F14FC7C145AB0617C316741 /* Debug */,

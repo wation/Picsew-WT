@@ -6,7 +6,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     private var assetWriter: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
     private var isRecording = false
-    private let appGroupId = "group.com.magixun.picsewwt"
+    private let appGroupId = "group.com.beverg.picsewai"
     private let recordingFileName = "broadcast_recording.mp4"
     
     // 自动停止相关变量
@@ -203,7 +203,7 @@ class SampleHandler: RPBroadcastSampleHandler {
         videoInput?.markAsFinished()
         assetWriter?.finishWriting { [weak self] in
             // 发送 Darwin 通知告知主应用录屏完成
-            let notificationName = "com.magixun.picsewwt.broadcast.finished" as CFString
+            let notificationName = "com.beverg.picsewai.broadcast.finished" as CFString
             CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFNotificationName(notificationName), nil, nil, true)
         }
     }

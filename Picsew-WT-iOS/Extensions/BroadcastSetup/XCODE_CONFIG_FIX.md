@@ -32,7 +32,7 @@ Xcode项目中BroadcastSetup目标的配置指向了错误的文件路径：
 ### 步骤3：验证BroadcastSetup目标的其他配置
 
 1. 切换到 `General` 标签
-2. 确保 `Bundle Identifier` 为 `com.magixun.picsewwt.BroadcastSetup`
+2. 确保 `Bundle Identifier` 为 `com.beverg.picsewai.BroadcastSetup`
 3. 确保 `Deployment Info` 中的 `Deployment Target` 与主应用一致（建议使用 iOS 15.0 或更高）
 4. 确保 `Team` 与主应用相同
 
@@ -50,7 +50,7 @@ Xcode项目中BroadcastSetup目标的配置指向了错误的文件路径：
 
 1. 选择 `BroadcastSetup` 扩展目标
 2. 切换到 `Signing & Capabilities` 标签
-3. 确保 `App Groups` 权限已添加，并且勾选了 `group.com.magixun.picsewwt`
+3. 确保 `App Groups` 权限已添加，并且勾选了 `group.com.beverg.picsewai`
 4. 对 `Picsew-WT-Extension` 扩展执行相同的检查
 5. 对主应用 `Picsew-WT` 执行相同的检查
 

@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4B1C595114FB1EA67386A941"
-               BuildableName = "Picsew-WT.app"
-               BlueprintName = "Picsew-WT"
-               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+               BuildableName = "PicsewAI.app"
+               BlueprintName = "PicsewAI"
+               ReferencedContainer = "container:PicsewAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -30,8 +30,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D896B4B12F1566A30064430C"
                BuildableName = "PicsewWTExtension.appex"
-               BlueprintName = "Picsew-WT-Extension"
-               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+               BlueprintName = "PicsewAI-Extension"
+               ReferencedContainer = "container:PicsewAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -45,7 +45,7 @@
                BlueprintIdentifier = "D896B5592F164E9B0064430C"
                BuildableName = "BroadcastSetup.appex"
                BlueprintName = "BroadcastSetup"
-               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+               ReferencedContainer = "container:PicsewAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -74,9 +74,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4B1C595114FB1EA67386A941"
-            BuildableName = "Picsew-WT.app"
-            BlueprintName = "Picsew-WT"
-            ReferencedContainer = "container:Picsew-WT.xcodeproj">
+            BuildableName = "PicsewAI.app"
+            BlueprintName = "PicsewAI"
+            ReferencedContainer = "container:PicsewAI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -91,9 +91,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4B1C595114FB1EA67386A941"
-            BuildableName = "Picsew-WT.app"
-            BlueprintName = "Picsew-WT"
-            ReferencedContainer = "container:Picsew-WT.xcodeproj">
+            BuildableName = "PicsewAI.app"
+            BlueprintName = "PicsewAI"
+            ReferencedContainer = "container:PicsewAI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

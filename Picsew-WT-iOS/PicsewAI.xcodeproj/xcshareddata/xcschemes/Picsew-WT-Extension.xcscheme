@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D896B4B12F1566A30064430C"
                BuildableName = "PicsewWTExtension.appex"
-               BlueprintName = "Picsew-WT-Extension"
-               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+               BlueprintName = "PicsewAI-Extension"
+               ReferencedContainer = "container:PicsewAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

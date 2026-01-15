@@ -6,7 +6,7 @@ class BroadcastManager {
     static let shared = BroadcastManager()
     
     // App Group ID，需要与插件保持一致
-    private let appGroupId = "group.com.magixun.picsewwt"
+    private let appGroupId = "group.com.beverg.picsewai"
     private let recordingFileName = "broadcast_recording.mp4"
     
     private init() {}
@@ -38,7 +38,7 @@ class BroadcastManager {
     /// 监听录屏完成的通知（通过 DarwinNotificationCenter）
     func startObserving(callback: @escaping () -> Void) {
         self.observerCallback = callback
-        let name = "com.magixun.picsewwt.broadcast.finished" as CFString
+        let name = "com.beverg.picsewai.broadcast.finished" as CFString
         
         CFNotificationCenterAddObserver(
             CFNotificationCenterGetDarwinNotifyCenter(),
