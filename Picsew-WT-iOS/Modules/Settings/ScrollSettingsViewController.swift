@@ -46,10 +46,19 @@ class ScrollSettingsViewController: UIViewController {
     }
     
     private func loadSettings() {
-        if let savedDuration = UserDefaults.standard.object(forKey: "scrollDuration") as? Int {
+        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.magixun.picsewwt") {
+            if let savedDuration = appGroupUserDefaults.object(forKey: "scrollDuration") as? Int {
+                scrollDuration = savedDuration
+                stepper.value = Double(scrollDuration)
+                durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+            }
+        } else if let savedDuration = UserDefaults.standard.object(forKey: "scrollDuration") as? Int {
+            // 兼容旧版设置
             scrollDuration = savedDuration
             stepper.value = Double(scrollDuration)
             durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+            // 迁移到App Group
+            saveSettings()
         }
     }
     
@@ -58,6 +67,15 @@ class ScrollSettingsViewController: UIViewController {
         durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
         
         // 保存设置
+        saveSettings()
+    }
+    
+    private func saveSettings() {
+        // 保存到App Group的UserDefaults
+        if let appGroupUserDefaults = UserDefaults(suiteName: "group.com.magixun.picsewwt") {
+            appGroupUserDefaults.set(scrollDuration, forKey: "scrollDuration")
+        }
+        // 同时保存到标准UserDefaults，确保兼容性
         UserDefaults.standard.set(scrollDuration, forKey: "scrollDuration")
     }
 }

@@ -28,6 +28,11 @@ class VideoStitcher {
         }
     }
     
+    /// 从本地视频 URL 处理视频，提取关键帧
+    func processVideo(url: URL, completion: @escaping VideoProcessCompletion) {
+        extractKeyFrames(from: url, completion: completion)
+    }
+    
     /// 从本地视频 URL 提取关键帧
     func extractKeyFrames(from url: URL, completion: @escaping VideoProcessCompletion) {
         let asset = AVAsset(url: url)

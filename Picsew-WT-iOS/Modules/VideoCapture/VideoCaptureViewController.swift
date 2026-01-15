@@ -161,6 +161,85 @@ class VideoCaptureViewController: UIViewController {
         setupNavigationBar()
         updateTabUI()
         loadVideos()
+        
+        // 设置BroadcastManager的观察者
+        setupBroadcastObserver()
+    }
+    
+    private func setupBroadcastObserver() {
+        BroadcastManager.shared.startObserving { [weak self] in
+            DispatchQueue.main.async {
+                // 检查是否有待处理的录屏文件
+                if BroadcastManager.shared.hasPendingRecording() {
+                    self?.showRecordingFinishedAlert()
+                }
+            }
+        }
+    }
+    
+    private func showRecordingFinishedAlert() {
+        let alert = UIAlertController(title: "直播屏幕", message: "Picsew的直播已停止，因为：滚动截图已生成，请打开 App 以继续。", preferredStyle: .alert)
+        
+        // 添加"好"按钮，灰色
+        let okAction = UIAlertAction(title: "好", style: .default) { _ in
+            // 清除待处理的录屏文件
+            BroadcastManager.shared.clearPendingRecording()
+        }
+        okAction.setValue(UIColor.gray, forKey: "titleTextColor")
+        alert.addAction(okAction)
+        
+        // 添加"前往应用程序"按钮，蓝色
+        let goToAppAction = UIAlertAction(title: "前往应用程序", style: .default) { [weak self] _ in
+            // 处理录屏文件并跳转到长截图页面
+            self?.processRecordingAndNavigate()
+        }
+        goToAppAction.setValue(UIColor.blue, forKey: "titleTextColor")
+        alert.addAction(goToAppAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func processRecordingAndNavigate() {
+        guard let recordingURL = BroadcastManager.shared.recordingFileURL else {
+            showAlert(title: "处理失败", message: "无法获取录屏文件")
+            return
+        }
+        
+        // 显示加载指示器
+        let loadingAlert = UIAlertController(title: "正在生成长截图", message: "", preferredStyle: .alert)
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingAlert.view.addSubview(indicator)
+        
+        NSLayoutConstraint.activate([
+            indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
+            indicator.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
+        ])
+        indicator.startAnimating()
+        
+        present(loadingAlert, animated: true)
+        
+        // 处理录屏文件
+        VideoStitcher.shared.processVideo(url: recordingURL) { [weak self] images, error in
+            loadingAlert.dismiss(animated: true) { [weak self] in
+                // 清除待处理的录屏文件
+                BroadcastManager.shared.clearPendingRecording()
+                
+                if let error = error {
+                    self?.showAlert(title: "处理失败", message: error.localizedDescription)
+                    return
+                }
+                
+                if let images = images, !images.isEmpty {
+                    // 跳转到长截图页面
+                    let autoStitchVC = AutoStitchViewController()
+                    autoStitchVC.setInputImagesFromVideo(images)
+                    self?.navigationController?.pushViewController(autoStitchVC, animated: true)
+                } else {
+                    self?.showAlert(title: "处理失败", message: "无法从视频中提取图像")
+                }
+            }
+        }
     }
     
     private func setupNavigationBar() {
