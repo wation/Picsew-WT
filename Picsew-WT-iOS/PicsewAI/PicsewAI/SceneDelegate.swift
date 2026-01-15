@@ -38,15 +38,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         
         // 弹出加载提示
-        let loadingAlert = UIAlertController(title: "正在自动识别录屏", message: "请稍候...", preferredStyle: .alert)
+        let loadingAlert = UIAlertController(title: NSLocalizedString("auto_recognizing_recording", comment: "Auto recognizing recording"), message: NSLocalizedString("please_wait", comment: "Please wait"), preferredStyle: .alert)
         nav.present(loadingAlert, animated: true)
         
         // 调用 VideoStitcher 处理视频
         VideoStitcher.shared.extractKeyFrames(from: videoURL) { images, error in
             loadingAlert.dismiss(animated: true) {
                 if let error = error {
-                    let errorAlert = UIAlertController(title: "识别失败", message: error.localizedDescription, preferredStyle: .alert)
-                    errorAlert.addAction(UIAlertAction(title: "确定", style: .default))
+                    let errorAlert = UIAlertController(title: NSLocalizedString("recognition_failed", comment: "Recognition failed"), message: error.localizedDescription, preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default))
                     nav.present(errorAlert, animated: true)
                 } else if let images = images, !images.isEmpty {
                     let autoStitchVC = AutoStitchViewController()

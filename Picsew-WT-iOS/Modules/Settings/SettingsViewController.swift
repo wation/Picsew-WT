@@ -430,12 +430,12 @@ class SettingsViewController: UIViewController {
         if MFMailComposeViewController.canSendMail() {
             let mail = MFMailComposeViewController()
             mail.mailComposeDelegate = self
-            mail.setToRecipients(["support@magixun.com"])
+            mail.setToRecipients(["support.beverg@gmail.com"])
             mail.setSubject(NSLocalizedString("feedback_subject", comment: "Feedback subject"))
             mail.setMessageBody("\n\n---\nDevice: \(UIDevice.current.model)\nSystem: \(UIDevice.current.systemVersion)", isHTML: false)
             present(mail, animated: true)
         } else {
-            let email = "support@magixun.com"
+            let email = "support.beverg@gmail.com"
             if let url = URL(string: "mailto:\(email)") {
                 UIApplication.shared.open(url)
             }
