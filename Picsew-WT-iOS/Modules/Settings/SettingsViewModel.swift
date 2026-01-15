@@ -27,20 +27,28 @@ enum ImageFormat: String, CaseIterable {
 }
 
 enum Resolution: String, CaseIterable {
-    case large = "大"
-    case medium = "中"
-    case small = "小"
+    case large = "large"
+    case medium = "medium"
+    case small = "small"
+    
+    var localizedString: String {
+        return NSLocalizedString(rawValue, comment: "Resolution option")
+    }
 }
 
 enum StopDuration: String, CaseIterable {
-    case halfSecond = "0.5秒"
-    case oneSecond = "1秒"
-    case oneAndHalfSecond = "1.5秒"
-    case twoSeconds = "2秒"
-    case twoAndHalfSeconds = "2.5秒"
-    case threeSeconds = "3秒"
-    case fiveSeconds = "5秒"
-    case never = "永不"
+    case halfSecond = "half_second"
+    case oneSecond = "one_second"
+    case oneAndHalfSecond = "one_and_half_second"
+    case twoSeconds = "two_seconds"
+    case twoAndHalfSeconds = "two_and_half_seconds"
+    case threeSeconds = "three_seconds"
+    case fiveSeconds = "five_seconds"
+    case never = "never"
+    
+    var localizedString: String {
+        return NSLocalizedString(rawValue, comment: "Stop duration option")
+    }
 }
 
 class SettingsViewModel {
@@ -52,26 +60,26 @@ class SettingsViewModel {
     init() {
         sections = [
             SettingsSection(
-                title: "Export Settings",
+                title: NSLocalizedString("export_settings", comment: "Export settings section title"),
                 rows: [
-                    SettingsRow(title: "Export Format", type: .exportSettings),
-                    SettingsRow(title: "Resolution", type: .exportSettings)
+                    SettingsRow(title: NSLocalizedString("export_format", comment: "Export format setting title"), type: .exportSettings),
+                    SettingsRow(title: NSLocalizedString("resolution", comment: "Resolution setting title"), type: .exportSettings)
                 ]
             ),
             SettingsSection(
-                title: "Scroll Settings",
+                title: NSLocalizedString("scroll_settings", comment: "Scroll settings section title"),
                 rows: [
-                    SettingsRow(title: "Auto Scroll Duration", type: .scrollSettings)
+                    SettingsRow(title: NSLocalizedString("auto_scroll_duration", comment: "Auto scroll duration setting title"), type: .scrollSettings)
                 ]
             ),
             SettingsSection(
-                title: "About",
+                title: NSLocalizedString("about", comment: "About section title"),
                 rows: [
-                    SettingsRow(title: "Tutorial", type: .tutorial),
-                    SettingsRow(title: "Version", type: .version),
-                    SettingsRow(title: "Contact Us", type: .contactUs),
-                    SettingsRow(title: "Rate App", type: .rateApp),
-                    SettingsRow(title: "Share App", type: .shareApp)
+                    SettingsRow(title: NSLocalizedString("tutorial", comment: "Tutorial setting title"), type: .tutorial),
+                    SettingsRow(title: NSLocalizedString("version", comment: "Version setting title"), type: .version),
+                    SettingsRow(title: NSLocalizedString("contact_us", comment: "Contact us setting title"), type: .contactUs),
+                    SettingsRow(title: NSLocalizedString("rate_app", comment: "Rate app setting title"), type: .rateApp),
+                    SettingsRow(title: NSLocalizedString("share_app", comment: "Share app setting title"), type: .shareApp)
                 ]
             )
         ]

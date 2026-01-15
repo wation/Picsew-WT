@@ -26,7 +26,7 @@ class SettingsViewController: UIViewController {
     
     private let versionLabel: UILabel = {
         let label = UILabel()
-        label.text = "版本号 1.0"
+        label.text = NSLocalizedString("version_info", comment: "Version info")
         label.font = .systemFont(ofSize: 12)
         label.textColor = .systemGray
         label.textAlignment = .center
@@ -53,7 +53,7 @@ class SettingsViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = UIColor(red: 0.96, green: 0.96, blue: 0.98, alpha: 1.0)
-        title = "设置"
+        title = NSLocalizedString("settings", comment: "Settings")
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -87,7 +87,7 @@ class SettingsViewController: UIViewController {
     @objc private func formatFieldTapped(_ gesture: UITapGestureRecognizer) {
         guard let fieldView = gesture.view else { return }
         
-        let alert = UIAlertController(title: "选择图片格式", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: NSLocalizedString("select_image_format", comment: "Select image format"), message: nil, preferredStyle: .actionSheet)
         
         for format in ImageFormat.allCases {
             let action = UIAlertAction(title: format.rawValue, style: .default) { [weak self] _ in
@@ -100,7 +100,7 @@ class SettingsViewController: UIViewController {
             alert.addAction(action)
         }
         
-        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: "Cancel"), style: .cancel))
         
         if let popover = alert.popoverPresentationController {
             popover.sourceView = fieldView
@@ -113,20 +113,20 @@ class SettingsViewController: UIViewController {
     @objc private func resolutionFieldTapped(_ gesture: UITapGestureRecognizer) {
         guard let fieldView = gesture.view else { return }
         
-        let alert = UIAlertController(title: "选择分辨率", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: NSLocalizedString("select_resolution", comment: "Select resolution"), message: nil, preferredStyle: .actionSheet)
         
         for res in Resolution.allCases {
-            let action = UIAlertAction(title: res.rawValue, style: .default) { [weak self] _ in
+            let action = UIAlertAction(title: res.localizedString, style: .default) { [weak self] _ in
                 self?.viewModel.selectedResolution = res
                 // 更新 UI
                 if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
-                    valueLabel.text = res.rawValue
+                    valueLabel.text = res.localizedString
                 }
             }
             alert.addAction(action)
         }
         
-        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: "Cancel"), style: .cancel))
         
         if let popover = alert.popoverPresentationController {
             popover.sourceView = fieldView
@@ -139,20 +139,20 @@ class SettingsViewController: UIViewController {
     @objc private func stopDurationFieldTapped(_ gesture: UITapGestureRecognizer) {
         guard let fieldView = gesture.view else { return }
         
-        let alert = UIAlertController(title: "选择自动停止等待时长", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: NSLocalizedString("select_auto_stop_duration", comment: "Select auto stop duration"), message: nil, preferredStyle: .actionSheet)
         
         for duration in StopDuration.allCases {
-            let action = UIAlertAction(title: duration.rawValue, style: .default) { [weak self] _ in
+            let action = UIAlertAction(title: duration.localizedString, style: .default) { [weak self] _ in
                 self?.viewModel.selectedStopDuration = duration
                 // 更新 UI
                 if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
-                    valueLabel.text = duration.rawValue
+                    valueLabel.text = duration.localizedString
                 }
             }
             alert.addAction(action)
         }
         
-        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: "Cancel"), style: .cancel))
         
         if let popover = alert.popoverPresentationController {
             popover.sourceView = fieldView
@@ -278,12 +278,12 @@ class SettingsViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(stack)
         
-        stack.addArrangedSubview(createHeaderView(icon: "doc.text.image", title: "导出设置"))
+        stack.addArrangedSubview(createHeaderView(icon: "doc.text.image", title: NSLocalizedString("export_settings_header", comment: "Export settings header")))
         
-        let formatField = createDropdownField(title: "图片格式", value: viewModel.selectedFormat.rawValue, action: #selector(formatFieldTapped))
+        let formatField = createDropdownField(title: NSLocalizedString("image_format", comment: "Image format"), value: viewModel.selectedFormat.rawValue, action: #selector(formatFieldTapped))
         stack.addArrangedSubview(formatField)
         
-        let resolutionField = createDropdownField(title: "分辨率", value: viewModel.selectedResolution.rawValue, action: #selector(resolutionFieldTapped))
+        let resolutionField = createDropdownField(title: NSLocalizedString("resolution", comment: "Resolution"), value: viewModel.selectedResolution.localizedString, action: #selector(resolutionFieldTapped))
         stack.addArrangedSubview(resolutionField)
         
         NSLayoutConstraint.activate([
@@ -303,9 +303,9 @@ class SettingsViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(stack)
         
-        stack.addArrangedSubview(createHeaderView(icon: "clock", title: "滚动设置"))
+        stack.addArrangedSubview(createHeaderView(icon: "clock", title: NSLocalizedString("scroll_settings_header", comment: "Scroll settings header")))
         
-        let durationField = createDropdownField(title: "自动停止等待时长", value: viewModel.selectedStopDuration.rawValue, action: #selector(stopDurationFieldTapped))
+        let durationField = createDropdownField(title: NSLocalizedString("auto_stop_duration", comment: "Auto stop duration"), value: viewModel.selectedStopDuration.localizedString, action: #selector(stopDurationFieldTapped))
         stack.addArrangedSubview(durationField)
         
         NSLayoutConstraint.activate([
@@ -326,9 +326,9 @@ class SettingsViewController: UIViewController {
         card.addSubview(stack)
         
         let items = [
-            (icon: "envelope.fill", title: "联系我们", showArrow: true, showStars: false, action: #selector(contactUsTapped)),
-            (icon: "star.fill", title: "去 App Store 评分", showArrow: false, showStars: true, action: #selector(rateAppTapped)),
-            (icon: "square.and.arrow.up", title: "推荐给好友", showArrow: false, showStars: false, action: #selector(recommendFriendsTapped))
+            (icon: "envelope.fill", title: NSLocalizedString("contact_us", comment: "Contact us"), showArrow: true, showStars: false, action: #selector(contactUsTapped)),
+            (icon: "star.fill", title: NSLocalizedString("rate_app_store", comment: "Rate app store"), showArrow: false, showStars: true, action: #selector(rateAppTapped)),
+            (icon: "square.and.arrow.up", title: NSLocalizedString("recommend_friends", comment: "Recommend friends"), showArrow: false, showStars: false, action: #selector(recommendFriendsTapped))
         ]
         
         for (index, item) in items.enumerated() {
@@ -431,7 +431,7 @@ class SettingsViewController: UIViewController {
             let mail = MFMailComposeViewController()
             mail.mailComposeDelegate = self
             mail.setToRecipients(["support@magixun.com"])
-            mail.setSubject("PicsewAI 反馈")
+            mail.setSubject(NSLocalizedString("feedback_subject", comment: "Feedback subject"))
             mail.setMessageBody("\n\n---\nDevice: \(UIDevice.current.model)\nSystem: \(UIDevice.current.systemVersion)", isHTML: false)
             present(mail, animated: true)
         } else {
@@ -450,7 +450,7 @@ class SettingsViewController: UIViewController {
     
     @objc private func recommendFriendsTapped() {
         let appLink = "https://apps.apple.com/app/id123456789" // 替换为实际的 App ID
-        let text = "推荐你使用这款长截图工具：PicsewAI，非常方便！"
+        let text = NSLocalizedString("recommendation_message", comment: "Recommendation message")
         let activityVC = UIActivityViewController(activityItems: [text, appLink], applicationActivities: nil)
         
         if let popover = activityVC.popoverPresentationController {

@@ -146,7 +146,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc private func shareImageTapped() {
         guard let stitchedImage = getStitchedImage() else {
-            showAlert(title: "错误", message: "无法获取拼接结果")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
@@ -157,17 +157,17 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc private func copyImageTapped() {
         guard let stitchedImage = getStitchedImage() else {
-            showAlert(title: "错误", message: "无法获取拼接结果")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
         UIPasteboard.general.image = stitchedImage
-        showAlert(title: "成功", message: "图片已复制到剪贴板")
+        showAlert(title: NSLocalizedString("success", comment: "Success"), message: NSLocalizedString("image_copied_to_clipboard", comment: "Image copied to clipboard"))
     }
     
     @objc private func saveToAlbumTapped() {
         guard let stitchedImage = getStitchedImage() else {
-            showAlert(title: "错误", message: "无法获取拼接结果")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
@@ -185,15 +185,15 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
                         DispatchQueue.main.async {
                             guard let self = self else { return }
                             if success {
-                                self.showAlert(title: "成功", message: "图片已保存到相册")
+                                self.showAlert(title: NSLocalizedString("success", comment: "Success"), message: NSLocalizedString("image_saved_to_album", comment: "Image saved to album"))
                             } else {
-                                let errorMessage = error?.localizedDescription ?? "保存失败"
-                                self.showAlert(title: "错误", message: errorMessage)
+                                let errorMessage = error?.localizedDescription ?? NSLocalizedString("save_failed", comment: "Save failed")
+                                self.showAlert(title: NSLocalizedString("error", comment: "Error"), message: errorMessage)
                             }
                         }
                     }
                 default:
-                    self.showAlert(title: "权限被拒绝", message: "请在设置中允许应用访问相册")
+                    self.showAlert(title: NSLocalizedString("permission_denied", comment: "Permission denied"), message: NSLocalizedString("allow_photo_album_permission", comment: "Allow photo album permission"))
                 }
             }
         }
@@ -201,13 +201,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc private func exportToFileTapped() {
         guard let stitchedImage = getStitchedImage() else {
-            showAlert(title: "错误", message: "无法获取拼接结果")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
         // 将图片转换为PNG数据
         guard let pngData = stitchedImage.pngData() else {
-            showAlert(title: "错误", message: "无法将图片转换为PNG格式")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_to_png", comment: "Failed to convert to PNG"))
             return
         }
         
@@ -216,7 +216,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         do {
             try pngData.write(to: tempURL)
         } catch {
-            showAlert(title: "错误", message: "无法创建临时文件")
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_create_temp_file", comment: "Failed to create temp file"))
             return
         }
         
@@ -1017,8 +1017,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     private func showError(_ message: String) {
-        let alert = UIAlertController(title: "错误", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "确定", style: .default))
+        let alert = UIAlertController(title: NSLocalizedString("error", comment: "Error"), message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default))
         present(alert, animated: true)
     }
     
@@ -1028,7 +1028,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc private func shareTapped() {
         guard let stitchedImage = generateFullResolutionImage() else {
-            showError("生成图片失败")
+            showError(NSLocalizedString("failed_to_generate_image", comment: "Failed to generate image"))
             return
         }
         
@@ -1186,9 +1186,9 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     @objc private func imageSaved(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         loadingIndicator.stopAnimating()
         if let error = error {
-            showToast(message: "保存失败: \(error.localizedDescription)")
+            showToast(message: String(format: NSLocalizedString("save_failed_with_error", comment: "Save failed with error"), error.localizedDescription))
         } else {
-            showToast(message: "已保存到相册")
+            showToast(message: NSLocalizedString("saved_to_album", comment: "Saved to album"))
         }
     }
 }
@@ -1474,7 +1474,7 @@ extension UIViewController {
 extension AutoStitchViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         // 文件导出成功
-        showToast(message: "图片已导出到文件")
+        showToast(message: NSLocalizedString("image_exported_to_file", comment: "Image exported to file"))
     }
     
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {

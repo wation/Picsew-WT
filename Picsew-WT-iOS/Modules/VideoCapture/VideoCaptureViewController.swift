@@ -26,7 +26,7 @@ class VideoCaptureViewController: UIViewController {
     // 开始录制按钮
     private lazy var startRecordingButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("开始录制", for: .normal)
+        button.setTitle(NSLocalizedString("start_recording", comment: "Start recording"), for: .normal)
         button.backgroundColor = .systemBlue
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 10
@@ -38,7 +38,7 @@ class VideoCaptureViewController: UIViewController {
     // 停止录制按钮
     private lazy var stopRecordingButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("停止录制", for: .normal)
+        button.setTitle(NSLocalizedString("stop_recording", comment: "Stop recording"), for: .normal)
         button.backgroundColor = .systemRed
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 10
@@ -59,7 +59,7 @@ class VideoCaptureViewController: UIViewController {
     
     private lazy var liveRecordButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("视频拼图", for: .normal)
+        button.setTitle(NSLocalizedString("video_capture_mode", comment: "Video capture mode"), for: .normal)
         button.setImage(UIImage(systemName: "video.badge.plus"), for: .normal)
         button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
         button.tag = 0
@@ -69,7 +69,7 @@ class VideoCaptureViewController: UIViewController {
     
     private lazy var importVideoButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("视频导入", for: .normal)
+        button.setTitle(NSLocalizedString("video_import_mode", comment: "Video import mode"), for: .normal)
         button.setImage(UIImage(systemName: "arrow.up.to.line"), for: .normal)
         button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
         button.tag = 1
@@ -178,10 +178,10 @@ class VideoCaptureViewController: UIViewController {
     }
     
     private func showRecordingFinishedAlert() {
-        let alert = UIAlertController(title: "直播屏幕", message: "PicsewAI的直播已停止，因为：滚动截图已生成，请打开 App 以继续。", preferredStyle: .alert)
+        let alert = UIAlertController(title: NSLocalizedString("broadcast_screen", comment: "Broadcast screen"), message: NSLocalizedString("broadcast_stopped_message", comment: "Broadcast stopped message"), preferredStyle: .alert)
         
         // 添加"好"按钮，灰色
-        let okAction = UIAlertAction(title: "好", style: .default) { _ in
+        let okAction = UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default) { _ in
             // 清除待处理的录屏文件
             BroadcastManager.shared.clearPendingRecording()
         }
@@ -189,7 +189,7 @@ class VideoCaptureViewController: UIViewController {
         alert.addAction(okAction)
         
         // 添加"前往应用程序"按钮，蓝色
-        let goToAppAction = UIAlertAction(title: "前往应用程序", style: .default) { [weak self] _ in
+        let goToAppAction = UIAlertAction(title: NSLocalizedString("go_to_app", comment: "Go to app"), style: .default) { [weak self] _ in
             // 处理录屏文件并跳转到长截图页面
             self?.processRecordingAndNavigate()
         }
@@ -201,12 +201,12 @@ class VideoCaptureViewController: UIViewController {
     
     private func processRecordingAndNavigate() {
         guard let recordingURL = BroadcastManager.shared.recordingFileURL else {
-            showAlert(title: "处理失败", message: "无法获取录屏文件")
+            showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: NSLocalizedString("failed_to_get_recording_file", comment: "Failed to get recording file"))
             return
         }
         
         // 显示加载指示器
-        let loadingAlert = UIAlertController(title: "正在生成长截图", message: "", preferredStyle: .alert)
+        let loadingAlert = UIAlertController(title: NSLocalizedString("generating_long_screenshot", comment: "Generating long screenshot"), message: "", preferredStyle: .alert)
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
@@ -237,7 +237,7 @@ class VideoCaptureViewController: UIViewController {
                 BroadcastManager.shared.clearPendingRecording()
                 
                 if let error = error {
-                    self?.showAlert(title: "处理失败", message: error.localizedDescription)
+                    self?.showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: error.localizedDescription)
                     return
                 }
                 
@@ -247,7 +247,7 @@ class VideoCaptureViewController: UIViewController {
                     autoStitchVC.setInputImagesFromVideo(images)
                     self?.navigationController?.pushViewController(autoStitchVC, animated: true)
                 } else {
-                    self?.showAlert(title: "处理失败", message: "无法从视频中提取图像")
+                    self?.showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: NSLocalizedString("failed_to_extract_images_from_video", comment: "Failed to extract images from video"))
                 }
             }
         }
@@ -361,17 +361,17 @@ class VideoCaptureViewController: UIViewController {
     
     private func setupTutorialContent() {
         let titleLabel = UILabel()
-        titleLabel.text = "必看使用教程："
+        titleLabel.text = NSLocalizedString("must_read_tutorial", comment: "Must read tutorial")
         titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         tutorialContentView.addSubview(titleLabel)
         
         let steps = [
-            "1. 打开需要滚动截图的界面",
-            "2. 状态栏下拉，并长按录屏按钮",
-            "3. 选中本应用，并点击“开始直播”",
-            "4. 关闭状态栏并切回界面，待左上角出现录屏标记后，开始缓慢向下滑动\n\n单次滑动请维持在3秒以上！连续滚动无需停顿！",
-            "5. 再次点击左上角，结束录屏，并回到本应用即可看到截好的长图"
+            NSLocalizedString("tutorial_step_1", comment: "Tutorial step 1"),
+            NSLocalizedString("tutorial_step_2", comment: "Tutorial step 2"),
+            NSLocalizedString("tutorial_step_3", comment: "Tutorial step 3"),
+            NSLocalizedString("tutorial_step_4", comment: "Tutorial step 4"),
+            NSLocalizedString("tutorial_step_5", comment: "Tutorial step 5")
         ]
         
         var lastAnchor = titleLabel.bottomAnchor
@@ -405,7 +405,7 @@ class VideoCaptureViewController: UIViewController {
             
             // 根据索引设置占位文字或图标，模拟截图内容
             let placeholderLabel = UILabel()
-            placeholderLabel.text = "步骤 \(index + 1) 示意图"
+            placeholderLabel.text = String(format: NSLocalizedString("step_diagram", comment: "Step diagram"), index + 1)
             placeholderLabel.textColor = .lightGray
             placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
             imageView.addSubview(placeholderLabel)
@@ -444,14 +444,14 @@ class VideoCaptureViewController: UIViewController {
                     self?.viewModel.startRecording { error in
                         DispatchQueue.main.async {
                             if let error = error {
-                                self?.showAlert(title: "录制失败", message: error.localizedDescription)
+                                self?.showAlert(title: NSLocalizedString("recording_failed", comment: "Recording failed"), message: error.localizedDescription)
                             } else {
                                 self?.updateRecordingUI()
                             }
                         }
                     }
                 } else {
-                    self?.showAlert(title: "权限被拒绝", message: "请在设置中允许应用访问屏幕录制权限")
+                    self?.showAlert(title: NSLocalizedString("permission_denied", comment: "Permission denied"), message: NSLocalizedString("allow_screen_recording_permission", comment: "Allow screen recording permission"))
                 }
             }
         }
@@ -462,13 +462,13 @@ class VideoCaptureViewController: UIViewController {
         viewModel.stopRecording { [weak self] videoURL, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    self?.showAlert(title: "停止录制失败", message: error.localizedDescription)
+                    self?.showAlert(title: NSLocalizedString("stop_recording_failed", comment: "Stop recording failed"), message: error.localizedDescription)
                 } else if let videoURL = videoURL {
-                    self?.statusLabel.text = "录制已保存: \(videoURL.lastPathComponent)"
+                    self?.statusLabel.text = String(format: NSLocalizedString("recording_saved", comment: "Recording saved"), videoURL.lastPathComponent)
                     self?.updateRecordingUI()
                     
                     // 显示录制完成提示
-                    self?.showAlert(title: "录制完成", message: "视频已保存到: \(videoURL)")
+                    self?.showAlert(title: NSLocalizedString("recording_completed", comment: "Recording completed"), message: String(format: NSLocalizedString("video_saved_to", comment: "Video saved to"), videoURL.absoluteString))
                 }
             }
         }
@@ -500,12 +500,12 @@ class VideoCaptureViewController: UIViewController {
     
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "确定", style: .default))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default))
         present(alert, animated: true)
     }
 
     private func handleVideoSelection(_ asset: PHAsset) {
-        let loadingAlert = UIAlertController(title: "正在分析视频", message: "\n\n", preferredStyle: .alert)
+        let loadingAlert = UIAlertController(title: NSLocalizedString("analyzing_video", comment: "Analyzing video"), message: "\n\n", preferredStyle: .alert)
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
@@ -533,7 +533,7 @@ class VideoCaptureViewController: UIViewController {
         VideoStitcher.shared.processVideo(asset: asset) { [weak self] images, error in
             loadingAlert.dismiss(animated: true) {
                 if let error = error {
-                    self?.showAlert(title: "处理失败", message: error.localizedDescription)
+                    self?.showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: error.localizedDescription)
                     return
                 }
                 
@@ -563,9 +563,9 @@ extension VideoCaptureViewController: UICollectionViewDelegate, UICollectionView
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let asset = videoAssets[indexPath.item]
         
-        let alert = UIAlertController(title: "导入确认", message: "确定要导入选中的视频进行分析吗？", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
-        alert.addAction(UIAlertAction(title: "确定", style: .default, handler: { [weak self] _ in
+        let alert = UIAlertController(title: NSLocalizedString("import_confirmation", comment: "Import confirmation"), message: NSLocalizedString("confirm_import_video", comment: "Confirm import video"), preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: "Cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default, handler: { [weak self] _ in
             self?.handleVideoSelection(asset)
         }))
         present(alert, animated: true)

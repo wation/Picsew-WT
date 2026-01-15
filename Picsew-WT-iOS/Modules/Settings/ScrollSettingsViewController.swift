@@ -6,7 +6,7 @@ class ScrollSettingsViewController: UIViewController {
     
     private lazy var durationLabel: UILabel = {
         let label = UILabel()
-        label.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+        label.text = String(format: NSLocalizedString("auto_scroll_duration", comment: "Auto scroll duration label"), scrollDuration)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -31,7 +31,7 @@ class ScrollSettingsViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .white
-        title = "Scroll Settings"
+        title = NSLocalizedString("scroll_settings", comment: "Scroll settings title")
         
         view.addSubview(durationLabel)
         view.addSubview(stepper)
@@ -50,13 +50,13 @@ class ScrollSettingsViewController: UIViewController {
             if let savedDuration = appGroupUserDefaults.object(forKey: "scrollDuration") as? Int {
                 scrollDuration = savedDuration
                 stepper.value = Double(scrollDuration)
-                durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+                durationLabel.text = String(format: NSLocalizedString("auto_scroll_duration", comment: "Auto scroll duration label"), scrollDuration)
             }
         } else if let savedDuration = UserDefaults.standard.object(forKey: "scrollDuration") as? Int {
             // 兼容旧版设置
             scrollDuration = savedDuration
             stepper.value = Double(scrollDuration)
-            durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+            durationLabel.text = String(format: NSLocalizedString("auto_scroll_duration", comment: "Auto scroll duration label"), scrollDuration)
             // 迁移到App Group
             saveSettings()
         }
@@ -64,7 +64,7 @@ class ScrollSettingsViewController: UIViewController {
     
     @objc private func stepperValueChanged(_ stepper: UIStepper) {
         scrollDuration = Int(stepper.value)
-        durationLabel.text = "Auto Scroll Duration: \(scrollDuration) seconds"
+        durationLabel.text = String(format: NSLocalizedString("auto_scroll_duration", comment: "Auto scroll duration label"), scrollDuration)
         
         // 保存设置
         saveSettings()

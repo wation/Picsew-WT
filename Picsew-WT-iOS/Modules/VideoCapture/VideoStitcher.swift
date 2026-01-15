@@ -13,14 +13,14 @@ class VideoStitcher {
     private init() {}
     
     /// 从视频中自动识别并提取用于拼接的关键帧
-    func processVideo(asset: PHAsset, completion: @escaping VideoProcessCompletion) {
+    func processVideo(asset: PHAsset, completion: @escaping ([UIImage]?, Error?) -> Void) {
         let options = PHVideoRequestOptions()
         options.version = .original
         options.isNetworkAccessAllowed = true
         
         PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { [weak self] avAsset, _, _ in
             guard let urlAsset = avAsset as? AVURLAsset else {
-                completion(nil, NSError(domain: "VideoStitcher", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法获取视频资源"]))
+                completion(nil, NSError(domain: "VideoStitcher", code: -1, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("failed_to_get_video_resource", comment: "Failed to get video resource")]))
                 return
             }
             
@@ -45,7 +45,7 @@ class VideoStitcher {
         }
         
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
-            completion(nil, NSError(domain: "VideoStitcher", code: -2, userInfo: [NSLocalizedDescriptionKey: "找不到视频轨道"]))
+            completion(nil, NSError(domain: "VideoStitcher", code: -2, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("no_video_track_found", comment: "No video track found")]))
             return
         }
         
@@ -130,7 +130,7 @@ class VideoStitcher {
         
         DispatchQueue.main.async {
             if frames.count < 2 {
-                completion(nil, NSError(domain: "VideoStitcher", code: -3, userInfo: [NSLocalizedDescriptionKey: "视频内容不足以生成长截图，请确保有滑动操作"]))
+                completion(nil, NSError(domain: "VideoStitcher", code: -3, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("insufficient_video_content", comment: "Insufficient video content")]))
             } else {
                 completion(frames, nil)
             }

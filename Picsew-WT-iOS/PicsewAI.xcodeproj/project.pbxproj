@@ -101,6 +101,7 @@
 		66B8E5F12B2F4E7A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = PicsewAI/PicsewAI/Assets.xcassets; sourceTree = "<group>"; };
 		6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScrollSettingsViewController.swift; path = Modules/Settings/ScrollSettingsViewController.swift; sourceTree = "<group>"; };
 		74F65661F512D0E38B1F14D5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		8D1F7A2F1B4D6E9C4F8A0E35 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hant"; path = "Resources/i18n/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		934AD1DA33F71414722136A2 /* HomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeViewModel.swift; path = Modules/Screenshot/ViewModel/HomeViewModel.swift; sourceTree = "<group>"; };
 		9FC07250DED4A0210B34547C /* SettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewController.swift; path = Modules/Settings/SettingsViewController.swift; sourceTree = "<group>"; };
 		A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoCell.swift; path = Modules/Screenshot/View/PhotoCell.swift; sourceTree = "<group>"; };
@@ -434,14 +435,15 @@
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
-				Base,
-				"zh-Hans",
-				ja,
-				ko,
-				es,
-				pt,
-			);
+			en,
+			Base,
+			"zh-Hans",
+			"zh-Hant",
+			ja,
+			ko,
+			es,
+			pt,
+		);
 			mainGroup = DA593C1FA715D769CF8035A3;
 			productRefGroup = DC5AE1E0B521D1B510CCAEC3 /* Products */;
 			projectDirPath = "";
@@ -555,6 +557,7 @@
 			children = (
 				DF3592BB3688062A97EB2B08 /* en */,
 				CC102A0107AA24D2C3D9416A /* zh-Hans */,
+				8D1F7A2F1B4D6E9C4F8A0E35 /* zh-Hant */,
 				D026CA1840FDEE3ABD940681 /* ja */,
 				E27D400A6CE98E942AE4DB46 /* ko */,
 				07FDFFBC846630D7D244A3DE /* es */,

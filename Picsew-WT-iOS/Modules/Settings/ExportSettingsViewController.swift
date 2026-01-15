@@ -2,9 +2,7 @@ import UIKit
 
 class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    private let exportFormats = ["PNG", "JPEG", "HEIC"]
-    private let resolutions = ["Original", "High", "Medium", "Low"]
-    
+    private let exportFormats = ["png", "jpeg", "heic"]
     private var selectedFormatIndex = 0
     private var selectedResolutionIndex = 0
     
@@ -20,11 +18,21 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        loadSavedSettings()
+    }
+    
+    private func loadSavedSettings() {
+        // 加载保存的分辨率设置
+        if let savedResolution = UserDefaults.standard.string(forKey: "resolution") {
+            if let resolution = Resolution(rawValue: savedResolution) {
+                selectedResolutionIndex = Resolution.allCases.firstIndex(of: resolution) ?? 0
+            }
+        }
     }
     
     private func setupUI() {
         view.backgroundColor = .white
-        title = "Export Settings"
+        title = NSLocalizedString("export_settings", comment: "Export settings page title")
         
         view.addSubview(tableView)
         
@@ -47,7 +55,7 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
         case 0:
             return exportFormats.count
         case 1:
-            return resolutions.count
+            return Resolution.allCases.count
         default:
             return 0
         }
@@ -56,9 +64,9 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0:
-            return "Image Format"
+            return NSLocalizedString("image_format", comment: "Image format section title")
         case 1:
-            return "Resolution"
+            return NSLocalizedString("resolution", comment: "Resolution section title")
         default:
             return nil
         }
@@ -69,14 +77,14 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
         
         switch indexPath.section {
         case 0:
-            cell.textLabel?.text = exportFormats[indexPath.row]
+            cell.textLabel?.text = NSLocalizedString(exportFormats[indexPath.row], comment: "Image format option")
             if indexPath.row == selectedFormatIndex {
                 cell.accessoryType = .checkmark
             } else {
                 cell.accessoryType = .none
             }
         case 1:
-            cell.textLabel?.text = resolutions[indexPath.row]
+            cell.textLabel?.text = Resolution.allCases[indexPath.row].localizedString
             if indexPath.row == selectedResolutionIndex {
                 cell.accessoryType = .checkmark
             } else {
@@ -107,6 +115,6 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
         
         // 保存设置
         UserDefaults.standard.set(exportFormats[selectedFormatIndex], forKey: "exportFormat")
-        UserDefaults.standard.set(resolutions[selectedResolutionIndex], forKey: "resolution")
+        UserDefaults.standard.set(Resolution.allCases[selectedResolutionIndex].rawValue, forKey: "resolution")
     }
 }

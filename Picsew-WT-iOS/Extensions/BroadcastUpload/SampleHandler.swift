@@ -19,7 +19,7 @@ class SampleHandler: RPBroadcastSampleHandler {
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
         // 获取共享容器路径
         guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) else {
-            finishBroadcastWithError(NSError(domain: "BroadcastError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法访问共享容器"]))
+            finishBroadcastWithError(NSError(domain: "BroadcastError", code: -1, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("cannot_access_shared_container", comment: "Cannot access shared container")]))
             return
         }
         
