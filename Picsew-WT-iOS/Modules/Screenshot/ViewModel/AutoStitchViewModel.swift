@@ -10,10 +10,11 @@ class AutoStitchViewModel {
     var offsets: [CGFloat] = [] // 每一张图在画布上的起始 Y 坐标
     var bottomStartOffsets: [CGFloat] = [] // 每一张图自身开始显示的 Y 坐标（用于裁掉 header）
     var matchedIndices: [Int] = []
+    var isFromVideo: Bool = false
     
     // 自动拼接图片
     func autoStitch(forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
-        stitchManager.autoStitch(images, forceManual: forceManual) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
+        stitchManager.autoStitch(images, forceManual: forceManual, keepOrder: isFromVideo) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
             DispatchQueue.main.async {
                 if let workingImages = workingImages {
                     self?.images = workingImages

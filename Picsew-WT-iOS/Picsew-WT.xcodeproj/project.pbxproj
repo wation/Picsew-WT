@@ -44,8 +44,6 @@
 		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */; };
 		D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D896B5822F164E9C0064430C /* MainInterface.storyboard */; };
-		D8E6380D2F1921B20007F20E /* Picsew-WT.app in Resources */ = {isa = PBXBuildFile; fileRef = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */; };
-		D8E6380E2F1921B20007F20E /* Picsew-WT.app in Resources */ = {isa = PBXBuildFile; fileRef = 2EFE44F7BFF48834F5A30938 /* Picsew-WT.app */; };
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
@@ -736,13 +734,13 @@
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastUpload/BroadcastUpload.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = RH28D37T36;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏";
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -767,13 +765,13 @@
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastUpload/BroadcastUpload.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = RH28D37T36;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Extensions/BroadcastUpload/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT 录屏";
+				INFOPLIST_KEY_CFBundleDisplayName = "Picsew-WT";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -799,7 +797,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = RH28D37T36;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -831,7 +829,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = RH28D37T36;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;

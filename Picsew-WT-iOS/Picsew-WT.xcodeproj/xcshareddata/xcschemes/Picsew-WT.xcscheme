@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1500"
-   version = "1.7">
+   LastUpgradeVersion = "1630"
+   version = "1.8">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -17,6 +17,34 @@
                BlueprintIdentifier = "4B1C595114FB1EA67386A941"
                BuildableName = "Picsew-WT.app"
                BlueprintName = "Picsew-WT"
+               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D896B4B12F1566A30064430C"
+               BuildableName = "PicsewWTExtension.appex"
+               BlueprintName = "Picsew-WT-Extension"
+               ReferencedContainer = "container:Picsew-WT.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D896B5592F164E9B0064430C"
+               BuildableName = "BroadcastSetup.appex"
+               BlueprintName = "BroadcastSetup"
                ReferencedContainer = "container:Picsew-WT.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

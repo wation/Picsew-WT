@@ -12,8 +12,7 @@ struct StitchResult {
 class AutoStitchManager {
     static let shared = AutoStitchManager()
     
-    // 自动寻找重合点并拼接
-    func autoStitch(_ images: [UIImage], forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
+    func autoStitch(_ images: [UIImage], forceManual: Bool = false, keepOrder: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             guard images.count >= 2 else {
                 let error = NSError(domain: "StitchError", code: 0, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_need_2_images", comment: "")])
@@ -21,44 +20,186 @@ class AutoStitchManager {
                 return
             }
             
-            // 尝试自动排序
-            let reorderedImages = forceManual ? images : StitchAlgorithm.findBestSequence(images)
-            let workingImages = reorderedImages
-            
-            var offsets: [CGFloat] = [0] // 每一张图在画布上的起始 Y 坐标
-            var bottomStartOffsets: [CGFloat] = [0] // 每一张图自身开始显示的 Y 坐标（用于裁掉 header）
-            var matchedIndices: [Int] = []
-            
-            for i in 0..<(workingImages.count - 1) {
-                let topImage = workingImages[i]
-                let bottomImage = workingImages[i+1]
-                
-                // 如果不是强制手动模式，尝试寻找重合点
-                if !forceManual, let result = StitchAlgorithm.findOverlap(topImage: topImage, bottomImage: bottomImage) {
-                    let topImageCutY = result.topY
-                    let bottomImageStartY = result.bottomY
-                    
-                    let nextImageCanvasY = offsets[i] + topImageCutY
-                    
-                    offsets.append(nextImageCanvasY)
-                    bottomStartOffsets.append(bottomImageStartY)
-                    matchedIndices.append(i + 1)
-                } else {
-                    // 强制手动模式或未找到重合点：直接首尾相接
-                    let fallbackOffset = workingImages[i].size.height
-                    let nextImageCanvasY = offsets[i] + fallbackOffset
-                    
-                    offsets.append(nextImageCanvasY)
-                    bottomStartOffsets.append(0)
-                }
+            let workingImages: [UIImage]
+            if keepOrder {
+                workingImages = images
+            } else {
+                let reorderedImages = forceManual ? images : StitchAlgorithm.findBestSequence(images)
+                workingImages = reorderedImages
             }
-            
-            // 计算总高度
+
+            var offsets: [CGFloat]
+            var bottomStartOffsets: [CGFloat]
+            var matchedIndices: [Int] = []
+            var matchedPairCount = 0
             var totalHeight: CGFloat = 0
-            for i in 0..<workingImages.count {
-                let displayHeight = workingImages[i].size.height - bottomStartOffsets[i]
-                if i == workingImages.count - 1 {
-                    totalHeight = offsets[i] + displayHeight
+
+            if keepOrder {
+                let count = workingImages.count
+                // 默认重叠比例（兜底用）
+                let defaultOverlapRatio: CGFloat = 0.2
+                // 移动平均步长，初始化为默认步长（假设每帧移动 80% 高度）
+                var runningAverageStep: CGFloat = 0
+                if count > 0 {
+                    runningAverageStep = workingImages[0].size.height * (1 - defaultOverlapRatio)
+                }
+                
+                var overlaps: [OverlapResult?] = Array(repeating: nil, count: max(count - 1, 0))
+                var isPairMatched = [Bool](repeating: false, count: max(count - 1, 0))
+
+                if !forceManual && count >= 2 {
+                    for i in 0..<(count - 1) {
+                        if let detailed = StitchAlgorithm.findVideoOverlapDetailed(topImage: workingImages[i], bottomImage: workingImages[i+1]) {
+                            let height = workingImages[i].size.height
+                            let minCut = height * 0.1
+                            let maxCut = height * 0.9
+                            if detailed.diff < 45.0, detailed.result.topY >= minCut, detailed.result.topY <= maxCut {
+                                overlaps[i] = detailed.result
+                                isPairMatched[i] = true
+                                let currentStep = detailed.result.topY
+                                runningAverageStep = runningAverageStep * 0.7 + currentStep * 0.3
+                            }
+                        }
+                    }
+                }
+
+                var startYs = [CGFloat](repeating: 0, count: count)
+                var endYs = [CGFloat](repeating: 0, count: count)
+                var segmentHeights = [CGFloat](repeating: 0, count: count)
+
+                // 第 0 帧处理
+                if count > 0 {
+                    let height = workingImages[0].size.height
+                    let minVisible = max(1, height * 0.12)
+                    var end: CGFloat
+                    
+                    if let firstOverlap = (overlaps.first ?? nil) {
+                        end = firstOverlap.topY
+                    } else {
+                        // 兜底：使用平均步长
+                        end = min(height, runningAverageStep)
+                    }
+                    
+                    startYs[0] = 0
+                    endYs[0] = max(minVisible, min(height, end))
+                    segmentHeights[0] = endYs[0] - startYs[0]
+                }
+
+                // 中间帧处理
+                if count >= 3 {
+                    for i in 1..<(count - 1) {
+                        let height = workingImages[i].size.height
+                        let prevOverlap = overlaps[i-1]
+                        let nextOverlap = overlaps[i]
+                        
+                        let minVisible = max(1, height * 0.12)
+
+                        // 计算 startY (上边缘)
+                        var start: CGFloat = 0
+                        if let prev = prevOverlap {
+                            // 如果和上一帧有重合，从重合点开始
+                            start = prev.bottomY
+                        } else {
+                            // 如果没重合，推断 startY
+                            // 逻辑：上一帧如果用了兜底步长，那么这一帧应该接着上一帧的“虚拟”结束点
+                            // 但这里我们用一种简化的方式：
+                            // 假设当前帧的高度里，头部有一部分是和上一帧重复的
+                            // 重复的高度 = height - runningAverageStep
+                            let overlapHeight = max(0, height - runningAverageStep)
+                            start = overlapHeight
+                        }
+                        
+                        // 计算 endY (下边缘)
+                        var end: CGFloat
+                        if let next = nextOverlap {
+                            end = next.topY
+                        } else {
+                            // 兜底：保留平均步长的高度
+                            // end - start = runningAverageStep
+                            end = min(height, start + runningAverageStep)
+                        }
+                        
+                        start = max(0, min(height, start))
+                        end = max(0, min(height, end))
+
+                        if end - start < minVisible {
+                            end = min(height, start + max(minVisible, runningAverageStep))
+                            if end - start < minVisible {
+                                start = max(0, end - minVisible)
+                            }
+                        }
+
+                        startYs[i] = start
+                        endYs[i] = end
+                        segmentHeights[i] = end - start
+                    }
+                }
+
+                // 最后一帧处理
+                if count >= 2 {
+                    let lastIndex = count - 1
+                    let height = workingImages[lastIndex].size.height
+                    let minVisible = max(1, height * 0.12)
+                    var start: CGFloat = 0
+                    
+                    if let lastOverlap = overlaps[lastIndex - 1] {
+                        start = lastOverlap.bottomY
+                    } else {
+                        let overlapHeight = max(0, height - runningAverageStep)
+                        start = overlapHeight
+                    }
+                    
+                    start = max(0, min(height, start))
+                    var end = height
+                    if end - start < minVisible {
+                        start = max(0, end - minVisible)
+                    }
+
+                    startYs[lastIndex] = start
+                    endYs[lastIndex] = end
+                    segmentHeights[lastIndex] = end - start
+                }
+
+                offsets = [CGFloat](repeating: 0, count: workingImages.count)
+                bottomStartOffsets = startYs
+                for i in 1..<workingImages.count {
+                    // 下一张图的 offset = 上一张图的 offset + 上一张图的实际显示高度
+                    let prevDisplayHeight = max(1, segmentHeights[i-1])
+                    offsets[i] = offsets[i-1] + prevDisplayHeight
+                }
+
+                matchedPairCount = isPairMatched.filter { $0 }.count
+                for i in 0..<isPairMatched.count where isPairMatched[i] {
+                    matchedIndices.append(i + 1)
+                }
+                totalHeight = segmentHeights.reduce(0, +)
+            } else {
+                offsets = [0]
+                bottomStartOffsets = [0]
+
+                for i in 0..<(workingImages.count - 1) {
+                    let topImage = workingImages[i]
+                    let bottomImage = workingImages[i+1]
+
+                    if !forceManual, let result = StitchAlgorithm.findOverlap(topImage: topImage, bottomImage: bottomImage) {
+                        let topImageCutY = result.topY
+                        let bottomImageStartY = result.bottomY
+
+                        let nextImageCanvasY = offsets[i] + topImageCutY
+                        offsets.append(nextImageCanvasY)
+                        bottomStartOffsets.append(bottomImageStartY)
+                        matchedIndices.append(i + 1)
+                        matchedPairCount += 1
+                    } else {
+                        let fallbackOffset = topImage.size.height
+                        let nextImageCanvasY = offsets[i] + fallbackOffset
+                        offsets.append(nextImageCanvasY)
+                        bottomStartOffsets.append(0)
+                    }
+                }
+
+                if let lastOffset = offsets.last {
+                    totalHeight = lastOffset + (workingImages.last!.size.height - bottomStartOffsets.last!)
                 }
             }
             
@@ -78,21 +219,24 @@ class AutoStitchManager {
                     displayHeight = image.size.height - startY
                 }
                 
-                let cropHeight = (i < workingImages.count - 1) ? displayHeight + 1 : displayHeight
-                
-                if let cgImage = image.cgImage?.cropping(to: CGRect(x: 0, y: startY * image.scale, width: image.size.width * image.scale, height: cropHeight * image.scale)) {
-                    let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
-                    croppedImage.draw(at: CGPoint(x: (maxWidth - image.size.width) / 2, y: canvasY))
-                } else {
-                    image.draw(at: CGPoint(x: (maxWidth - image.size.width) / 2, y: canvasY))
-                }
+                var cropHeight = (i < workingImages.count - 1) ? displayHeight + 1 : displayHeight
+                let maxCropHeight = max(0, image.size.height - startY)
+                cropHeight = max(0, min(cropHeight, maxCropHeight))
+                if cropHeight <= 0 { continue }
+
+                let x = (maxWidth - image.size.width) / 2
+                let destRect = CGRect(x: x, y: canvasY, width: image.size.width, height: cropHeight)
+                UIGraphicsGetCurrentContext()?.saveGState()
+                UIGraphicsGetCurrentContext()?.clip(to: destRect)
+                image.draw(at: CGPoint(x: x, y: canvasY - startY))
+                UIGraphicsGetCurrentContext()?.restoreGState()
             }
             
             let finalImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
             if let finalImage = finalImage {
-                let hasOverlapWarning = matchedIndices.count < workingImages.count - 1
+                let hasOverlapWarning = matchedPairCount < workingImages.count - 1
                 let warning = hasOverlapWarning ? NSError(domain: "StitchWarning", code: 2, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_warning_auto_to_manual", comment: "")]) : nil
                 completion(finalImage, offsets, bottomStartOffsets, matchedIndices, workingImages, warning)
             } else {

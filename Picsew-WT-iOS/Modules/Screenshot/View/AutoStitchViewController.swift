@@ -174,6 +174,11 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         return .default
     }
     
+    func setInputImagesFromVideo(_ images: [UIImage]) {
+        viewModel.isFromVideo = true
+        viewModel.setImages(images)
+    }
+
     private func setupNavigationBar() {
         let backItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backTapped))
         backItem.tintColor = .black
@@ -195,6 +200,7 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     func setInputImages(_ images: [UIImage]) {
+        viewModel.isFromVideo = false
         viewModel.setImages(images)
     }
     
@@ -333,10 +339,10 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
             
             let containerHeight: CGFloat
             if index == images.count - 1 {
-                containerHeight = max(0, displayHeight - selfStartY - bottomCrop)
+                containerHeight = max(1, displayHeight - selfStartY - bottomCrop)
             } else {
                 let nextCanvasY = currentOffsets[index+1] * displayScale
-                containerHeight = max(0, nextCanvasY - canvasY)
+                containerHeight = max(1, nextCanvasY - canvasY)
             }
             
             totalHeight = max(totalHeight, containerStartY + containerHeight)

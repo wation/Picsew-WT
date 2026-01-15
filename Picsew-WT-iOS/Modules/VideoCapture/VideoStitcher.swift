@@ -59,13 +59,17 @@ class VideoStitcher {
         var segments: [[UIImage]] = []
         var currentSegment: [UIImage] = []
         var lastImage: UIImage?
+        var lastSampleBuffer: CMSampleBuffer?
 
         let fps = videoTrack.nominalFrameRate
         let sampleInterval = Int(fps / 2) // 每秒取 2 帧
         var frameCount = 0
         
+        // 原始帧收集逻辑，只保留变化足够大的帧
         while let sampleBuffer = readerOutput.copyNextSampleBuffer() {
             frameCount += 1
+            lastSampleBuffer = sampleBuffer
+            
             if frameCount % sampleInterval != 0 {
                 continue
             }
@@ -89,17 +93,40 @@ class VideoStitcher {
                 lastImage = image
             }
         }
+        
+        // 确保处理最后一帧，即使它不符合采样间隔
+        if let sampleBuffer = lastSampleBuffer,
+           let image = imageFromSampleBuffer(sampleBuffer) {
+            // 检查最后一帧是否已经被添加
+            let isLastFrameAdded = currentSegment.last.map { $0.isEqual(image) } ?? false
+            if !isLastFrameAdded {
+                currentSegment.append(image)
+            }
+        }
+        
+        // 添加最后一个片段
         if !currentSegment.isEmpty {
             segments.append(currentSegment)
         }
+        
+        // 片段过滤，只保留长度≥3的片段，但确保保留最后一个片段
         let minSegmentLength = 3
-        let filteredSegments = segments.filter { $0.count >= minSegmentLength }
-        let frames: [UIImage]
-        if filteredSegments.isEmpty {
-            frames = segments.flatMap { $0 }
+        var filteredSegments: [[UIImage]]
+        
+        if segments.count > 1 {
+            // 如果有多个片段，过滤掉中间长度不足3的片段，但保留第一个和最后一个
+            filteredSegments = []
+            for (index, segment) in segments.enumerated() {
+                if index == 0 || index == segments.count - 1 || segment.count >= minSegmentLength {
+                    filteredSegments.append(segment)
+                }
+            }
         } else {
-            frames = filteredSegments.flatMap { $0 }
+            // 如果只有一个片段，直接使用
+            filteredSegments = segments
         }
+        
+        let frames = filteredSegments.flatMap { $0 }
         
         DispatchQueue.main.async {
             if frames.count < 2 {

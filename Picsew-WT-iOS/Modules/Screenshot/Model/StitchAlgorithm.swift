@@ -109,7 +109,13 @@ class StitchAlgorithm {
         var minDiff = Double.greatestFiniteMagnitude
         var found = false
         
-        for yOffset in topContentStart...(topContentEnd - sampleHeight) {
+        // 添加边界检查，避免Range错误
+        let rangeEnd = topContentEnd - sampleHeight
+        if rangeEnd < topContentStart {
+            return nil
+        }
+        
+        for yOffset in topContentStart...rangeEnd {
             var totalDiff: Double = 0
             var pixelCount: Double = 0
             
@@ -141,7 +147,118 @@ class StitchAlgorithm {
         return (found && minDiff < 35.0) ? minDiff : nil
     }
     
-    // 寻找两张图片的重合点
+    static func findVideoOverlapDetailed(topImage: UIImage, bottomImage: UIImage) -> (result: OverlapResult, diff: Double)? {
+        guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
+        
+        let scale: CGFloat = 0.2
+        let topSmall = resizeCGImage(topCG, scale: scale)
+        let bottomSmall = resizeCGImage(bottomCG, scale: scale)
+        
+        guard let topData = getPixelData(topSmall), let bottomData = getPixelData(bottomSmall) else { return nil }
+        
+        let topWidth = topSmall.width
+        let topHeight = topSmall.height
+        let bottomWidth = bottomSmall.width
+        let bottomHeight = bottomSmall.height
+        
+        // 视频帧通常不会有 header/footer 干扰，但仍保留小比例忽略
+        let ignoreHeaderRatio = 0.1
+        let ignoreFooterRatio = 0.05
+        
+        let topIgnoreHeader = Int(Double(topHeight) * ignoreHeaderRatio)
+        let topIgnoreFooter = Int(Double(topHeight) * ignoreFooterRatio)
+        let bottomIgnoreHeader = Int(Double(bottomHeight) * ignoreHeaderRatio)
+        
+        let topContentStart = topIgnoreHeader
+        let topContentEnd = topHeight - topIgnoreFooter
+        let bottomContentStart = bottomIgnoreHeader
+        let bottomContentEnd = bottomHeight - Int(Double(bottomHeight) * ignoreFooterRatio)
+        
+        // 显著增加搜索高度，以包含更多特征
+        let searchHeight = 150 // 原图约 750px
+        let minOverlap = 30
+        
+        var bestTopY = -1
+        var bestBottomY = -1
+        var minDiff = Double.greatestFiniteMagnitude
+        
+        // 取 bottomImage 的头部作为样本，去 topImage 寻找匹配
+        let sampleStart = bottomContentStart
+        let sampleHeight = min(searchHeight, bottomContentEnd - sampleStart)
+        
+        if sampleHeight < minOverlap { return nil }
+        
+        // 视频帧通常是向下滚动的，所以 bottomImage 的头部应该匹配 topImage 的下半部分
+        // 限制搜索范围在 topImage 的下半部分，提高效率并减少误判
+        let searchStart = topContentStart + (topContentEnd - topContentStart) / 2
+        
+        // 添加边界检查，避免Range错误
+        let rangeEnd = topContentEnd - sampleHeight
+        if rangeEnd < searchStart {
+            return nil
+        }
+        
+        for yOffset in searchStart...rangeEnd {
+            var totalDiff: Double = 0
+            var pixelCount: Double = 0
+            
+            for row in 0..<sampleHeight {
+                let topRow = yOffset + row
+                let bottomRow = sampleStart + row
+                
+                for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) {
+                    let topIdx = (topRow * topWidth + col) * 4
+                    let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                    
+                    if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
+                        let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                        let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                        let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                        totalDiff += Double(dr + dg + db)
+                        pixelCount += 1
+                    }
+                }
+            }
+            
+            let averageDiff = totalDiff / (pixelCount * 3.0)
+            if averageDiff < minDiff {
+                minDiff = averageDiff
+                bestTopY = yOffset
+                bestBottomY = sampleStart
+            }
+        }
+        
+        // 视频压缩可能带来噪声，放宽 diff 阈值
+        if bestTopY != -1 && minDiff < 50.0 {
+            let topYInOriginal = CGFloat(bestTopY) / scale
+            let bottomYInOriginal = CGFloat(bestBottomY) / scale
+            
+            // 计算重合区域的总高度
+            let remainingTopHeight = CGFloat(topCG.height) - topYInOriginal
+            let remainingBottomHeight = CGFloat(bottomCG.height) - bottomYInOriginal
+            let totalOverlapHeight = min(remainingTopHeight, remainingBottomHeight)
+            
+            // 取中点作为拼接线
+            let midOverlapHeight = totalOverlapHeight / 2.0
+            
+            let finalTopY = topYInOriginal + midOverlapHeight
+            let finalBottomY = bottomYInOriginal + midOverlapHeight
+            
+            let safeTopY = max(0, min(CGFloat(topCG.height), finalTopY))
+            let safeBottomY = max(0, min(CGFloat(bottomCG.height), finalBottomY))
+                        
+            return (OverlapResult(topY: safeTopY, bottomY: safeBottomY), minDiff)
+        }
+        
+        return nil
+    }
+
+    // 寻找两张图片的重合点（针对视频帧优化）
+    static func findVideoOverlap(topImage: UIImage, bottomImage: UIImage) -> OverlapResult? {
+        return findVideoOverlapDetailed(topImage: topImage, bottomImage: bottomImage)?.result
+    }
+    
+    // 寻找两张图片的重合点（通用版，供截图拼接使用）
     static func findOverlap(topImage: UIImage, bottomImage: UIImage) -> OverlapResult? {
         guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
         
@@ -157,8 +274,8 @@ class StitchAlgorithm {
         let bottomHeight = bottomSmall.height
         
         // 进一步减小忽略区域，以便识别到图片边缘（如阴影）
-        let ignoreHeaderRatio = 0.15 
-        let ignoreFooterRatio = 0.05 // 减小底部忽略，识别阴影
+        let ignoreHeaderRatio = 0.15
+        let ignoreFooterRatio = 0.05
         
         let topIgnoreHeader = Int(Double(topHeight) * ignoreHeaderRatio)
         let topIgnoreFooter = Int(Double(topHeight) * ignoreFooterRatio)
@@ -170,21 +287,26 @@ class StitchAlgorithm {
         let bottomContentStart = bottomIgnoreHeader
         let bottomContentEnd = bottomHeight - bottomIgnoreFooter
         
-        let searchHeight = 60 // 增加搜索高度
-        let minOverlap = 20  // 降低最小重合要求
+        let searchHeight = 60
+        let minOverlap = 20
         
         var bestTopY = -1
         var bestBottomY = -1
         var minDiff = Double.greatestFiniteMagnitude
         
         // 策略：在 bottomImage 的内容区域取一段，在 topImage 的内容区域寻找匹配
-        // 我们取 bottomImage 的 [bottomContentStart, bottomContentStart + searchHeight] 这一段
         let sampleStart = bottomContentStart
         let sampleHeight = min(searchHeight, bottomContentEnd - sampleStart)
         
         if sampleHeight < minOverlap { return nil }
         
-        for yOffset in topContentStart...(topContentEnd - sampleHeight) {
+        // 添加边界检查，避免Range错误
+        let rangeEnd = topContentEnd - sampleHeight
+        if rangeEnd < topContentStart {
+            return nil
+        }
+        
+        for yOffset in topContentStart...rangeEnd {
             var totalDiff: Double = 0
             var pixelCount: Double = 0
             
@@ -220,18 +342,16 @@ class StitchAlgorithm {
             let bottomYInOriginal = CGFloat(bestBottomY) / scale
             
             // 计算重合区域的总高度
-            // 重合区域是从 topYInOriginal (第一张图) 和 bottomYInOriginal (第二张图) 开始的
             let remainingTopHeight = CGFloat(topCG.height) - topYInOriginal
             let remainingBottomHeight = CGFloat(bottomCG.height) - bottomYInOriginal
             let totalOverlapHeight = min(remainingTopHeight, remainingBottomHeight)
             
-            // 用户反馈：把裁剪位置定义为重叠区域的一半
+            // 把裁剪位置定义为重叠区域的一半
             let midOverlapHeight = totalOverlapHeight / 2.0
             
             let finalTopY = topYInOriginal + midOverlapHeight
             let finalBottomY = bottomYInOriginal + midOverlapHeight
             
-            // 确保不会超出图片边界
             let safeTopY = max(0, min(CGFloat(topCG.height), finalTopY))
             let safeBottomY = max(0, min(CGFloat(bottomCG.height), finalBottomY))
             
