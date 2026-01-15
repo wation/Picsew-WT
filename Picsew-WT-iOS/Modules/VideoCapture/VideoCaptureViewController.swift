@@ -178,7 +178,7 @@ class VideoCaptureViewController: UIViewController {
     }
     
     private func showRecordingFinishedAlert() {
-        let alert = UIAlertController(title: "直播屏幕", message: "Picsew的直播已停止，因为：滚动截图已生成，请打开 App 以继续。", preferredStyle: .alert)
+        let alert = UIAlertController(title: "直播屏幕", message: "PicsewAI的直播已停止，因为：滚动截图已生成，请打开 App 以继续。", preferredStyle: .alert)
         
         // 添加"好"按钮，灰色
         let okAction = UIAlertAction(title: "好", style: .default) { _ in
@@ -211,9 +211,9 @@ class VideoCaptureViewController: UIViewController {
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
         
-        // 设置对话框高度为屏幕高度的1/4
+        // 设置对话框高度为屏幕高度的1/6，进一步减小高度
         let screenHeight = UIScreen.main.bounds.height
-        let alertHeight = screenHeight / 4
+        let alertHeight = screenHeight / 6
         
         NSLayoutConstraint.activate([
             // 设置对话框高度
@@ -221,7 +221,10 @@ class VideoCaptureViewController: UIViewController {
             
             // 指示器居中
             indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
-            indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor)
+            indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor),
+            
+            // 标题栏离顶部距离加大，增加顶部内边距到30
+            loadingAlert.view.layoutMarginsGuide.topAnchor.constraint(greaterThanOrEqualTo: loadingAlert.view.topAnchor, constant: 30)
         ])
         indicator.startAnimating()
         
@@ -507,9 +510,9 @@ class VideoCaptureViewController: UIViewController {
         indicator.translatesAutoresizingMaskIntoConstraints = false
         loadingAlert.view.addSubview(indicator)
         
-        // 设置对话框高度为屏幕高度的1/4
+        // 设置对话框高度为屏幕高度的1/6，进一步减小高度
         let screenHeight = UIScreen.main.bounds.height
-        let alertHeight = screenHeight / 4
+        let alertHeight = screenHeight / 6
         
         NSLayoutConstraint.activate([
             // 设置对话框高度
@@ -517,7 +520,11 @@ class VideoCaptureViewController: UIViewController {
             
             // 指示器居中
             indicator.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
-            indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor)
+            //indicator.centerYAnchor.constraint(equalTo: loadingAlert.view.centerYAnchor),
+            indicator.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -50),
+            
+            // 标题栏离顶部距离加大，增加顶部内边距到30
+            loadingAlert.view.layoutMarginsGuide.topAnchor.constraint(greaterThanOrEqualTo: loadingAlert.view.topAnchor, constant: 30)
         ])
         indicator.startAnimating()
         
