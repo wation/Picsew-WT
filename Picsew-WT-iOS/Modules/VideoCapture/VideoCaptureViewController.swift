@@ -9,44 +9,9 @@ class VideoCaptureViewController: UIViewController {
 
     private var selectedTabIndex: Int = 0 // 0: 视频拼图, 1: 视频导入
     
-    // 添加ViewModel实例
-    private let viewModel = VideoCaptureViewModel()
+
     
-    // 录制状态显示
-    private lazy var statusLabel: UILabel = {
-        let label = UILabel()
-        label.text = viewModel.statusMessage
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .systemBlue
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    // 开始录制按钮
-    private lazy var startRecordingButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle(NSLocalizedString("start_recording", comment: "Start recording"), for: .normal)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 10
-        button.addTarget(self, action: #selector(startRecordingTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    // 停止录制按钮
-    private lazy var stopRecordingButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle(NSLocalizedString("stop_recording", comment: "Stop recording"), for: .normal)
-        button.backgroundColor = .systemRed
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 10
-        button.isEnabled = false
-        button.addTarget(self, action: #selector(stopRecordingTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+
     
     private lazy var topActionBar: UIView = {
         let view = UIView()
@@ -276,9 +241,6 @@ class VideoCaptureViewController: UIViewController {
         view.addSubview(importContentView)
         
         scrollView.addSubview(tutorialContentView)
-        scrollView.addSubview(statusLabel)
-        scrollView.addSubview(startRecordingButton)
-        scrollView.addSubview(stopRecordingButton)
         
         importContentView.addSubview(videoCollectionView)
         
@@ -309,21 +271,7 @@ class VideoCaptureViewController: UIViewController {
             tutorialContentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             tutorialContentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             tutorialContentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            statusLabel.topAnchor.constraint(equalTo: tutorialContentView.bottomAnchor, constant: 30),
-            statusLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 20),
-            statusLabel.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -20),
-            
-            startRecordingButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 20),
-            startRecordingButton.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
-            startRecordingButton.widthAnchor.constraint(equalToConstant: 200),
-            startRecordingButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            stopRecordingButton.topAnchor.constraint(equalTo: startRecordingButton.bottomAnchor, constant: 20),
-            stopRecordingButton.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
-            stopRecordingButton.widthAnchor.constraint(equalToConstant: 200),
-            stopRecordingButton.heightAnchor.constraint(equalToConstant: 50),
-            stopRecordingButton.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
+            tutorialContentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -20),
             
             importContentView.topAnchor.constraint(equalTo: topActionBar.bottomAnchor, constant: 10),
             importContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -433,52 +381,7 @@ class VideoCaptureViewController: UIViewController {
         updateTabUI()
     }
     
-    // MARK: - 录制控制方法
-    
-    @objc private func startRecordingTapped() {
-        // 检查权限
-        viewModel.checkPermission { [weak self] granted in
-            DispatchQueue.main.async {
-                if granted {
-                    // 开始录制
-                    self?.viewModel.startRecording { error in
-                        DispatchQueue.main.async {
-                            if let error = error {
-                                self?.showAlert(title: NSLocalizedString("recording_failed", comment: "Recording failed"), message: error.localizedDescription)
-                            } else {
-                                self?.updateRecordingUI()
-                            }
-                        }
-                    }
-                } else {
-                    self?.showAlert(title: NSLocalizedString("permission_denied", comment: "Permission denied"), message: NSLocalizedString("allow_screen_recording_permission", comment: "Allow screen recording permission"))
-                }
-            }
-        }
-    }
-    
-    @objc private func stopRecordingTapped() {
-        // 停止录制
-        viewModel.stopRecording { [weak self] videoURL, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.showAlert(title: NSLocalizedString("stop_recording_failed", comment: "Stop recording failed"), message: error.localizedDescription)
-                } else if let videoURL = videoURL {
-                    self?.statusLabel.text = String(format: NSLocalizedString("recording_saved", comment: "Recording saved"), videoURL.lastPathComponent)
-                    self?.updateRecordingUI()
-                    
-                    // 显示录制完成提示
-                    self?.showAlert(title: NSLocalizedString("recording_completed", comment: "Recording completed"), message: String(format: NSLocalizedString("video_saved_to", comment: "Video saved to"), videoURL.absoluteString))
-                }
-            }
-        }
-    }
-    
-    private func updateRecordingUI() {
-        statusLabel.text = viewModel.statusMessage
-        startRecordingButton.isEnabled = !viewModel.isRecording
-        stopRecordingButton.isEnabled = viewModel.isRecording
-    }
+
     
     private func updateTabUI() {
         if selectedTabIndex == 0 {

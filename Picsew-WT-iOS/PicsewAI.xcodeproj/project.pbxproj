@@ -15,7 +15,7 @@
 		1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D421C57E02336E52A544300 /* HomeViewController.swift */; };
 		21EA098FC5107484E44C6009 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
 		23832B2F7795F8D3E2B10FF9 /* VideoImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */; };
-		25B6DD309AA2F221BAFAC219 /* VideoCaptureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */; };
+
 		2C2359295A08BE53FB7AE7E2 /* ScrollSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */; };
 		2D30F6F5328A39E7ADCD3518 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */; };
 		39E76B8A8E2683C627B51230 /* AutoStitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */; };
@@ -91,7 +91,7 @@
 		3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StitchAlgorithm.swift; path = Modules/Screenshot/Model/StitchAlgorithm.swift; sourceTree = "<group>"; };
 		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
 		424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LocalizationManager.swift; path = Modules/Common/LocalizationManager.swift; sourceTree = "<group>"; };
-		468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewModel.swift; path = Modules/VideoCapture/VideoCaptureViewModel.swift; sourceTree = "<group>"; };
+
 		48802182790D1942E3391AE8 /* VideoImportViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewController.swift; path = Modules/VideoCapture/VideoImportViewController.swift; sourceTree = "<group>"; };
 		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = PicsewAI/PicsewAI/Info.plist; sourceTree = "<group>"; };
 		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = PicsewAI/PicsewAI/AppDelegate.swift; sourceTree = "<group>"; };
@@ -166,7 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */,
-				468374E42858CC8798C825E4 /* VideoCaptureViewModel.swift */,
+
 				E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */,
 				D33679812D35349900C30A91 /* VideoStitcher.swift */,
 				D33679832D35349900C30A91 /* BroadcastManager.swift */,
@@ -501,7 +501,7 @@
 				EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */,
 				1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */,
 				23832B2F7795F8D3E2B10FF9 /* VideoImporter.swift in Sources */,
-				25B6DD309AA2F221BAFAC219 /* VideoCaptureViewModel.swift in Sources */,
+
 				84FC16540947C5B69DB5E9C0 /* VideoCell.swift in Sources */,
 				D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */,
 				D33679842D35349900C30A91 /* BroadcastManager.swift in Sources */,
