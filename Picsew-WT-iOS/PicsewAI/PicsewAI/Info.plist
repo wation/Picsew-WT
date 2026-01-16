@@ -40,8 +40,7 @@
 	<string>我们需要访问您的相册以保存拼接完成的长截图。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>我们需要访问您的相册以选择并拼接长截图。</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>我们需要您的授权以提供更个性化的服务。</string>
+
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
