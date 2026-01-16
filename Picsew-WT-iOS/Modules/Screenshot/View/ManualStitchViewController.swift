@@ -166,29 +166,85 @@ class ManualStitchViewController: UIViewController {
     // MARK: - Bottom Toolbar Actions
     
     @objc private func shareImageTapped() {
-        guard let stitchedImage = getStitchedImage() else {
+        guard let stitchedImage = processImageForExport() else {
             showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
-        let activityViewController = UIActivityViewController(activityItems: [stitchedImage], applicationActivities: nil)
-        activityViewController.popoverPresentationController?.sourceView = view
-        present(activityViewController, animated: true)
+        // 直接从UserDefaults读取最新的图片格式设置
+        let selectedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            .flatMap { ImageFormat(rawValue: $0.uppercased()) } ?? .png
+        
+        // 获取对应格式的图片数据
+        guard let imageData = getImageData(for: stitchedImage, format: selectedFormat) else {
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_image", comment: "Failed to convert image"))
+            return
+        }
+        
+        // 创建临时文件，使用对应的文件扩展名
+        let fileName = "PicsewAI_Stitched.\(selectedFormat.rawValue.lowercased())"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try imageData.write(to: tempURL)
+            
+            // 分享临时文件
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            activityViewController.popoverPresentationController?.sourceView = view
+            present(activityViewController, animated: true)
+        } catch {
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_create_temp_file", comment: "Failed to create temp file"))
+        }
     }
     
     @objc private func copyImageTapped() {
-        guard let stitchedImage = getStitchedImage() else {
+        guard let stitchedImage = processImageForExport() else {
             showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
-        UIPasteboard.general.image = stitchedImage
+        // 直接从UserDefaults读取最新的图片格式设置
+        let selectedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            .flatMap { ImageFormat(rawValue: $0.uppercased()) } ?? .png
+        
+        // 获取对应格式的图片数据
+        guard let imageData = getImageData(for: stitchedImage, format: selectedFormat) else {
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_image", comment: "Failed to convert image"))
+            return
+        }
+        
+        // 设置剪贴板内容，同时包含图片对象和对应格式的数据
+        let pasteboard = UIPasteboard.general
+        pasteboard.image = stitchedImage
+        
+        // 为不同格式设置对应的UTI
+        let uti: String
+        switch selectedFormat {
+        case .heic:
+            uti = "public.heic"
+        case .jpeg:
+            uti = "public.jpeg"
+        case .png:
+            uti = "public.png"
+        }
+        
+        pasteboard.setData(imageData, forPasteboardType: uti)
+        
         showAlert(title: NSLocalizedString("success", comment: "Success"), message: NSLocalizedString("image_copied_to_clipboard", comment: "Image copied to clipboard"))
     }
     
     @objc private func saveToAlbumTapped() {
-        guard let stitchedImage = getStitchedImage() else {
+        guard let stitchedImage = processImageForExport() else {
             showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
+            return
+        }
+        
+        // 直接从UserDefaults读取最新的图片格式设置
+        let selectedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            .flatMap { ImageFormat(rawValue: $0.uppercased()) } ?? .png
+        
+        // 获取对应格式的图片数据
+        guard let imageData = getImageData(for: stitchedImage, format: selectedFormat) else {
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_image", comment: "Failed to convert image"))
             return
         }
         
@@ -199,11 +255,21 @@ class ManualStitchViewController: UIViewController {
                 
                 switch status {
                 case .authorized, .limited:
-                    // 保存到相册
-                    PHPhotoLibrary.shared().performChanges { [weak self] in
-                        PHAssetChangeRequest.creationRequestForAsset(from: stitchedImage)
+                    // 保存到相册，使用指定格式
+                    PHPhotoLibrary.shared().performChanges {
+                        let creationRequest = PHAssetCreationRequest.forAsset()
+                        let imageType: PHAssetResourceType
+                        switch selectedFormat {
+                        case .heic:
+                            imageType = .photo
+                        case .jpeg:
+                            imageType = .photo
+                        case .png:
+                            imageType = .photo
+                        }
+                        creationRequest.addResource(with: imageType, data: imageData, options: nil)
                     } completionHandler: { [weak self] success, error in
-                        DispatchQueue.main.async { [weak self] in
+                        DispatchQueue.main.async {
                             guard let self = self else { return }
                             if success {
                                 self.showAlert(title: NSLocalizedString("success", comment: "Success"), message: NSLocalizedString("image_saved_to_album", comment: "Image saved to album"))
@@ -221,21 +287,26 @@ class ManualStitchViewController: UIViewController {
     }
     
     @objc private func exportToFileTapped() {
-        guard let stitchedImage = getStitchedImage() else {
+        guard let stitchedImage = processImageForExport() else {
             showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_get_stitch_result", comment: "Failed to get stitch result"))
             return
         }
         
-        // 将图片转换为PNG数据
-        guard let pngData = stitchedImage.pngData() else {
-            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_to_png", comment: "Failed to convert to PNG"))
+        // 直接从UserDefaults读取最新的图片格式设置
+        let selectedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            .flatMap { ImageFormat(rawValue: $0.uppercased()) } ?? .png
+        
+        // 获取对应格式的图片数据
+        guard let imageData = getImageData(for: stitchedImage, format: selectedFormat) else {
+            showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_convert_image", comment: "Failed to convert image"))
             return
         }
         
-        // 创建临时文件
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("PicsewAI_Stitched.png")
+        // 创建临时文件，使用对应的文件扩展名
+        let fileName = "PicsewAI_Stitched.\(selectedFormat.rawValue.lowercased())"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         do {
-            try pngData.write(to: tempURL)
+            try imageData.write(to: tempURL)
         } catch {
             showAlert(title: NSLocalizedString("error", comment: "Error"), message: NSLocalizedString("failed_to_create_temp_file", comment: "Failed to create temp file"))
             return
@@ -252,6 +323,67 @@ class ManualStitchViewController: UIViewController {
     private func getStitchedImage() -> UIImage? {
         // 获取拼接结果图片
         return stitchContainerView.asImage()
+    }
+    
+    private func processImageForExport() -> UIImage? {
+        // 获取拼接结果图片
+        let stitchedImage = stitchContainerView.asImage()
+        
+        // 直接从UserDefaults读取最新的分辨率设置
+        let selectedResolution = UserDefaults.standard.string(forKey: "resolution")
+            .flatMap { Resolution(rawValue: $0) } ?? .large
+        
+        // 根据分辨率参数调整图片大小
+        let resizedImage = resizeImage(image: stitchedImage, resolution: selectedResolution)
+        
+        return resizedImage
+    }
+    
+    private func resizeImage(image: UIImage, resolution: Resolution) -> UIImage {
+        let originalSize = image.size
+        var targetSize: CGSize
+        
+        // 根据分辨率设置目标尺寸
+        switch resolution {
+        case .large:
+            // 保持原图尺寸
+            targetSize = originalSize
+        case .medium:
+            // 缩小到原图的70%
+            targetSize = CGSize(width: originalSize.width * 0.7, height: originalSize.height * 0.7)
+        case .small:
+            // 缩小到原图的50%
+            targetSize = CGSize(width: originalSize.width * 0.5, height: originalSize.height * 0.5)
+        }
+        
+        // 如果目标尺寸与原图尺寸相同，直接返回原图
+        if targetSize.equalTo(originalSize) {
+            return image
+        }
+        
+        // 使用更可靠的方式调整图片大小
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
+        image.draw(in: CGRect(origin: .zero, size: targetSize))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return resizedImage ?? image
+    }
+    
+    private func getImageData(for image: UIImage, format: ImageFormat) -> Data? {
+        switch format {
+        case .heic:
+            if #available(iOS 17.0, *) {
+                return image.heicData()
+            } else {
+                // 降级处理，返回PNG数据
+                return image.pngData()
+            }
+        case .jpeg:
+            return image.jpegData(compressionQuality: 0.9)
+        case .png:
+            return image.pngData()
+        }
     }
     
     private func showAlert(title: String, message: String) {

@@ -12,6 +12,8 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ExportSettingsCell")
+        tableView.rowHeight = 44 // 显式设置行高
+        tableView.allowsSelection = true // 显式设置为true，确保可以选择行
         return tableView
     }()
     
@@ -22,6 +24,13 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     private func loadSavedSettings() {
+        // 加载保存的图片格式设置
+        if let savedFormat = UserDefaults.standard.string(forKey: "exportFormat") {
+            if let index = exportFormats.firstIndex(of: savedFormat) {
+                selectedFormatIndex = index
+            }
+        }
+        
         // 加载保存的分辨率设置
         if let savedResolution = UserDefaults.standard.string(forKey: "resolution") {
             if let resolution = Resolution(rawValue: savedResolution) {
@@ -99,7 +108,8 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
     
     // MARK: - UITableViewDelegate
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    @objc func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("Did select row at indexPath: \(indexPath)") // 添加调试日志
         tableView.deselectRow(at: indexPath, animated: true)
         
         switch indexPath.section {
@@ -113,8 +123,9 @@ class ExportSettingsViewController: UIViewController, UITableViewDelegate, UITab
         
         tableView.reloadData()
         
-        // 保存设置
+        // 保存设置并确保同步
         UserDefaults.standard.set(exportFormats[selectedFormatIndex], forKey: "exportFormat")
         UserDefaults.standard.set(Resolution.allCases[selectedResolutionIndex].rawValue, forKey: "resolution")
+        UserDefaults.standard.synchronize() // 确保设置被立即同步
     }
 }
