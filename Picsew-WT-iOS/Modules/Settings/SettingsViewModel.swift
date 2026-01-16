@@ -34,6 +34,9 @@ class SettingsViewModel {
         selectedResolution = UserDefaults.standard.string(forKey: "resolution")
             .flatMap { Resolution(rawValue: $0) } ?? .large
         
+        selectedStopDuration = UserDefaults.standard.string(forKey: "stopDuration")
+            .flatMap { StopDuration(rawValue: $0) } ?? .twoSeconds
+        
         sections = [
             SettingsSection(
                 title: NSLocalizedString("export_settings", comment: "Export settings section title"),

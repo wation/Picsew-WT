@@ -178,6 +178,12 @@ class SettingsViewController: UIViewController {
                 // 保存到UserDefaults
                 UserDefaults.standard.set(duration.rawValue, forKey: "stopDuration")
                 UserDefaults.standard.synchronize()
+                
+                // 同步到App Group，供录屏扩展使用
+                if let appGroupDefaults = UserDefaults(suiteName: "group.com.beverg.picsewai") {
+                    appGroupDefaults.set(duration.rawValue, forKey: "stopDuration")
+                    appGroupDefaults.synchronize()
+                }
             }
             alert.addAction(action)
         }

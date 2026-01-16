@@ -37,7 +37,7 @@ class SampleHandler: RPBroadcastSampleHandler {
         
         // 从App Group的UserDefaults中读取自动停止时长
         if let appGroupUserDefaults = UserDefaults(suiteName: appGroupId) {
-            if let savedDuration = appGroupUserDefaults.object(forKey: "scrollDuration") as? Int {
+            if let savedDuration = appGroupUserDefaults.object(forKey: "stopDuration") as? Int {
                 autoStopDuration = TimeInterval(savedDuration)
             }
         }

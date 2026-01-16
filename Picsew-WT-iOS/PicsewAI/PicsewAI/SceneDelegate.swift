@@ -24,15 +24,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self?.checkAndProcessBroadcast()
         }
     }
-
+    
     private func checkAndProcessBroadcast() {
-        // print("[SceneDelegate] Checking for broadcast recording...")
-        guard BroadcastManager.shared.hasPendingRecording(),
-              let videoURL = BroadcastManager.shared.recordingFileURL else {
-            // print("[SceneDelegate] No pending recording found.")
+        guard UIApplication.shared.applicationState == .active else {
             return
         }
-        // print("[SceneDelegate] Found pending recording at: \(videoURL.path)")
+        
+        guard BroadcastManager.shared.hasPendingRecording(),
+              let videoURL = BroadcastManager.shared.recordingFileURL else {
+            return
+        }
 
         // 优先切换到“视频拼图”标签页，并在对应导航控制器中展示自动拼图结果
         guard let tabBar = window?.rootViewController as? UITabBarController,
@@ -57,8 +58,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if targetNav == nil {
             targetNav = tabBar.selectedViewController as? UINavigationController
         }
-
-        guard let nav = targetNav else { return }
+        
+        guard let nav = targetNav, nav.viewIfLoaded?.window != nil else { return }
 
         // 弹出加载提示
         let loadingAlert = UIAlertController(title: NSLocalizedString("auto_recognizing_recording", comment: "Auto recognizing recording"), message: NSLocalizedString("please_wait", comment: "Please wait"), preferredStyle: .alert)
