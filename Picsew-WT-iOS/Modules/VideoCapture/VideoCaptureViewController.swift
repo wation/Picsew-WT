@@ -314,14 +314,6 @@ class VideoCaptureViewController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         tutorialContentView.addSubview(titleLabel)
         
-        let steps = [
-            NSLocalizedString("tutorial_step_1", comment: "Tutorial step 1"),
-            NSLocalizedString("tutorial_step_2", comment: "Tutorial step 2"),
-            NSLocalizedString("tutorial_step_3", comment: "Tutorial step 3"),
-            NSLocalizedString("tutorial_step_4", comment: "Tutorial step 4"),
-            NSLocalizedString("tutorial_step_5", comment: "Tutorial step 5")
-        ]
-        
         var lastAnchor = titleLabel.bottomAnchor
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: tutorialContentView.topAnchor, constant: 20),
@@ -329,48 +321,208 @@ class VideoCaptureViewController: UIViewController {
             titleLabel.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
         ])
         
-        for (index, stepText) in steps.enumerated() {
-            let label = UILabel()
-            label.text = stepText
-            label.font = UIFont.systemFont(ofSize: 16)
-            label.numberOfLines = 0
-            label.translatesAutoresizingMaskIntoConstraints = false
-            tutorialContentView.addSubview(label)
-            
-            NSLayoutConstraint.activate([
-                label.topAnchor.constraint(equalTo: lastAnchor, constant: 20),
-                label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
-                label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
-            ])
-            
-            // 添加一个占位图片视图，代表截图中的图片
-            let imageView = UIImageView()
-            imageView.backgroundColor = UIColor.systemGray6
-            imageView.layer.cornerRadius = 8
-            imageView.contentMode = .scaleAspectFit
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            tutorialContentView.addSubview(imageView)
-            
-            // 根据索引设置占位文字或图标，模拟截图内容
-            let placeholderLabel = UILabel()
-            placeholderLabel.text = String(format: NSLocalizedString("step_diagram", comment: "Step diagram"), index + 1)
-            placeholderLabel.textColor = .lightGray
-            placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
-            imageView.addSubview(placeholderLabel)
-            
-            NSLayoutConstraint.activate([
-                imageView.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 10),
-                imageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
-                imageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
-                imageView.heightAnchor.constraint(equalToConstant: 200),
-                
-                placeholderLabel.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
-                placeholderLabel.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
-            ])
-            
-            lastAnchor = imageView.bottomAnchor
+        // 第一步：打开需要滚动截图的界面
+        let step1Label = UILabel()
+        step1Label.text = NSLocalizedString("tutorial_step_1", comment: "Tutorial step 1")
+        step1Label.font = UIFont.systemFont(ofSize: 16)
+        step1Label.numberOfLines = 0
+        step1Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step1Label)
+        
+        NSLayoutConstraint.activate([
+            step1Label.topAnchor.constraint(equalTo: lastAnchor, constant: 20),
+            step1Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step1Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第一步下面不需要放图片，适当留一些空隙
+        lastAnchor = step1Label.bottomAnchor
+        
+        // 第二步：下拉状态栏，并长按录屏按钮
+        let step2Label = UILabel()
+        step2Label.text = NSLocalizedString("tutorial_step_2", comment: "Tutorial step 2")
+        step2Label.font = UIFont.systemFont(ofSize: 16)
+        step2Label.numberOfLines = 0
+        step2Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step2Label)
+        
+        NSLayoutConstraint.activate([
+            step2Label.topAnchor.constraint(equalTo: lastAnchor, constant: 30),
+            step2Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step2Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第二步下面放r1.png
+        let step2ImageView = UIImageView()
+        if let imageUrl = Bundle.main.url(forResource: "r1", withExtension: "png"), let image = UIImage(contentsOfFile: imageUrl.path) {
+            step2ImageView.image = image
+        }
+        step2ImageView.layer.cornerRadius = 8
+        step2ImageView.contentMode = .scaleAspectFit
+        step2ImageView.clipsToBounds = true
+        step2ImageView.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step2ImageView)
+        
+        NSLayoutConstraint.activate([
+            step2ImageView.topAnchor.constraint(equalTo: step2Label.bottomAnchor, constant: 10),
+            step2ImageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step2ImageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+            step2ImageView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        lastAnchor = step2ImageView.bottomAnchor
+        
+        // 第三步：选中本应用，并点击"开始直播"
+        let step3Label = UILabel()
+        step3Label.text = NSLocalizedString("tutorial_step_3", comment: "Tutorial step 3")
+        step3Label.font = UIFont.systemFont(ofSize: 16)
+        step3Label.numberOfLines = 0
+        step3Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step3Label)
+        
+        NSLayoutConstraint.activate([
+            step3Label.topAnchor.constraint(equalTo: lastAnchor, constant: 30),
+            step3Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step3Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第三步下面放r2.png
+        let step3ImageView = UIImageView()
+        if let imageUrl = Bundle.main.url(forResource: "r2", withExtension: "png"), let image = UIImage(contentsOfFile: imageUrl.path) {
+            step3ImageView.image = image
+        }
+        step3ImageView.layer.cornerRadius = 8
+        step3ImageView.contentMode = .scaleAspectFit
+        step3ImageView.clipsToBounds = true
+        step3ImageView.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step3ImageView)
+        
+        NSLayoutConstraint.activate([
+            step3ImageView.topAnchor.constraint(equalTo: step3Label.bottomAnchor, constant: 10),
+            step3ImageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step3ImageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+            step3ImageView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        lastAnchor = step3ImageView.bottomAnchor
+        
+        // 第四步：关闭状态栏。。。
+        let step4Label = UILabel()
+        let step4Text = NSLocalizedString("tutorial_step_4", comment: "Tutorial step 4")
+        
+        // 将"单次滑动。。。"文字改为红色
+        let attributedString = NSMutableAttributedString(string: step4Text)
+        if let range = step4Text.range(of: "单次滑动请维持在3秒以上！连续滚动无需停顿！") {
+            let nsRange = NSRange(range, in: step4Text)
+            attributedString.addAttribute(.foregroundColor, value: UIColor.red, range: nsRange)
         }
         
+        step4Label.attributedText = attributedString
+        step4Label.font = UIFont.systemFont(ofSize: 16)
+        step4Label.numberOfLines = 0
+        step4Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step4Label)
+        
+        NSLayoutConstraint.activate([
+            step4Label.topAnchor.constraint(equalTo: lastAnchor, constant: 30),
+            step4Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step4Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第四步下面放r3.png
+        let step4ImageView = UIImageView()
+        if let imageUrl = Bundle.main.url(forResource: "r3", withExtension: "png"), let image = UIImage(contentsOfFile: imageUrl.path) {
+            step4ImageView.image = image
+        }
+        step4ImageView.layer.cornerRadius = 8
+        step4ImageView.contentMode = .scaleAspectFit
+        step4ImageView.clipsToBounds = true
+        step4ImageView.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step4ImageView)
+        
+        NSLayoutConstraint.activate([
+            step4ImageView.topAnchor.constraint(equalTo: step4Label.bottomAnchor, constant: 10),
+            step4ImageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step4ImageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+            step4ImageView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        lastAnchor = step4ImageView.bottomAnchor
+        
+        // 第五步：再次点击左上角。。。
+        let step5Label = UILabel()
+        step5Label.text = NSLocalizedString("tutorial_step_5", comment: "Tutorial step 5")
+        step5Label.font = UIFont.systemFont(ofSize: 16)
+        step5Label.numberOfLines = 0
+        step5Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step5Label)
+        
+        NSLayoutConstraint.activate([
+            step5Label.topAnchor.constraint(equalTo: lastAnchor, constant: 30),
+            step5Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step5Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第五步下面放r4.png
+        let step5ImageView = UIImageView()
+        if let imageUrl = Bundle.main.url(forResource: "r4", withExtension: "png"), let image = UIImage(contentsOfFile: imageUrl.path) {
+            step5ImageView.image = image
+        }
+        step5ImageView.layer.cornerRadius = 8
+        step5ImageView.contentMode = .scaleAspectFit
+        step5ImageView.clipsToBounds = true
+        step5ImageView.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step5ImageView)
+        
+        NSLayoutConstraint.activate([
+            step5ImageView.topAnchor.constraint(equalTo: step5Label.bottomAnchor, constant: 10),
+            step5ImageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step5ImageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+            step5ImageView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        lastAnchor = step5ImageView.bottomAnchor
+        
+        // 第六步：新增步骤
+        let step6Label = UILabel()
+        // 读取设置页面中自动停止时长的值
+        let stopDurationStr = UserDefaults.standard.string(forKey: "stopDuration") ?? "two_seconds"
+        let stopDuration = StopDuration(rawValue: stopDurationStr) ?? .twoSeconds
+        let localizedDuration = stopDuration.localizedString
+        let step6Text = String(format: "6. 如果%@后未操作，录屏会自动结束，请点击'前往应用程序'按钮，将可以看到自动拼接好的长截图", localizedDuration)
+        step6Label.text = step6Text
+        step6Label.font = UIFont.systemFont(ofSize: 16)
+        step6Label.numberOfLines = 0
+        step6Label.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step6Label)
+        
+        NSLayoutConstraint.activate([
+            step6Label.topAnchor.constraint(equalTo: lastAnchor, constant: 30),
+            step6Label.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step6Label.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20)
+        ])
+        
+        // 第六步下面放r5.png
+        let step6ImageView = UIImageView()
+        if let imageUrl = Bundle.main.url(forResource: "r5", withExtension: "png"), let image = UIImage(contentsOfFile: imageUrl.path) {
+            step6ImageView.image = image
+        }
+        step6ImageView.layer.cornerRadius = 8
+        step6ImageView.contentMode = .scaleAspectFit
+        step6ImageView.clipsToBounds = true
+        step6ImageView.translatesAutoresizingMaskIntoConstraints = false
+        tutorialContentView.addSubview(step6ImageView)
+        
+        NSLayoutConstraint.activate([
+            step6ImageView.topAnchor.constraint(equalTo: step6Label.bottomAnchor, constant: 10),
+            step6ImageView.leadingAnchor.constraint(equalTo: tutorialContentView.leadingAnchor, constant: 20),
+            step6ImageView.trailingAnchor.constraint(equalTo: tutorialContentView.trailingAnchor, constant: -20),
+            step6ImageView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        lastAnchor = step6ImageView.bottomAnchor
+        
+        // 设置底部约束
         NSLayoutConstraint.activate([
             lastAnchor.constraint(equalTo: tutorialContentView.bottomAnchor, constant: 20)
         ])

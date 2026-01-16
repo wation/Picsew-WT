@@ -14,13 +14,12 @@
 		136F0EAAA3C7EA59BA619A6A /* VideoImportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48802182790D1942E3391AE8 /* VideoImportViewController.swift */; };
 		1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D421C57E02336E52A544300 /* HomeViewController.swift */; };
 		21EA098FC5107484E44C6009 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
-		F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Extension Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
 		23832B2F7795F8D3E2B10FF9 /* VideoImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */; };
-
 		2C2359295A08BE53FB7AE7E2 /* ScrollSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */; };
 		2D30F6F5328A39E7ADCD3518 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */; };
 		39E76B8A8E2683C627B51230 /* AutoStitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */; };
 		41872202BAB1E390BFA1CC93 /* ImageStitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C231FE0FA6FD11E4B841746 /* ImageStitchViewController.swift */; };
+		57A44B7F7B51887BD9E25B09 /* r4.png in Resources */ = {isa = PBXBuildFile; fileRef = FD6EFA9F89F302A1B81CFEE1 /* r4.png */; };
 		651CD5408A04213581405C88 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73BF305651DC1572398539A /* ViewController.swift */; };
 		66B8E5F22B2F4E7A00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F12B2F4E7A00000001 /* Assets.xcassets */; };
 		66CFADCC34813A020952D0D5 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */; };
@@ -29,10 +28,14 @@
 		768F016F67307CE7C7EB5DF2 /* TutorialViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B72AD488BBB37475479483D4 /* TutorialViewController.swift */; };
 		774678F632C42E871C16FD00 /* VideoImportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA2B2FDE5E357069AEAC277 /* VideoImportViewModel.swift */; };
 		7E1757B294699F34E1EA9EBA /* ManualStitchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F81FE085F389BAD601CCFC3 /* ManualStitchViewController.swift */; };
+		7E9F4DDE1C36FDD496F21C81 /* r5.png in Resources */ = {isa = PBXBuildFile; fileRef = F34C0538F9A6E72CA7D8A15B /* r5.png */; };
 		84FC16540947C5B69DB5E9BE /* VideoCaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B2DDEF5DC25F047BEC41B1 /* VideoCaptureViewController.swift */; };
 		84FC16540947C5B69DB5E9C0 /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */; };
+		92108C1B74A8FC5AB3B33F97 /* r3.png in Resources */ = {isa = PBXBuildFile; fileRef = 0203AD75ACB67F2E6B26B0A3 /* r3.png */; };
 		AD264FA329ED58AC6FB4BA43 /* AutoStitchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */; };
 		AF82491391379B367154A838 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2906E8EAEB2AA06F4796EA4B /* SceneDelegate.swift */; };
+		B50850E8E8400673BAA88DD8 /* r2.png in Resources */ = {isa = PBXBuildFile; fileRef = CD911587FD282B951C309FFA /* r2.png */; };
+		C995B48C4D77F0681046ADDB /* r1.png in Resources */ = {isa = PBXBuildFile; fileRef = A6DAF97C71854C10F63CD576 /* r1.png */; };
 		D03ED9C21DBC34C0A1E1DE33 /* ManualStitchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36046280D85FE090120EE50 /* ManualStitchViewModel.swift */; };
 		D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33679812D35349900C30A91 /* VideoStitcher.swift */; };
 		D33679842D35349900C30A91 /* BroadcastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33679832D35349900C30A91 /* BroadcastManager.swift */; };
@@ -40,12 +43,10 @@
 		D896B4B42F1566A30064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
 		D896B4BB2F1566A30064430C /* PicsewAIExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B4B22F1566A30064430C /* PicsewAIExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D896B4C72F1566A30064430C /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B4C52F1566A30064430C /* SampleHandler.swift */; };
-		D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
-		D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B55C2F164E9C0064430C /* UIKit.framework */; };
-		
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
+		F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +57,6 @@
 			remoteGlobalIDString = D896B4B12F1566A30064430C;
 			remoteInfo = "PicsewAI-Extension";
 		};
-		
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,6 +74,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0203AD75ACB67F2E6B26B0A3 /* r3.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = r3.png; path = Images/r3.png; sourceTree = "<group>"; };
 		07FDFFBC846630D7D244A3DE /* es */ = {isa = PBXFileReference; lastKnownFileType = text; name = es; path = Resources/i18n/es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0F81FE085F389BAD601CCFC3 /* ManualStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualStitchViewController.swift; path = Modules/Screenshot/View/ManualStitchViewController.swift; sourceTree = "<group>"; };
 		1AA2B2FDE5E357069AEAC277 /* VideoImportViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewModel.swift; path = Modules/VideoCapture/VideoImportViewModel.swift; sourceTree = "<group>"; };
@@ -83,7 +84,6 @@
 		3AEE975064DA945D01F90FFA /* StitchAlgorithm.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StitchAlgorithm.swift; path = Modules/Screenshot/Model/StitchAlgorithm.swift; sourceTree = "<group>"; };
 		3AEE975064DA945D01F90FFB /* AutoStitchManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchManager.swift; path = Modules/Screenshot/Model/AutoStitchManager.swift; sourceTree = "<group>"; };
 		424DEFBFD4C328439BC5FB20 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LocalizationManager.swift; path = Modules/Common/LocalizationManager.swift; sourceTree = "<group>"; };
-
 		48802182790D1942E3391AE8 /* VideoImportViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoImportViewController.swift; path = Modules/VideoCapture/VideoImportViewController.swift; sourceTree = "<group>"; };
 		4BD9BB4B0E3CA58C7B5D1AA1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = PicsewAI/PicsewAI/Info.plist; sourceTree = "<group>"; };
 		557B9AD27132A78E4EA0DD1A /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = PicsewAI/PicsewAI/AppDelegate.swift; sourceTree = "<group>"; };
@@ -98,12 +98,14 @@
 		9FC07250DED4A0210B34547C /* SettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewController.swift; path = Modules/Settings/SettingsViewController.swift; sourceTree = "<group>"; };
 		A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoCell.swift; path = Modules/Screenshot/View/PhotoCell.swift; sourceTree = "<group>"; };
 		A3291080D5E719B1C7CD164B /* AutoStitchViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewModel.swift; path = Modules/Screenshot/ViewModel/AutoStitchViewModel.swift; sourceTree = "<group>"; };
+		A6DAF97C71854C10F63CD576 /* r1.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = r1.png; path = Images/r1.png; sourceTree = "<group>"; };
 		A72DFECFB938BA125356538E /* MainTabBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MainTabBarController.swift; path = PicsewAI/PicsewAI/MainTabBarController.swift; sourceTree = "<group>"; };
 		B72AD488BBB37475479483D4 /* TutorialViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TutorialViewController.swift; path = Modules/Settings/TutorialViewController.swift; sourceTree = "<group>"; };
 		B73BF305651DC1572398539A /* ViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = PicsewAI/PicsewAI/ViewController.swift; sourceTree = "<group>"; };
 		C0BEB60305578F1ACCCA4FD5 /* AutoStitchViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutoStitchViewController.swift; path = Modules/Screenshot/View/AutoStitchViewController.swift; sourceTree = "<group>"; };
 		C1B134EA4B61146CCF2B408F /* VideoCaptureManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureManager.swift; path = Modules/VideoCapture/VideoCaptureManager.swift; sourceTree = "<group>"; };
 		CC102A0107AA24D2C3D9416A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text; name = "zh-Hans"; path = "Resources/i18n/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		CD911587FD282B951C309FFA /* r2.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = r2.png; path = Images/r2.png; sourceTree = "<group>"; };
 		D026CA1840FDEE3ABD940681 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text; name = ja; path = Resources/i18n/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1CB842D508FF292CBAFF6A3 /* SettingsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsViewModel.swift; path = Modules/Settings/SettingsViewModel.swift; sourceTree = "<group>"; };
 		D33679812D35349900C30A91 /* VideoStitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoStitcher.swift; path = Modules/VideoCapture/VideoStitcher.swift; sourceTree = "<group>"; };
@@ -120,6 +122,8 @@
 		E2B2DDEF5DC25F047BEC41B1 /* VideoCaptureViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCaptureViewController.swift; path = Modules/VideoCapture/VideoCaptureViewController.swift; sourceTree = "<group>"; };
 		E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoCell.swift; path = Modules/VideoCapture/VideoCell.swift; sourceTree = "<group>"; };
 		E36046280D85FE090120EE50 /* ManualStitchViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualStitchViewModel.swift; path = Modules/Screenshot/ViewModel/ManualStitchViewModel.swift; sourceTree = "<group>"; };
+		F34C0538F9A6E72CA7D8A15B /* r5.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = r5.png; path = Images/r5.png; sourceTree = "<group>"; };
+		FD6EFA9F89F302A1B81CFEE1 /* r4.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = r4.png; path = Images/r4.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,15 +143,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D896B5572F164E9B0064430C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */,
-				D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -155,7 +150,6 @@
 			isa = PBXGroup;
 			children = (
 				5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */,
-
 				E2B2DDEF5DC25F047BEC41B2 /* VideoCell.swift */,
 				D33679812D35349900C30A91 /* VideoStitcher.swift */,
 				D33679832D35349900C30A91 /* BroadcastManager.swift */,
@@ -227,6 +221,13 @@
 			name = Modules;
 			sourceTree = "<group>";
 		};
+		3CEEE29E5A8B0BA26ADADA55 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Images;
+			sourceTree = "<group>";
+		};
 		57795DADE41A85C0D7B3F03E /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -266,7 +267,6 @@
 			name = BroadcastUpload;
 			sourceTree = "<group>";
 		};
-		
 		DA593C1FA715D769CF8035A3 = {
 			isa = PBXGroup;
 			children = (
@@ -277,6 +277,12 @@
 				6572C418C0F2EC7783C9F1EF /* PicsewAI */,
 				375A04630C1D19CA2618E7B9 /* Modules */,
 				326DD289B665FC1F5AB88783 /* Resources */,
+				3CEEE29E5A8B0BA26ADADA55 /* Images */,
+				A6DAF97C71854C10F63CD576 /* r1.png */,
+				CD911587FD282B951C309FFA /* r2.png */,
+				0203AD75ACB67F2E6B26B0A3 /* r3.png */,
+				FD6EFA9F89F302A1B81CFEE1 /* r4.png */,
+				F34C0538F9A6E72CA7D8A15B /* r5.png */,
 			);
 			sourceTree = "<group>";
 		};
@@ -334,7 +340,6 @@
 			);
 			dependencies = (
 				D896B4BA2F1566A30064430C /* PBXTargetDependency */,
-				D896B5632F164E9C0064430C /* PBXTargetDependency */,
 			);
 			name = PicsewAI;
 			productName = PicsewAI;
@@ -354,13 +359,10 @@
 			dependencies = (
 			);
 			name = "PicsewAI-Extension";
-			packageProductDependencies = (
-			);
 			productName = PicsewAIExtension;
 			productReference = D896B4B22F1566A30064430C /* PicsewAIExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -388,15 +390,15 @@
 			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
-			en,
-			Base,
-			"zh-Hans",
-			"zh-Hant",
-			ja,
-			ko,
-			es,
-			pt,
-		);
+				en,
+				Base,
+				"zh-Hans",
+				"zh-Hant",
+				ja,
+				ko,
+				es,
+				pt,
+			);
 			mainGroup = DA593C1FA715D769CF8035A3;
 			productRefGroup = DC5AE1E0B521D1B510CCAEC3 /* Products */;
 			projectDirPath = "";
@@ -415,6 +417,11 @@
 			files = (
 				21EA098FC5107484E44C6009 /* Localizable.strings in Resources */,
 				66B8E5F22B2F4E7A00000001 /* Assets.xcassets in Resources */,
+				C995B48C4D77F0681046ADDB /* r1.png in Resources */,
+				B50850E8E8400673BAA88DD8 /* r2.png in Resources */,
+				92108C1B74A8FC5AB3B33F97 /* r3.png in Resources */,
+				57A44B7F7B51887BD9E25B09 /* r4.png in Resources */,
+				7E9F4DDE1C36FDD496F21C81 /* r5.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,11 +429,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Extension Resources */,
+				F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -447,7 +453,6 @@
 				EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */,
 				1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */,
 				23832B2F7795F8D3E2B10FF9 /* VideoImporter.swift in Sources */,
-
 				84FC16540947C5B69DB5E9C0 /* VideoCell.swift in Sources */,
 				D33679822D35349900C30A91 /* VideoStitcher.swift in Sources */,
 				D33679842D35349900C30A91 /* BroadcastManager.swift in Sources */,
@@ -474,7 +479,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -483,7 +487,6 @@
 			target = D896B4B12F1566A30064430C /* PicsewAI-Extension */;
 			targetProxy = D896B4B92F1566A30064430C /* PBXContainerItemProxy */;
 		};
-		
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -734,7 +737,6 @@
 			};
 			name = Release;
 		};
-		
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -756,7 +758,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		
 		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
