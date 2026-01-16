@@ -26,21 +26,44 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     private func checkAndProcessBroadcast() {
+        // print("[SceneDelegate] Checking for broadcast recording...")
         guard BroadcastManager.shared.hasPendingRecording(),
               let videoURL = BroadcastManager.shared.recordingFileURL else {
+            // print("[SceneDelegate] No pending recording found.")
             return
         }
-        
-        // 获取当前最顶层的导航控制器
+        // print("[SceneDelegate] Found pending recording at: \(videoURL.path)")
+
+        // 优先切换到“视频拼图”标签页，并在对应导航控制器中展示自动拼图结果
         guard let tabBar = window?.rootViewController as? UITabBarController,
-              let nav = tabBar.selectedViewController as? UINavigationController else {
+              let viewControllers = tabBar.viewControllers else {
             return
         }
-        
+
+        var targetNav: UINavigationController?
+
+        // 查找以 VideoCaptureViewController 作为根控制器的导航栈
+        for (index, controller) in viewControllers.enumerated() {
+            if let nav = controller as? UINavigationController,
+               let root = nav.viewControllers.first,
+               root is VideoCaptureViewController {
+                tabBar.selectedIndex = index
+                targetNav = nav
+                break
+            }
+        }
+
+        // 如果没有找到特定的“视频拼图”导航栈，则退回到当前选中的导航控制器
+        if targetNav == nil {
+            targetNav = tabBar.selectedViewController as? UINavigationController
+        }
+
+        guard let nav = targetNav else { return }
+
         // 弹出加载提示
         let loadingAlert = UIAlertController(title: NSLocalizedString("auto_recognizing_recording", comment: "Auto recognizing recording"), message: NSLocalizedString("please_wait", comment: "Please wait"), preferredStyle: .alert)
         nav.present(loadingAlert, animated: true)
-        
+
         // 调用 VideoStitcher 处理视频
         VideoStitcher.shared.extractKeyFrames(from: videoURL) { images, error in
             loadingAlert.dismiss(animated: true) {
@@ -53,7 +76,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     autoStitchVC.setInputImagesFromVideo(images)
                     nav.pushViewController(autoStitchVC, animated: true)
                 }
-                
+
                 // 处理完成后清除文件，防止重复触发
                 BroadcastManager.shared.clearPendingRecording()
             }

@@ -23,8 +23,17 @@ class BroadcastManager {
     
     /// 检查是否有待处理的录屏文件
     func hasPendingRecording() -> Bool {
-        guard let url = recordingFileURL else { return false }
-        return FileManager.default.fileExists(atPath: url.path)
+        guard let url = recordingFileURL else {
+            print("[BroadcastManager] Error: Could not construct recording file URL.")
+            return false
+        }
+        let exists = FileManager.default.fileExists(atPath: url.path)
+        print("[BroadcastManager] Checking pending recording at: \(url.path), exists: \(exists)")
+        if let defaults = UserDefaults(suiteName: appGroupId),
+           let status = defaults.string(forKey: "broadcast_debug_status") {
+            print("[BroadcastManager] Extension debug status: \(status)")
+        }
+        return exists
     }
     
     /// 清除处理完的录屏文件

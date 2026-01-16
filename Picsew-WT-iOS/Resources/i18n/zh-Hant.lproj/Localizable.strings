@@ -91,6 +91,7 @@
 "save_failed_with_error" = "保存失敗: %@";
 "saved_to_album" = "已保存到相冊";
 "image_exported_to_file" = "圖片已導出到文件";
+"auto_stopped_inactivity" = "由於不活動已自動停止";
 
 // Added missing translations
 "cannot_access_shared_container" = "無法訪問共享容器";

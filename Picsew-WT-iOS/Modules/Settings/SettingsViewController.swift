@@ -2,6 +2,27 @@ import UIKit
 import MessageUI
 import StoreKit
 
+// 公共枚举定义
+enum ImageFormat: String, CaseIterable {
+    case heic = "HEIC", jpeg = "JPEG", png = "PNG"
+}
+
+enum Resolution: String, CaseIterable {
+    case large = "large", medium = "medium", small = "small"
+    
+    var localizedString: String {
+        return NSLocalizedString(rawValue, comment: "Resolution option")
+    }
+}
+
+enum StopDuration: String, CaseIterable {
+    case halfSecond = "half_second", oneSecond = "one_second", oneAndHalfSecond = "one_and_half_second", twoSeconds = "two_seconds", twoAndHalfSeconds = "two_and_half_seconds", threeSeconds = "three_seconds", fiveSeconds = "five_seconds", never = "never"
+    
+    var localizedString: String {
+        return NSLocalizedString(rawValue, comment: "Stop duration option")
+    }
+}
+
 class SettingsViewController: UIViewController {
     
     private let viewModel = SettingsViewModel()
@@ -96,6 +117,9 @@ class SettingsViewController: UIViewController {
                 if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
                     valueLabel.text = format.rawValue
                 }
+                // 保存到UserDefaults
+                UserDefaults.standard.set(format.rawValue.lowercased(), forKey: "exportFormat")
+                UserDefaults.standard.synchronize()
             }
             alert.addAction(action)
         }
@@ -122,6 +146,9 @@ class SettingsViewController: UIViewController {
                 if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
                     valueLabel.text = res.localizedString
                 }
+                // 保存到UserDefaults
+                UserDefaults.standard.set(res.rawValue, forKey: "resolution")
+                UserDefaults.standard.synchronize()
             }
             alert.addAction(action)
         }
@@ -148,6 +175,9 @@ class SettingsViewController: UIViewController {
                 if let valueLabel = fieldView.viewWithTag(100) as? UILabel {
                     valueLabel.text = duration.localizedString
                 }
+                // 保存到UserDefaults
+                UserDefaults.standard.set(duration.rawValue, forKey: "stopDuration")
+                UserDefaults.standard.synchronize()
             }
             alert.addAction(action)
         }
@@ -449,7 +479,7 @@ class SettingsViewController: UIViewController {
     }
     
     @objc private func recommendFriendsTapped() {
-        let appLink = "https://apps.apple.com/app/id123456789" // 替换为实际的 App ID
+        let appLink = "https://apps.apple.com/cn/app/picsewai/id6757867936" // 替换为实际的 App ID
         let text = NSLocalizedString("recommendation_message", comment: "Recommendation message")
         let activityVC = UIActivityViewController(activityItems: [text, appLink], applicationActivities: nil)
         

@@ -91,6 +91,7 @@
 "save_failed_with_error" = "Save failed: %@";
 "saved_to_album" = "Saved to album";
 "image_exported_to_file" = "Image exported to file";
+"auto_stopped_inactivity" = "Auto stopped due to inactivity";
 
 // Added missing translations
 "cannot_access_shared_container" = "Cannot access shared container";

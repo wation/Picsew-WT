@@ -14,6 +14,7 @@
 		136F0EAAA3C7EA59BA619A6A /* VideoImportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48802182790D1942E3391AE8 /* VideoImportViewController.swift */; };
 		1E5C646EBF2636871F9A9408 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D421C57E02336E52A544300 /* HomeViewController.swift */; };
 		21EA098FC5107484E44C6009 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
+		F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Extension Resources */ = {isa = PBXBuildFile; fileRef = 66B8E5F32B2F4E7A00000001 /* Localizable.strings */; };
 		23832B2F7795F8D3E2B10FF9 /* VideoImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDF4DBCC74CB93F802281E0 /* VideoImporter.swift */; };
 
 		2C2359295A08BE53FB7AE7E2 /* ScrollSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E32F1C6636FF8A616047713 /* ScrollSettingsViewController.swift */; };
@@ -41,9 +42,7 @@
 		D896B4C72F1566A30064430C /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B4C52F1566A30064430C /* SampleHandler.swift */; };
 		D896B55B2F164E9C0064430C /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B4B32F1566A30064430C /* ReplayKit.framework */; };
 		D896B55D2F164E9C0064430C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D896B55C2F164E9C0064430C /* UIKit.framework */; };
-		D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */; };
-		D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D896B5822F164E9C0064430C /* MainInterface.storyboard */; };
+		
 		DCDE278838B5E8E6B797FB1A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74F65661F512D0E38B1F14D5 /* Foundation.framework */; };
 		E1FB6D80BF9A57F6B3323B47 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72DFECFB938BA125356538E /* MainTabBarController.swift */; };
 		EAF371D05C158FC592FBAFED /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F2F98858A6765AB0F4EBE9 /* PhotoCell.swift */; };
@@ -57,13 +56,7 @@
 			remoteGlobalIDString = D896B4B12F1566A30064430C;
 			remoteInfo = "PicsewAI-Extension";
 		};
-		D896B5622F164E9C0064430C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 64AA5F53877692CF12653E5C /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D896B5592F164E9B0064430C;
-			remoteInfo = BroadcastSetup;
-		};
+		
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -73,7 +66,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				D896B5642F164E9C0064430C /* BroadcastSetup.appex in Embed Foundation Extensions */,
 				D896B4BB2F1566A30064430C /* PicsewAIExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -121,10 +113,7 @@
 		D896B4C22F1569320064430C /* PicsewAI-Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PicsewAI-Extension.entitlements"; sourceTree = "<group>"; };
 		D896B4C52F1566A30064430C /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SampleHandler.swift; path = Extensions/BroadcastUpload/SampleHandler.swift; sourceTree = "<group>"; };
 		D896B4C62F1566A30064430C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Extensions/BroadcastUpload/Info.plist; sourceTree = "<group>"; };
-		D896B55A2F164E9B0064430C /* BroadcastSetup.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BroadcastSetup.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D896B55C2F164E9C0064430C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
-		D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastSetupViewController.swift; sourceTree = "<group>"; };
-		D896B5822F164E9C0064430C /* MainInterface.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
 		DC1775436335E1083E0DA3EB /* ExportSettingsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportSettingsViewController.swift; path = Modules/Settings/ExportSettingsViewController.swift; sourceTree = "<group>"; };
 		DF3592BB3688062A97EB2B08 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/i18n/en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E27D400A6CE98E942AE4DB46 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text; name = ko; path = Resources/i18n/ko.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -277,21 +266,12 @@
 			name = BroadcastUpload;
 			sourceTree = "<group>";
 		};
-		D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */ = {
-			isa = PBXGroup;
-			children = (
-				D896B5802F164E9C0064430C /* BroadcastSetupViewController.swift */,
-				D896B5822F164E9C0064430C /* MainInterface.storyboard */,
-			);
-			path = Extensions/BroadcastSetup;
-			sourceTree = "<group>";
-		};
+		
 		DA593C1FA715D769CF8035A3 = {
 			isa = PBXGroup;
 			children = (
 				D896B4C22F1569320064430C /* PicsewAI-Extension.entitlements */,
 				D896B4C42F1566A30064430C /* BroadcastUpload */,
-				D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */,
 				DC5AE1E0B521D1B510CCAEC3 /* Products */,
 				31E2A887363079AB0BC15D62 /* Frameworks */,
 				6572C418C0F2EC7783C9F1EF /* PicsewAI */,
@@ -305,7 +285,6 @@
 			children = (
 				2EFE44F7BFF48834F5A30938 /* PicsewAI.app */,
 				D896B4B22F1566A30064430C /* PicsewAIExtension.appex */,
-				D896B55A2F164E9B0064430C /* BroadcastSetup.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -381,28 +360,7 @@
 			productReference = D896B4B22F1566A30064430C /* PicsewAIExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		D896B5592F164E9B0064430C /* BroadcastSetup */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D896B5682F164E9C0064430C /* Build configuration list for PBXNativeTarget "BroadcastSetup" */;
-			buildPhases = (
-				D896B5562F164E9B0064430C /* Sources */,
-				D896B5572F164E9B0064430C /* Frameworks */,
-				D896B5582F164E9B0064430C /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D896B55E2F164E9C0064430C /* Extensions/BroadcastSetup */,
-			);
-			name = BroadcastSetup;
-			packageProductDependencies = (
-			);
-			productName = BroadcastSetup;
-			productReference = D896B55A2F164E9B0064430C /* BroadcastSetup.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
+		
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -419,11 +377,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					D896B4B12F1566A30064430C = {
-						CreatedOnToolsVersion = 16.3;
-						DevelopmentTeam = RH28D37T36;
-						ProvisioningStyle = Automatic;
-					};
-					D896B5592F164E9B0064430C = {
 						CreatedOnToolsVersion = 16.3;
 						DevelopmentTeam = RH28D37T36;
 						ProvisioningStyle = Automatic;
@@ -451,7 +404,6 @@
 			targets = (
 				4B1C595114FB1EA67386A941 /* PicsewAI */,
 				D896B4B12F1566A30064430C /* PicsewAI-Extension */,
-				D896B5592F164E9B0064430C /* BroadcastSetup */,
 			);
 		};
 /* End PBXProject section */
@@ -470,17 +422,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F0A1B2C33D4E5F60718293A4 /* Localizable.strings in Extension Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D896B5582F164E9B0064430C /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D896B5832F164E9C0064430C /* MainInterface.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+		
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -528,14 +474,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D896B5562F164E9B0064430C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D896B5812F164E9C0064430C /* BroadcastSetupViewController.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+		
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -544,11 +483,7 @@
 			target = D896B4B12F1566A30064430C /* PicsewAI-Extension */;
 			targetProxy = D896B4B92F1566A30064430C /* PBXContainerItemProxy */;
 		};
-		D896B5632F164E9C0064430C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D896B5592F164E9B0064430C /* BroadcastSetup */;
-			targetProxy = D896B5622F164E9C0064430C /* PBXContainerItemProxy */;
-		};
+		
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -799,70 +734,7 @@
 			};
 			name = Release;
 		};
-		D896B5652F164E9C0064430C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
-				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RH28D37T36;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "PicsewAI 录屏设置";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.BroadcastSetup;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		D896B5662F164E9C0064430C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
-				CODE_SIGN_ENTITLEMENTS = Extensions/BroadcastSetup/BroadcastSetup.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RH28D37T36;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Extensions/BroadcastSetup/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "PicsewAI 录屏设置";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.beverg.picsewai.BroadcastSetup;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
+		
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -884,15 +756,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D896B5682F164E9C0064430C /* Build configuration list for PBXNativeTarget "BroadcastSetup" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D896B5652F164E9C0064430C /* Debug */,
-				D896B5662F164E9C0064430C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
+		
 		FCED8367D045D91C3C410715 /* Build configuration list for PBXProject "PicsewAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

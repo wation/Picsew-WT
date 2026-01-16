@@ -91,6 +91,7 @@
 "save_failed_with_error" = "保存に失敗しました: %@";
 "saved_to_album" = "アルバムに保存されました";
 "image_exported_to_file" = "画像がファイルにエクスポートされました";
+"auto_stopped_inactivity" = "非アクティブのため自動停止しました";
 
 // 追加された翻訳
 "cannot_access_shared_container" = "共有コンテナにアクセスできません";

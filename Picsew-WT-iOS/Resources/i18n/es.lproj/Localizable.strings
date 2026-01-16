@@ -91,6 +91,7 @@
 "save_failed_with_error" = "Error al guardar: %@";
 "saved_to_album" = "Guardado en el álbum";
 "image_exported_to_file" = "Imagen exportada a archivo";
+"auto_stopped_inactivity" = "Detenido automáticamente debido a inactividad";
 
 // Traducciones agregadas
 "cannot_access_shared_container" = "No se puede acceder al contenedor compartido";

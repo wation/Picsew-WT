@@ -1,13 +1,16 @@
 import ReplayKit
 import AVFoundation
+import Foundation
 
 class SampleHandler: RPBroadcastSampleHandler {
     
     private var assetWriter: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
     private var isRecording = false
+    private var hasStartedSession = false
     private let appGroupId = "group.com.beverg.picsewai"
     private let recordingFileName = "broadcast_recording.mp4"
+    private var hasCompletedRecording = false
     
     // 自动停止相关变量
     private var userActivityTimer: Timer?
@@ -16,9 +19,18 @@ class SampleHandler: RPBroadcastSampleHandler {
     private var frameChangeThreshold: UInt8 = 10 // 像素变化阈值，用于判断用户是否有操作
     private var previousFrameBuffer: CVImageBuffer?
     
+    // -----------------------
+    private func updateSharedDebugStatus(_ message: String) {
+        if let defaults = UserDefaults(suiteName: appGroupId) {
+            defaults.set(message, forKey: "broadcast_debug_status")
+        }
+    }
+
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
-        // 获取共享容器路径
+        print("[SampleHandler] broadcastStarted")
+        // 获取共享容器路径，用于后续移动文件和读取配置
         guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) else {
+            updateSharedDebugStatus("cannot_access_shared_container")
             finishBroadcastWithError(NSError(domain: "BroadcastError", code: -1, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("cannot_access_shared_container", comment: "Cannot access shared container")]))
             return
         }
@@ -30,15 +42,22 @@ class SampleHandler: RPBroadcastSampleHandler {
             }
         }
         
-        let fileURL = sharedURL.appendingPathComponent(recordingFileName)
+        // 先清理 App Group 中可能残留的旧文件，避免主应用误判
+        let finalURL = sharedURL.appendingPathComponent(recordingFileName)
+        if FileManager.default.fileExists(atPath: finalURL.path) {
+            try? FileManager.default.removeItem(at: finalURL)
+        }
         
-        // 如果文件已存在则删除
-        if FileManager.default.fileExists(atPath: fileURL.path) {
-            try? FileManager.default.removeItem(at: fileURL)
+        // 实际写入使用扩展自身的临时目录，避免直接写 App Group 失败
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempURL = tempDir.appendingPathComponent(recordingFileName)
+        if FileManager.default.fileExists(atPath: tempURL.path) {
+            try? FileManager.default.removeItem(at: tempURL)
         }
         
         do {
-            assetWriter = try AVAssetWriter(url: fileURL, fileType: .mp4)
+            assetWriter = try AVAssetWriter(url: tempURL, fileType: .mp4)
+            print("[SampleHandler] AVAssetWriter initialized at temp path: \(tempURL.path)")
             
             // 视频配置
             let videoSettings: [String: Any] = [
@@ -56,14 +75,28 @@ class SampleHandler: RPBroadcastSampleHandler {
             
             if let videoInput = videoInput, assetWriter?.canAdd(videoInput) == true {
                 assetWriter?.add(videoInput)
+            } else {
+                print("[SampleHandler] Failed to add video input")
+                updateSharedDebugStatus("failed_add_video_input")
+                finishBroadcastWithError(NSError(domain: "BroadcastError", code: -3, userInfo: [NSLocalizedDescriptionKey: "Failed to add video input"]))
+                return
             }
             
-            assetWriter?.startWriting()
-            isRecording = true
-            
-            // 初始化用户活动检测
-            setupUserActivityDetection()
+            if assetWriter?.startWriting() == true {
+                isRecording = true
+                hasStartedSession = false
+                print("[SampleHandler] startWriting succeeded")
+                updateSharedDebugStatus("start_writing_success:\(finalURL.path)")
+                // 初始化用户活动检测
+                setupUserActivityDetection()
+            } else {
+                print("[SampleHandler] startWriting failed: \(assetWriter?.error?.localizedDescription ?? "unknown")")
+                updateSharedDebugStatus("start_writing_failed:\(assetWriter?.error?.localizedDescription ?? "unknown")")
+                finishBroadcastWithError(assetWriter?.error ?? NSError(domain: "BroadcastError", code: -2, userInfo: nil))
+            }
         } catch {
+            print("[SampleHandler] AVAssetWriter init error: \(error.localizedDescription)")
+            updateSharedDebugStatus("asset_writer_init_error:\(error.localizedDescription)")
             finishBroadcastWithError(error)
         }
     }
@@ -92,14 +125,69 @@ class SampleHandler: RPBroadcastSampleHandler {
         }
     }
     
-    // 由于用户不活动停止录屏
-    private func stopRecordingDueToInactivity() {
-        // 停止定时器
+    private func completeRecordingIfNeeded(completion: (() -> Void)? = nil) {
+        if hasCompletedRecording {
+            print("[SampleHandler] completeRecordingIfNeeded called but already completed")
+            completion?()
+            return
+        }
+        print("[SampleHandler] completeRecordingIfNeeded start")
+        hasCompletedRecording = true
         userActivityTimer?.invalidate()
         userActivityTimer = nil
+        isRecording = false
+        hasStartedSession = false
+        videoInput?.markAsFinished()
         
-        // 停止录屏
-        finishBroadcastWithError(NSError(domain: "BroadcastError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Auto stopped due to inactivity"]))
+        let finishGroup = DispatchGroup()
+        finishGroup.enter()
+        
+        if let writer = assetWriter, writer.status == .writing {
+            writer.finishWriting {
+                let tempURL = writer.outputURL
+                let tempExists = FileManager.default.fileExists(atPath: tempURL.path)
+                var finalExists = false
+                
+                if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: self.appGroupId) {
+                    let finalURL = sharedURL.appendingPathComponent(self.recordingFileName)
+                    if FileManager.default.fileExists(atPath: finalURL.path) {
+                        try? FileManager.default.removeItem(at: finalURL)
+                    }
+                    do {
+                        try FileManager.default.moveItem(at: tempURL, to: finalURL)
+                    } catch {
+                        print("[SampleHandler] move temp file to App Group failed: \(error.localizedDescription)")
+                        self.updateSharedDebugStatus("move_failed:\(error.localizedDescription), temp_exists:\(tempExists), temp_url:\(tempURL.path)")
+                    }
+                    finalExists = FileManager.default.fileExists(atPath: finalURL.path)
+                    print("[SampleHandler] finishWriting completed, tempExists: \(tempExists), finalExists: \(finalExists), finalURL: \(finalURL.path)")
+                    self.updateSharedDebugStatus("finish_writing_status:\(writer.status.rawValue), temp_exists:\(tempExists), final_exists:\(finalExists), final_url:\(finalURL.path)")
+                } else {
+                    print("[SampleHandler] cannot_access_shared_container when moving file")
+                    self.updateSharedDebugStatus("cannot_access_shared_container_on_finish")
+                }
+                
+                let notificationName = "com.beverg.picsewai.broadcast.finished" as CFString
+                CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFNotificationName(notificationName), nil, nil, true)
+                
+                finishGroup.leave()
+            }
+        } else {
+            finishGroup.leave()
+        }
+        
+        finishGroup.notify(queue: .main) {
+            completion?()
+        }
+    }
+
+    private func stopRecordingDueToInactivity() {
+        print("[SampleHandler] stopRecordingDueToInactivity")
+        let error = NSError(domain: "BroadcastError", code: 0, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("auto_stopped_inactivity", comment: "Auto stopped due to inactivity")])
+        completeRecordingIfNeeded { [weak self] in
+            // 确保文件写入完成且通知已发送后再结束广播
+            self?.finishBroadcastWithError(error)
+        }
     }
     
     // 检测视频帧变化
@@ -185,43 +273,46 @@ class SampleHandler: RPBroadcastSampleHandler {
     
     override func broadcastPaused() {
         // 暂停逻辑
+        print("[SampleHandler] broadcastPaused")
         userActivityTimer?.invalidate()
         userActivityTimer = nil
     }
     
     override func broadcastResumed() {
         // 恢复逻辑
+        print("[SampleHandler] broadcastResumed")
         setupUserActivityDetection()
     }
     
     override func broadcastFinished() {
-        // 停止定时器
-        userActivityTimer?.invalidate()
-        userActivityTimer = nil
-        
-        isRecording = false
-        videoInput?.markAsFinished()
-        assetWriter?.finishWriting { [weak self] in
-            // 发送 Darwin 通知告知主应用录屏完成
-            let notificationName = "com.beverg.picsewai.broadcast.finished" as CFString
-            CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFNotificationName(notificationName), nil, nil, true)
-        }
+        print("[SampleHandler] broadcastFinished")
+        completeRecordingIfNeeded()
     }
     
     override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
         switch sampleBufferType {
         case .video:
-            if isRecording, assetWriter?.status == .writing {
-                if assetWriter?.overallDurationHint == .zero {
-                    assetWriter?.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
-                }
-                
-                // 检测帧变化
-                _ = detectFrameChange(sampleBuffer)
-                
-                if videoInput?.isReadyForMoreMediaData == true {
-                    videoInput?.append(sampleBuffer)
-                }
+            if !isRecording {
+                print("[SampleHandler] Received video sample while not recording")
+            }
+            guard isRecording,
+                  let writer = assetWriter,
+                  writer.status == .writing,
+                  let videoInput = videoInput else {
+                return
+            }
+            
+            if !hasStartedSession {
+                let time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                print("[SampleHandler] startSession at time: \(time)")
+                writer.startSession(atSourceTime: time)
+                hasStartedSession = true
+            }
+            
+            _ = detectFrameChange(sampleBuffer)
+            
+            if videoInput.isReadyForMoreMediaData {
+                videoInput.append(sampleBuffer)
             }
         default:
             break

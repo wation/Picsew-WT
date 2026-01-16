@@ -20,37 +20,6 @@ enum SettingsRowType {
     case shareApp
 }
 
-enum ImageFormat: String, CaseIterable {
-    case heic = "HEIC"
-    case jpeg = "JPEG"
-    case png = "PNG"
-}
-
-enum Resolution: String, CaseIterable {
-    case large = "large"
-    case medium = "medium"
-    case small = "small"
-    
-    var localizedString: String {
-        return NSLocalizedString(rawValue, comment: "Resolution option")
-    }
-}
-
-enum StopDuration: String, CaseIterable {
-    case halfSecond = "half_second"
-    case oneSecond = "one_second"
-    case oneAndHalfSecond = "one_and_half_second"
-    case twoSeconds = "two_seconds"
-    case twoAndHalfSeconds = "two_and_half_seconds"
-    case threeSeconds = "three_seconds"
-    case fiveSeconds = "five_seconds"
-    case never = "never"
-    
-    var localizedString: String {
-        return NSLocalizedString(rawValue, comment: "Stop duration option")
-    }
-}
-
 class SettingsViewModel {
     let sections: [SettingsSection]
     var selectedFormat: ImageFormat = .png
@@ -58,6 +27,13 @@ class SettingsViewModel {
     var selectedStopDuration: StopDuration = .twoSeconds
     
     init() {
+        // 加载保存的设置
+        selectedFormat = UserDefaults.standard.string(forKey: "exportFormat")
+            .flatMap { ImageFormat(rawValue: $0.uppercased()) } ?? .png
+        
+        selectedResolution = UserDefaults.standard.string(forKey: "resolution")
+            .flatMap { Resolution(rawValue: $0) } ?? .large
+        
         sections = [
             SettingsSection(
                 title: NSLocalizedString("export_settings", comment: "Export settings section title"),

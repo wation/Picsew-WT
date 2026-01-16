@@ -91,6 +91,7 @@
 "save_failed_with_error" = "저장 실패: %@";
 "saved_to_album" = "앨범에 저장되었습니다";
 "image_exported_to_file" = "이미지가 파일로 내보내졌습니다";
+"auto_stopped_inactivity" = "비활동으로 인해 자동으로 중지되었습니다";
 
 // 추가된 번역
 "cannot_access_shared_container" = "공유 컨테이너에 액세스할 수 없습니다";
