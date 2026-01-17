@@ -2,32 +2,6 @@ import ReplayKit
 import AVFoundation
 import Foundation
 
-// StopDuration枚举定义，与主应用保持一致
-enum StopDuration: String {
-    case halfSecond = "half_second", oneSecond = "one_second", oneAndHalfSecond = "one_and_half_second", twoSeconds = "two_seconds", twoAndHalfSeconds = "two_and_half_seconds", threeSeconds = "three_seconds", fiveSeconds = "five_seconds", never = "never"
-    
-    var seconds: TimeInterval {
-        switch self {
-        case .halfSecond:
-            return 0.5
-        case .oneSecond:
-            return 1.0
-        case .oneAndHalfSecond:
-            return 1.5
-        case .twoSeconds:
-            return 2.0
-        case .twoAndHalfSeconds:
-            return 2.5
-        case .threeSeconds:
-            return 3.0
-        case .fiveSeconds:
-            return 5.0
-        case .never:
-            return Double.infinity
-        }
-    }
-}
-
 class SampleHandler: RPBroadcastSampleHandler {
     
     private var assetWriter: AVAssetWriter?
@@ -74,12 +48,29 @@ class SampleHandler: RPBroadcastSampleHandler {
                 // 使用synchronize()确保数据同步
                 appGroupUserDefaults.synchronize()
                 if let savedDuration = appGroupUserDefaults.string(forKey: "stopDuration") {
-                    // 先尝试转换为StopDuration枚举，再获取对应的秒数
-                    if let stopDuration = StopDuration(rawValue: savedDuration) {
-                        autoStopDuration = stopDuration.seconds
-                    } else if let durationInt = Int(savedDuration) {
+                    // 直接将字符串映射为秒数
+                    switch savedDuration {
+                    case "half_second":
+                        autoStopDuration = 0.5
+                    case "one_second":
+                        autoStopDuration = 1.0
+                    case "one_and_half_second":
+                        autoStopDuration = 1.5
+                    case "two_seconds":
+                        autoStopDuration = 2.0
+                    case "two_and_half_seconds":
+                        autoStopDuration = 2.5
+                    case "three_seconds":
+                        autoStopDuration = 3.0
+                    case "five_seconds":
+                        autoStopDuration = 5.0
+                    case "never":
+                        autoStopDuration = Double.infinity // 永不自动停止
+                    default:
                         // 兼容旧版本的整数存储方式
-                        autoStopDuration = TimeInterval(durationInt)
+                        if let durationInt = Int(savedDuration) {
+                            autoStopDuration = TimeInterval(durationInt)
+                        }
                     }
                 }
             }
