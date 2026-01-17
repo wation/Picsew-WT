@@ -180,9 +180,14 @@ class SettingsViewController: UIViewController {
                 UserDefaults.standard.synchronize()
                 
                 // 同步到App Group，供录屏扩展使用
-                if let appGroupDefaults = UserDefaults(suiteName: "group.com.beverg.picsewai") {
-                    appGroupDefaults.set(duration.rawValue, forKey: "stopDuration")
-                    appGroupDefaults.synchronize()
+                do {
+                    if let appGroupDefaults = UserDefaults(suiteName: "group.com.beverg.picsewai") {
+                        appGroupDefaults.set(duration.rawValue, forKey: "stopDuration")
+                        // 使用synchronize()确保数据同步
+                        appGroupDefaults.synchronize()
+                    }
+                } catch {
+                    print("[SettingsViewController] Error writing stopDuration to App Group: \(error.localizedDescription)")
                 }
             }
             alert.addAction(action)

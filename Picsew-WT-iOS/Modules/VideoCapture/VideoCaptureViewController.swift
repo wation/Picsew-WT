@@ -127,48 +127,48 @@ class VideoCaptureViewController: UIViewController {
         updateTabUI()
         loadVideos()
         
-        // 设置BroadcastManager的观察者
-        setupBroadcastObserver()
+        // 移除viewDidLoad中的setupBroadcastObserver调用，改为在viewWillAppear中调用
     }
     
     private func setupBroadcastObserver() {
         BroadcastManager.shared.startObserving { [weak self] in
             DispatchQueue.main.async {
-                // 检查是否有待处理的录屏文件
-                if BroadcastManager.shared.hasPendingRecording() {
-                    self?.showRecordingFinishedAlert()
+                // 检查是否有待处理的录屏文件，同时确保没有正在处理的记录
+                guard BroadcastManager.shared.hasPendingRecording(),
+                      let self = self,
+                      !self.isProcessingRecording else {
+                    print("[VideoCaptureViewController] Skipping broadcast notification: recording does not exist, already processing")
+                    return
                 }
+                print("[VideoCaptureViewController] setupBroadcastObserver: received broadcast notification, processing recording automatically")
+                self.processRecordingAndNavigate()
             }
         }
     }
     
-    private func showRecordingFinishedAlert() {
-        let alert = UIAlertController(title: NSLocalizedString("broadcast_screen", comment: "Broadcast screen"), message: NSLocalizedString("broadcast_stopped_message", comment: "Broadcast stopped message"), preferredStyle: .alert)
-        
-        // 添加"好"按钮，灰色
-        let okAction = UIAlertAction(title: NSLocalizedString("ok", comment: "OK"), style: .default) { _ in
-            // 清除待处理的录屏文件
-            BroadcastManager.shared.clearPendingRecording()
-        }
-        okAction.setValue(UIColor.gray, forKey: "titleTextColor")
-        alert.addAction(okAction)
-        
-        // 添加"前往应用程序"按钮，蓝色
-        let goToAppAction = UIAlertAction(title: NSLocalizedString("go_to_app", comment: "Go to app"), style: .default) { [weak self] _ in
-            // 处理录屏文件并跳转到长截图页面
-            self?.processRecordingAndNavigate()
-        }
-        goToAppAction.setValue(UIColor.blue, forKey: "titleTextColor")
-        alert.addAction(goToAppAction)
-        
-        present(alert, animated: true)
+    private func stopBroadcastObserver() {
+        BroadcastManager.shared.stopObserving()
     }
     
+    private var isProcessingRecording = false
+    
+
+    
     private func processRecordingAndNavigate() {
+        print("[VideoCaptureViewController] Starting processRecordingAndNavigate")
+        
+        // 设置正在处理标志
+        isProcessingRecording = true
+        
         guard let recordingURL = BroadcastManager.shared.recordingFileURL else {
+            print("[VideoCaptureViewController] Failed to get recording file URL from BroadcastManager")
             showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: NSLocalizedString("failed_to_get_recording_file", comment: "Failed to get recording file"))
+            // 清除处理标志
+            isProcessingRecording = false
             return
         }
+        
+        print("[VideoCaptureViewController] Got recording file URL: \(recordingURL.path)")
         
         // 显示加载指示器
         let loadingAlert = UIAlertController(title: NSLocalizedString("generating_long_screenshot", comment: "Generating long screenshot"), message: "", preferredStyle: .alert)
@@ -193,25 +193,42 @@ class VideoCaptureViewController: UIViewController {
         ])
         indicator.startAnimating()
         
+        print("[VideoCaptureViewController] Presenting loading alert")
         present(loadingAlert, animated: true)
         
         // 处理录屏文件
+        print("[VideoCaptureViewController] Starting to process video with VideoStitcher")
         VideoStitcher.shared.processVideo(url: recordingURL) { [weak self] images, error in
+            print("[VideoCaptureViewController] Video processing completed, images count: \(images?.count ?? 0), error: \(error?.localizedDescription ?? "nil")")
+            
             loadingAlert.dismiss(animated: true) { [weak self] in
+                print("[VideoCaptureViewController] Dismissed loading alert")
+                
                 // 清除待处理的录屏文件
+                print("[VideoCaptureViewController] Clearing pending recording")
                 BroadcastManager.shared.clearPendingRecording()
                 
+                // 清除处理标志
+                self?.isProcessingRecording = false
+                
                 if let error = error {
+                    print("[VideoCaptureViewController] Video processing failed with error: \(error.localizedDescription)")
                     self?.showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: error.localizedDescription)
                     return
                 }
                 
                 if let images = images, !images.isEmpty {
+                    print("[VideoCaptureViewController] Successfully extracted \(images.count) images from video")
                     // 跳转到长截图页面
+                    print("[VideoCaptureViewController] Creating AutoStitchViewController instance")
                     let autoStitchVC = AutoStitchViewController()
+                    print("[VideoCaptureViewController] Calling setInputImagesFromVideo with \(images.count) images")
                     autoStitchVC.setInputImagesFromVideo(images)
+                    print("[VideoCaptureViewController] Pushing AutoStitchViewController to navigation stack")
                     self?.navigationController?.pushViewController(autoStitchVC, animated: true)
+                    print("[VideoCaptureViewController] Navigation completed")
                 } else {
+                    print("[VideoCaptureViewController] Failed to extract images from video, images is nil or empty")
                     self?.showAlert(title: NSLocalizedString("processing_failed", comment: "Processing failed"), message: NSLocalizedString("failed_to_extract_images_from_video", comment: "Failed to extract images from video"))
                 }
             }
@@ -233,6 +250,27 @@ class VideoCaptureViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
+        // 在视图可见时开始观察录屏完成通知
+        print("[VideoCaptureViewController] viewWillAppear, setting up broadcast observer")
+        setupBroadcastObserver()
+        
+        // 自动检查是否有待处理的录屏文件，如果有则自动处理
+        DispatchQueue.main.async { [weak self] in
+            guard BroadcastManager.shared.hasPendingRecording(),
+                  let self = self,
+                  !self.isProcessingRecording else {
+                return
+            }
+            print("[VideoCaptureViewController] viewWillAppear: detected pending recording, processing automatically")
+            self.processRecordingAndNavigate()
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // 在视图不可见时停止观察录屏完成通知
+        print("[VideoCaptureViewController] viewWillDisappear, stopping broadcast observer")
+        stopBroadcastObserver()
     }
     
     private func setupUI() {

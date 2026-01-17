@@ -35,26 +35,40 @@ class VideoStitcher {
     
     /// 从本地视频 URL 提取关键帧
     func extractKeyFrames(from url: URL, completion: @escaping VideoProcessCompletion) {
+        print("[VideoStitcher] Start processing video at URL: \(url.path)")
+        
         let asset = AVAsset(url: url)
         let reader: AVAssetReader
         do {
             reader = try AVAssetReader(asset: asset)
+            print("[VideoStitcher] Created AVAssetReader successfully")
         } catch {
+            print("[VideoStitcher] Failed to create AVAssetReader: \(error.localizedDescription)")
             completion(nil, error)
             return
         }
         
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
+            print("[VideoStitcher] No video track found in asset")
             completion(nil, NSError(domain: "VideoStitcher", code: -2, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("no_video_track_found", comment: "No video track found")]))
             return
         }
+        
+        print("[VideoStitcher] Found video track: \(videoTrack.nominalFrameRate) FPS, duration: \(asset.duration.seconds) seconds")
         
         let outputSettings: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
         ]
         let readerOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: outputSettings)
         reader.add(readerOutput)
-        reader.startReading()
+        
+        if reader.startReading() {
+            print("[VideoStitcher] Started reading video frames")
+        } else {
+            print("[VideoStitcher] Failed to start reading video frames")
+            completion(nil, NSError(domain: "VideoStitcher", code: -4, userInfo: [NSLocalizedDescriptionKey: "Failed to start reading video frames"]))
+            return
+        }
         
         var segments: [[UIImage]] = []
         var currentSegment: [UIImage] = []
@@ -63,7 +77,11 @@ class VideoStitcher {
 
         let fps = videoTrack.nominalFrameRate
         let sampleInterval = Int(fps / 2) // 每秒取 2 帧
+        print("[VideoStitcher] Video FPS: \(fps), sample interval: \(sampleInterval) frames")
+        
         var frameCount = 0
+        var extractedFrameCount = 0
+        var addedFrameCount = 0
         
         // 原始帧收集逻辑，只保留变化足够大的帧
         while let sampleBuffer = readerOutput.copyNextSampleBuffer() {
@@ -74,64 +92,96 @@ class VideoStitcher {
                 continue
             }
             
+            extractedFrameCount += 1
+            print("[VideoStitcher] Processing frame \(frameCount), extracted frame \(extractedFrameCount)")
+            
             if let image = imageFromSampleBuffer(sampleBuffer) {
                 if let last = lastImage {
                     if let diff = StitchAlgorithm.evaluateOverlap(topImage: last, bottomImage: image) {
+                        print("[VideoStitcher] Frame difference: \(diff)")
                         if diff < 5.0 {
+                            print("[VideoStitcher] Frame filtered out due to low difference (< 5.0)")
                             continue
                         }
                         currentSegment.append(image)
+                        addedFrameCount += 1
+                        print("[VideoStitcher] Frame added to current segment, current segment size: \(currentSegment.count)")
                     } else {
+                        print("[VideoStitcher] Failed to evaluate overlap, creating new segment")
                         if !currentSegment.isEmpty {
                             segments.append(currentSegment)
+                            print("[VideoStitcher] Added segment to segments array, total segments: \(segments.count)")
                         }
                         currentSegment = [image]
+                        addedFrameCount += 1
+                        print("[VideoStitcher] Created new segment with current frame")
                     }
                 } else {
                     currentSegment = [image]
+                    addedFrameCount += 1
+                    print("[VideoStitcher] Created first segment with current frame")
                 }
                 lastImage = image
+            } else {
+                print("[VideoStitcher] Failed to convert sample buffer to UIImage")
             }
         }
+        
+        print("[VideoStitcher] Finished reading video frames, total frames: \(frameCount), extracted: \(extractedFrameCount), added: \(addedFrameCount)")
         
         // 确保处理最后一帧，即使它不符合采样间隔
         if let sampleBuffer = lastSampleBuffer,
            let image = imageFromSampleBuffer(sampleBuffer) {
+            print("[VideoStitcher] Processing last sample buffer")
             // 检查最后一帧是否已经被添加
             let isLastFrameAdded = currentSegment.last.map { $0.isEqual(image) } ?? false
             if !isLastFrameAdded {
                 currentSegment.append(image)
+                addedFrameCount += 1
+                print("[VideoStitcher] Added last frame to current segment, current segment size: \(currentSegment.count)")
+            } else {
+                print("[VideoStitcher] Last frame already in current segment")
             }
         }
         
         // 添加最后一个片段
         if !currentSegment.isEmpty {
             segments.append(currentSegment)
+            print("[VideoStitcher] Added final segment to segments array, total segments: \(segments.count)")
         }
         
-        // 片段过滤，只保留长度≥3的片段，但确保保留最后一个片段
-        let minSegmentLength = 3
+        print("[VideoStitcher] Segments before filtering: \(segments.count), total frames: \(segments.flatMap { $0 }.count)")
+        
+        // 片段过滤，只保留长度≥3的片段，但确保保留第一个和最后一个
+        let minSegmentLength = 1 // 降低阈值，确保有足够的图片用于拼接
         var filteredSegments: [[UIImage]]
         
         if segments.count > 1 {
-            // 如果有多个片段，过滤掉中间长度不足3的片段，但保留第一个和最后一个
+            // 如果有多个片段，过滤掉中间长度不足的片段，但保留第一个和最后一个
             filteredSegments = []
             for (index, segment) in segments.enumerated() {
                 if index == 0 || index == segments.count - 1 || segment.count >= minSegmentLength {
                     filteredSegments.append(segment)
+                    print("[VideoStitcher] Added segment \(index) to filtered segments, segment size: \(segment.count)")
+                } else {
+                    print("[VideoStitcher] Filtered out segment \(index), segment size: \(segment.count) < \(minSegmentLength)")
                 }
             }
         } else {
             // 如果只有一个片段，直接使用
             filteredSegments = segments
+            print("[VideoStitcher] Only one segment, using as-is")
         }
         
         let frames = filteredSegments.flatMap { $0 }
+        print("[VideoStitcher] Filtered segments: \(filteredSegments.count), total frames after filtering: \(frames.count)")
         
         DispatchQueue.main.async {
             if frames.count < 2 {
+                print("[VideoStitcher] Insufficient frames for stitching: \(frames.count) < 2")
                 completion(nil, NSError(domain: "VideoStitcher", code: -3, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("insufficient_video_content", comment: "Insufficient video content")]))
             } else {
+                print("[VideoStitcher] Successfully extracted \(frames.count) frames for stitching")
                 completion(frames, nil)
             }
         }

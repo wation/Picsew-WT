@@ -398,9 +398,6 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
         } else {
             title = NSLocalizedString("auto_stitch", comment: "")
         }
-        
-        // 无论是自动还是手动进入，都先尝试自动识别重合点
-        startAutoStitch()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -417,8 +414,13 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     func setInputImagesFromVideo(_ images: [UIImage]) {
+        print("[AutoStitchViewController] setInputImagesFromVideo called with \(images.count) images")
         viewModel.isFromVideo = true
         viewModel.setImages(images)
+        print("[AutoStitchViewController] Set images in viewModel, isFromVideo: true")
+        // 设置图片后立即开始自动拼接
+        print("[AutoStitchViewController] Calling startAutoStitch")
+        startAutoStitch()
     }
 
     private func setupNavigationBar() {
@@ -443,6 +445,8 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     func setInputImages(_ images: [UIImage]) {
         viewModel.isFromVideo = false
         viewModel.setImages(images)
+        // 设置图片后立即开始自动拼接
+        startAutoStitch()
     }
     
     private func setupUI() {
@@ -483,40 +487,65 @@ class AutoStitchViewController: UIViewController, UIGestureRecognizerDelegate {
     private var matchedIndices: Set<Int> = [] // 记录哪些索引是自动匹配成功的
 
     private func startAutoStitch() {
+        print("[AutoStitchViewController] startAutoStitch called")
+        
+        // 检查图片数量，至少需要2张图片才能进行拼接
+        guard viewModel.images.count >= 2 else {
+            print("[AutoStitchViewController] Insufficient images for stitch: \(viewModel.images.count) < 2")
+            showAlert(title: NSLocalizedString("stitch_failed", comment: "Stitch failed"), message: NSLocalizedString("insufficient_images_for_stitch", comment: "Insufficient images for stitch"))
+            return
+        }
+        
+        print("[AutoStitchViewController] Starting auto stitch with \(viewModel.images.count) images, isManualMode: \(isManualMode)")
         loadingIndicator.startAnimating()
+        print("[AutoStitchViewController] Started loading indicator")
+        
         viewModel.autoStitch(forceManual: isManualMode) { [weak self] stitchedImage, offsets, bottomStarts, matched, error in
+            print("[AutoStitchViewController] viewModel.autoStitch completed")
             self?.loadingIndicator.stopAnimating()
+            print("[AutoStitchViewController] Stopped loading indicator")
             
-            self?.matchedIndices.removeAll()
-            if let matched = matched {
-                self?.matchedIndices = Set(matched)
-            }
-
             if let error = error {
                 let nsError = error as NSError
+                print("[AutoStitchViewController] Auto stitch returned error: \(error.localizedDescription), domain: \(nsError.domain)")
+                
                 if nsError.domain == "StitchWarning" {
+                    print("[AutoStitchViewController] Received StitchWarning, proceeding with manual stitch mode")
                     if let offsets = offsets, let bottomStarts = bottomStarts {
+                        print("[AutoStitchViewController] Got offsets: \(offsets), bottomStarts: \(bottomStarts)")
                         self?.currentOffsets = offsets
                         self?.currentBottomStarts = bottomStarts
+                        print("[AutoStitchViewController] Setting up image display")
                         self?.setupImageDisplay()
                         
                         if let isManual = self?.isManualMode, isManual {
                             // 手动模式进入，不需要弹出警告 toast，直接设置标题
+                            print("[AutoStitchViewController] Manual mode, setting title to manual_stitch")
                             self?.title = NSLocalizedString("manual_stitch", comment: "")
                         } else {
                             // 自动识别失败降级到手动，弹出提示
+                            print("[AutoStitchViewController] Auto mode failed, downgrading to manual stitch, showing warning tip")
                             self?.showWarningTip(nsError.localizedDescription) { [weak self] in
                                 self?.title = NSLocalizedString("manual_stitch", comment: "")
+                                print("[AutoStitchViewController] Warning tip dismissed, setting title to manual_stitch")
                             }
                         }
+                    } else {
+                        print("[AutoStitchViewController] StitchWarning but no offsets or bottomStarts provided")
                     }
                 } else {
+                    print("[AutoStitchViewController] Received actual error, showing error message")
                     self?.showError(error.localizedDescription)
                 }
-            } else if let _ = stitchedImage, let offsets = offsets, let bottomStarts = bottomStarts {
+            } else if let stitchedImage = stitchedImage, let offsets = offsets, let bottomStarts = bottomStarts {
+                print("[AutoStitchViewController] Auto stitch succeeded, got stitchedImage: \(stitchedImage.size), offsets: \(offsets), bottomStarts: \(bottomStarts)")
                 self?.currentOffsets = offsets
                 self?.currentBottomStarts = bottomStarts
+                print("[AutoStitchViewController] Setting up image display with auto stitch results")
                 self?.setupImageDisplay()
+            } else {
+                print("[AutoStitchViewController] Auto stitch returned nil stitchedImage, offsets, or bottomStarts")
+                self?.showError("Failed to get stitch results")
             }
         }
     }

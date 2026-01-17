@@ -9,7 +9,7 @@ class BroadcastManager {
     private let appGroupId = "group.com.beverg.picsewai"
     private let recordingFileName = "broadcast_recording.mp4"
     
-    private init() {}
+
     
     /// 获取 App Group 共享目录
     var sharedContainerURL: URL? {
@@ -29,10 +29,16 @@ class BroadcastManager {
         }
         let exists = FileManager.default.fileExists(atPath: url.path)
         print("[BroadcastManager] Checking pending recording at: \(url.path), exists: \(exists)")
-        if let defaults = UserDefaults(suiteName: appGroupId),
-           let status = defaults.string(forKey: "broadcast_debug_status") {
-            print("[BroadcastManager] Extension debug status: \(status)")
+        
+        // 安全访问App Group UserDefaults，避免kCFPreferencesAnyUser错误
+        if let defaults = UserDefaults(suiteName: appGroupId) {
+            // 使用synchronize()确保数据同步
+            defaults.synchronize()
+            if let status = defaults.string(forKey: "broadcast_debug_status") {
+                print("[BroadcastManager] Extension debug status: \(status)")
+            }
         }
+        
         return exists
     }
     
@@ -43,12 +49,22 @@ class BroadcastManager {
     }
     
     private var observerCallback: (() -> Void)?
+    private var isObserving = false
+    private let notificationName = "com.beverg.picsewai.broadcast.finished"
     
     /// 监听录屏完成的通知（通过 DarwinNotificationCenter）
     func startObserving(callback: @escaping () -> Void) {
-        self.observerCallback = callback
-        let name = "com.beverg.picsewai.broadcast.finished" as CFString
+        // 确保只添加一个观察者
+        if isObserving {
+            print("[BroadcastManager] Already observing, updating callback only")
+            self.observerCallback = callback
+            return
+        }
         
+        print("[BroadcastManager] Starting observation")
+        self.observerCallback = callback
+        
+        // 直接使用字符串字面量，让编译器自动处理类型转换
         CFNotificationCenterAddObserver(
             CFNotificationCenterGetDarwinNotifyCenter(),
             Unmanaged.passUnretained(self).toOpaque(),
@@ -56,12 +72,31 @@ class BroadcastManager {
                 guard let observer = observer else { return }
                 let manager = Unmanaged<BroadcastManager>.fromOpaque(observer).takeUnretainedValue()
                 DispatchQueue.main.async {
+                    print("[BroadcastManager] Received broadcast finished notification")
                     manager.observerCallback?()
                 }
             },
-            name,
+            "com.beverg.picsewai.broadcast.finished" as CFString,
             nil,
             .deliverImmediately
         )
+        
+        isObserving = true
+    }
+    
+    /// 停止监听录屏完成的通知
+    func stopObserving() {
+        if isObserving {
+            print("[BroadcastManager] Stopping observation")
+            // 使用nil作为name参数，移除所有相关观察者
+            CFNotificationCenterRemoveObserver(
+                CFNotificationCenterGetDarwinNotifyCenter(),
+                Unmanaged.passUnretained(self).toOpaque(),
+                nil,
+                nil
+            )
+            isObserving = false
+            observerCallback = nil
+        }
     }
 }

@@ -2,6 +2,32 @@ import ReplayKit
 import AVFoundation
 import Foundation
 
+// StopDuration枚举定义，与主应用保持一致
+enum StopDuration: String {
+    case halfSecond = "half_second", oneSecond = "one_second", oneAndHalfSecond = "one_and_half_second", twoSeconds = "two_seconds", twoAndHalfSeconds = "two_and_half_seconds", threeSeconds = "three_seconds", fiveSeconds = "five_seconds", never = "never"
+    
+    var seconds: TimeInterval {
+        switch self {
+        case .halfSecond:
+            return 0.5
+        case .oneSecond:
+            return 1.0
+        case .oneAndHalfSecond:
+            return 1.5
+        case .twoSeconds:
+            return 2.0
+        case .twoAndHalfSeconds:
+            return 2.5
+        case .threeSeconds:
+            return 3.0
+        case .fiveSeconds:
+            return 5.0
+        case .never:
+            return Double.infinity
+        }
+    }
+}
+
 class SampleHandler: RPBroadcastSampleHandler {
     
     private var assetWriter: AVAssetWriter?
@@ -21,8 +47,15 @@ class SampleHandler: RPBroadcastSampleHandler {
     
     // -----------------------
     private func updateSharedDebugStatus(_ message: String) {
-        if let defaults = UserDefaults(suiteName: appGroupId) {
-            defaults.set(message, forKey: "broadcast_debug_status")
+        // 安全访问App Group UserDefaults，避免kCFPreferencesAnyUser错误
+        do {
+            if let defaults = UserDefaults(suiteName: appGroupId) {
+                defaults.set(message, forKey: "broadcast_debug_status")
+                // 使用synchronize()确保数据同步
+                defaults.synchronize()
+            }
+        } catch {
+            print("[SampleHandler] Error writing broadcast_debug_status: \(error.localizedDescription)")
         }
     }
 
@@ -36,10 +69,22 @@ class SampleHandler: RPBroadcastSampleHandler {
         }
         
         // 从App Group的UserDefaults中读取自动停止时长
-        if let appGroupUserDefaults = UserDefaults(suiteName: appGroupId) {
-            if let savedDuration = appGroupUserDefaults.object(forKey: "stopDuration") as? Int {
-                autoStopDuration = TimeInterval(savedDuration)
+        do {
+            if let appGroupUserDefaults = UserDefaults(suiteName: appGroupId) {
+                // 使用synchronize()确保数据同步
+                appGroupUserDefaults.synchronize()
+                if let savedDuration = appGroupUserDefaults.string(forKey: "stopDuration") {
+                    // 先尝试转换为StopDuration枚举，再获取对应的秒数
+                    if let stopDuration = StopDuration(rawValue: savedDuration) {
+                        autoStopDuration = stopDuration.seconds
+                    } else if let durationInt = Int(savedDuration) {
+                        // 兼容旧版本的整数存储方式
+                        autoStopDuration = TimeInterval(durationInt)
+                    }
+                }
             }
+        } catch {
+            print("[SampleHandler] Error reading stopDuration from App Group: \(error.localizedDescription)")
         }
         
         // 先清理 App Group 中可能残留的旧文件，避免主应用误判
