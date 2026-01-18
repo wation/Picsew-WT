@@ -190,6 +190,291 @@ class StitchAlgorithm {
         return nil
     }
     
+    // 静态图片重叠检测，适合文本内容的拼接
+    static func findImageOverlap(topImage: UIImage, bottomImage: UIImage) -> OverlapResult? {
+        // 方法开始日志
+        print("AutoStitch: 开始静态图片重叠检测")
+        
+        guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else {
+            print("AutoStitch: 无法获取图片CGImage，返回nil")
+            return nil 
+        }
+        
+        // 输入图片信息
+        print("AutoStitch: 输入图片信息 - 顶部图片尺寸: \(topCG.width)x\(topCG.height), 底部图片尺寸: \(bottomCG.width)x\(bottomCG.height)")
+        
+        let scale: CGFloat = 0.2
+        let topSmall = resizeCGImage(topCG, scale: scale)
+        let bottomSmall = resizeCGImage(bottomCG, scale: scale)
+        
+        // 缩放后尺寸日志
+        print("AutoStitch: 缩放后尺寸 - 顶部图片: \(topSmall.width)x\(topSmall.height), 底部图片: \(bottomSmall.width)x\(bottomSmall.height)")
+        
+        guard let topData = getPixelData(topSmall), let bottomData = getPixelData(bottomSmall) else {
+            print("AutoStitch: 无法获取像素数据，返回nil")
+            return nil 
+        }
+        
+        let topWidth = topSmall.width
+        let topHeight = topSmall.height
+        let bottomWidth = bottomSmall.width
+        let bottomHeight = bottomSmall.height
+        
+        // 调整忽略区域参数，提高识别准确度
+        let ignoreHeaderRatio = 0.10  // 减小顶部忽略比例（从15%到10%）
+        let ignoreFooterRatio = 0.05
+        
+        let topIgnoreHeader = Int(Double(topHeight) * ignoreHeaderRatio)
+        let topIgnoreFooter = Int(Double(topHeight) * ignoreFooterRatio)
+        let bottomIgnoreHeader = Int(Double(bottomHeight) * ignoreHeaderRatio)
+        let bottomIgnoreFooter = Int(Double(bottomHeight) * ignoreFooterRatio)
+        
+        // 忽略区域计算日志
+        print("AutoStitch: 忽略区域计算 - 顶部头部忽略: \(topIgnoreHeader), 顶部底部忽略: \(topIgnoreFooter), 底部头部忽略: \(bottomIgnoreHeader), 底部底部忽略: \(bottomIgnoreFooter)")
+        
+        let topContentStart = topIgnoreHeader
+        let topContentEnd = topHeight - topIgnoreFooter
+        let bottomContentStart = bottomIgnoreHeader
+        let bottomContentEnd = bottomHeight - bottomIgnoreFooter
+        
+        // 内容区域日志
+        print("AutoStitch: 内容区域 - 顶部: [\(topContentStart), \(topContentEnd)], 底部: [\(bottomContentStart), \(bottomContentEnd)]")
+        
+        let searchHeight = 60 // 增加搜索高度
+        let minOverlap = 20  // 降低最小重合要求
+        
+        // 搜索参数日志
+        print("AutoStitch: 搜索参数 - 搜索高度: \(searchHeight), 最小重叠: \(minOverlap)")
+        
+        var bestTopY = -1
+        var bestBottomY = -1
+        var minDiff = Double.greatestFiniteMagnitude
+        
+        // 优化样本选择：使用多个样本位置，提高匹配成功率
+        let samplePositions = [
+            bottomContentStart + Int(Double(bottomContentEnd - bottomContentStart) * 0.10),
+            bottomContentStart + Int(Double(bottomContentEnd - bottomContentStart) * 0.15),
+            bottomContentStart + Int(Double(bottomContentEnd - bottomContentStart) * 0.20),
+            bottomContentStart + Int(Double(bottomContentEnd - bottomContentStart) * 0.25)
+        ]
+        let sampleHeight = min(50, bottomContentEnd - bottomContentStart) // 增加样本高度到50
+        
+        // 样本参数日志
+        print("AutoStitch: 样本参数 - 样本起始位置: \(samplePositions), 样本高度: \(sampleHeight)")
+        
+        if sampleHeight < minOverlap { 
+            print("AutoStitch: 样本高度小于最小重叠要求，返回nil")
+            return nil 
+        }
+        
+        // 开始搜索日志
+        print("AutoStitch: 开始搜索重叠区域...")
+        
+        // 修复搜索循环：使用多个样本位置进行搜索
+        let rangeEnd = topContentEnd - sampleHeight
+        let searchStart = topContentStart + Int(Double(topContentEnd - topContentStart) * 0.5)
+        
+        // 对每个样本位置进行搜索
+        for sampleStart in samplePositions {
+            print("AutoStitch: 使用样本起始位置: \(sampleStart)")
+            
+            if rangeEnd < searchStart { 
+                continue 
+            }
+            
+            for yOffset in stride(from: rangeEnd, through: searchStart, by: -1) {
+                var totalDiff: Double = 0
+                var pixelCount: Double = 0
+                
+                for row in 0..<sampleHeight { 
+                    let topRow = yOffset + row
+                    let bottomRow = sampleStart + row
+                    
+                    for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) { 
+                        let topIdx = (topRow * topWidth + col) * 4
+                        let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                        
+                        if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count { 
+                            let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                            let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                            let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                            totalDiff += Double(dr + dg + db)
+                            pixelCount += 1
+                        }
+                    }
+                }
+                
+                let averageDiff = totalDiff / (pixelCount * 3.0)
+                
+                if averageDiff < minDiff 
+                    || (abs(averageDiff - minDiff) < 0.5 && yOffset > bestTopY) {
+                    minDiff = averageDiff
+                    bestTopY = yOffset
+                    bestBottomY = sampleStart
+                }
+            }
+        }
+        
+        print("AutoStitch: 搜索完成 - 最佳匹配位置: yOffset=\(bestTopY), 最小差异: \(String(format: "%.1f", minDiff))")
+        
+        // 改进匹配阈值策略：提高匹配阈值，避免过于宽松的匹配
+        if bestTopY != -1 && minDiff < 50.0 { 
+            var refinedTopY = bestTopY
+            var refinedBottomY = bestBottomY
+            
+            func avgDiff(topRow: Int, bottomRow: Int, rows: Int) -> Double {
+                var total: Double = 0
+                var count: Double = 0
+                let cols = min(topWidth, bottomWidth)
+                for r in 0..<rows {
+                    let tr = topRow + r
+                    let br = bottomRow + r
+                    if tr < 0 || br < 0 || tr >= topHeight || br >= bottomHeight { break }
+                    for c in stride(from: 0, to: cols, by: 4) {
+                        let ti = (tr * topWidth + c) * 4
+                        let bi = (br * bottomWidth + c) * 4
+                        if ti + 2 < topData.count && bi + 2 < bottomData.count {
+                            let dr = abs(Int(topData[ti]) - Int(bottomData[bi]))
+                            let dg = abs(Int(topData[ti+1]) - Int(bottomData[bi+1]))
+                            let db = abs(Int(topData[ti+2]) - Int(bottomData[bi+2]))
+                            total += Double(dr + dg + db)
+                            count += 1
+                        }
+                    }
+                }
+                if count == 0 { return Double.greatestFiniteMagnitude }
+                return total / (count * 3.0)
+            }
+            
+            let maxUp = min(80, min(refinedTopY - topContentStart, refinedBottomY - bottomContentStart))
+            var steps = 0
+            while steps < maxUp {
+                let d = avgDiff(topRow: refinedTopY - 8, bottomRow: refinedBottomY - 8, rows: 8)
+                if d < 40.0 {
+                    refinedTopY -= 1
+                    refinedBottomY -= 1
+                    steps += 1
+                } else {
+                    break
+                }
+            }
+            
+            let topYInOriginal = CGFloat(refinedTopY) / scale
+            let bottomYInOriginal = CGFloat(refinedBottomY) / scale
+            
+            // 原始坐标日志
+            print("AutoStitch: 重叠区域计算 - 原始坐标: 顶部Y=\(String(format: "%.0f", topYInOriginal)), 底部Y=\(String(format: "%.0f", bottomYInOriginal))")
+            
+            // 计算重合区域的总高度
+            // 重合区域是从 topYInOriginal (第一张图) 和 bottomYInOriginal (第二张图) 开始的
+            let remainingTopHeight = CGFloat(topCG.height) - topYInOriginal
+            let remainingBottomHeight = CGFloat(bottomCG.height) - bottomYInOriginal
+            var totalOverlapHeight = min(remainingTopHeight, remainingBottomHeight)
+            
+            // 增加顺序验证逻辑：检查重叠区域位置是否合理
+            let topImageMidpoint = CGFloat(topCG.height) / 2.0
+            if topYInOriginal < topImageMidpoint {
+                print("AutoStitch: 顺序验证 - 重叠区域位于顶部图片的前半部分，可能是图片顺序错误")
+                // 尝试反向匹配：交换样本起始位置和搜索位置
+                print("AutoStitch: 尝试反向匹配")
+                
+                // 重置最佳匹配
+                var bestReverseTopY = -1
+                var bestReverseBottomY = -1
+                var minReverseDiff = Double.greatestFiniteMagnitude
+                
+                // 使用底部图片的后半部分作为样本
+                let reverseSampleStart = bottomContentStart + Int(Double(bottomContentEnd - bottomContentStart) * 0.7) // 从内容区域70%的位置开始
+                let reverseSampleHeight = min(40, bottomContentEnd - reverseSampleStart)
+                
+                if reverseSampleHeight >= minOverlap {
+                    for yOffset in topContentStart...rangeEnd {
+                        var totalDiff: Double = 0
+                        var pixelCount: Double = 0
+                        
+                        for row in 0..<reverseSampleHeight {
+                            let topRow = yOffset + row
+                            let bottomRow = reverseSampleStart + row
+                            
+                            for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) {
+                                let topIdx = (topRow * topWidth + col) * 4
+                                let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                                
+                                if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
+                                    let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                                    let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                                    let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                                    totalDiff += Double(dr + dg + db)
+                                    pixelCount += 1
+                                }
+                            }
+                        }
+                        
+                        let averageDiff = totalDiff / (pixelCount * 3.0)
+                        
+                        if averageDiff < minReverseDiff {
+                            minReverseDiff = averageDiff
+                            bestReverseTopY = yOffset
+                            bestReverseBottomY = reverseSampleStart
+                        }
+                    }
+                    
+                    print("AutoStitch: 反向匹配结果 - 最佳差异: \(String(format: "%.1f", minReverseDiff))")
+                    
+                    // 如果反向匹配更好，使用反向匹配结果
+                    if minReverseDiff < minDiff && minReverseDiff < 50.0 {
+                        print("AutoStitch: 使用反向匹配结果")
+                        bestTopY = bestReverseTopY
+                        bestBottomY = bestReverseBottomY
+                        minDiff = minReverseDiff
+                    }
+                }
+            }
+            
+            // 增加重叠区域合理性检查：限制最大重叠比例为50%
+            let maxAllowedOverlap = CGFloat(topCG.height) * 0.5 // 最大允许50%重叠
+            if totalOverlapHeight > maxAllowedOverlap {
+                print("AutoStitch: 重叠区域合理性检查 - 原始重叠: \(totalOverlapHeight), 调整为最大允许值: \(maxAllowedOverlap)")
+                totalOverlapHeight = maxAllowedOverlap
+            }
+            
+            // 重叠高度日志
+            print("AutoStitch: 重叠区域高度计算 - 顶部剩余: \(String(format: "%.0f", remainingTopHeight)), 底部剩余: \(String(format: "%.0f", remainingBottomHeight)), 总重叠: \(String(format: "%.0f", totalOverlapHeight))")
+            
+            // 用户反馈：把裁剪位置定义为重叠区域的一半
+            let midOverlapHeight = totalOverlapHeight / 2.0
+            
+            // 中点日志
+            print("AutoStitch: 拼接线计算 - 中点位置: \(String(format: "%.0f", midOverlapHeight))")
+            
+            let finalTopY = topYInOriginal + midOverlapHeight
+            let finalBottomY = bottomYInOriginal + midOverlapHeight
+            
+            // 最终坐标日志
+            print("AutoStitch: 最终坐标计算 - 顶部裁剪Y: \(String(format: "%.0f", finalTopY)), 底部开始Y: \(String(format: "%.0f", finalBottomY))")
+            
+            // 确保不会超出图片边界
+            let safeTopY = max(0, min(CGFloat(topCG.height), finalTopY))
+            let safeBottomY = max(0, min(CGFloat(bottomCG.height), finalBottomY))
+            
+            // 安全检查日志
+            print("AutoStitch: 安全检查 - 顶部安全Y: \(String(format: "%.0f", safeTopY)), 底部安全Y: \(String(format: "%.0f", safeBottomY))")
+            
+            // 最终结果日志
+            print("AutoStitch: Midpoint overlap cut. TotalOverlap: \(totalOverlapHeight), TopCut: \(safeTopY), BottomStart: \(safeBottomY)")
+            print("AutoStitch: 静态图片重叠检测完成，返回结果")
+            
+            return OverlapResult(
+                topY: safeTopY,
+                bottomY: safeBottomY
+            )
+        } else { 
+            print("AutoStitch: 未找到匹配的重叠区域，返回nil - 最佳差异: \(String(format: "%.1f", minDiff))")
+        }
+        
+        return nil
+    }
+    
     // 快速拼接两张图片，仅保留拼接后的结果（用于生成新的参考图）
     // 采用中间切割策略：在重叠区域的中间进行切割，上半部分用 TopImage，下半部分用 BottomImage
     // 这样可以有效消除 TopImage 的 Footer 和 BottomImage 的 Header

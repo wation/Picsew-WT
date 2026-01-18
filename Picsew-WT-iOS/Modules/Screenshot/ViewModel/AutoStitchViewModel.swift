@@ -11,10 +11,18 @@ class AutoStitchViewModel {
     var bottomStartOffsets: [CGFloat] = [] // 每一张图自身开始显示的 Y 坐标（用于裁掉 header）
     var matchedIndices: [Int] = []
     var isFromVideo: Bool = false
+    var customOverlap: (topY: CGFloat, bottomY: CGFloat, height: CGFloat)? = nil  // 自定义重叠参数
+    
+    // 设置自定义重叠参数
+    func setCustomOverlap(topY: CGFloat, bottomY: CGFloat, height: CGFloat) {
+        customOverlap = (topY: topY, bottomY: bottomY, height: height)
+    }
     
     // 自动拼接图片
     func autoStitch(forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
-        stitchManager.autoStitch(images, forceManual: forceManual, keepOrder: isFromVideo) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
+        // 对于静态图片，也保持原始顺序，避免图片顺序颠倒
+        let keepOrder = isFromVideo || true // 静态图片也保持顺序
+        stitchManager.autoStitch(images, forceManual: forceManual, keepOrder: keepOrder, isFromVideo: isFromVideo, customOverlap: customOverlap) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
             DispatchQueue.main.async {
                 if let workingImages = workingImages {
                     self?.images = workingImages

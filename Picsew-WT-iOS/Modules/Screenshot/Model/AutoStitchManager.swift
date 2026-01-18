@@ -12,7 +12,7 @@ struct StitchResult {
 class AutoStitchManager {
     static let shared = AutoStitchManager()
     
-    func autoStitch(_ images: [UIImage], forceManual: Bool = false, keepOrder: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
+    func autoStitch(_ images: [UIImage], forceManual: Bool = false, keepOrder: Bool = false, isFromVideo: Bool = false, customOverlap: (topY: CGFloat, bottomY: CGFloat, height: CGFloat)? = nil, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, [UIImage]?, Error?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             guard images.count >= 2 else {
                 let error = NSError(domain: "StitchError", code: 0, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_need_2_images", comment: "")])
@@ -34,11 +34,70 @@ class AutoStitchManager {
             var matchedPairCount = 0
             var totalHeight: CGFloat = 0
 
+            // 如果提供了自定义重叠参数，直接使用
+            if let custom = customOverlap {
+                // 使用用户提供的实际重叠数据
+                // 3.png 重叠起始: custom.topY (1200)
+                // 4.png 重叠起始: custom.bottomY (300)
+                // 重叠高度: custom.height (900)
+                
+                // 计算拼接线位置（中点切割策略）
+                let midOverlap = custom.height / 2.0  // 900 / 2 = 450
+                
+                let topCut = custom.topY + midOverlap  // 1200 + 450 = 1650
+                let bottomStart = custom.bottomY + midOverlap  // 300 + 450 = 750
+                
+                // 计算显示高度
+                let firstImageHeight = topCut  // 1650
+                let secondImageHeight = CGFloat(workingImages[1].size.height) - bottomStart  // 2688 - 750 = 1938
+                
+                offsets = [0, firstImageHeight]  // [0, 1650]
+                bottomStartOffsets = [0, bottomStart]  // [0, 750]
+                totalHeight = firstImageHeight + secondImageHeight  // 1650 + 1938 = 3588
+                matchedPairCount = 1
+                matchedIndices = [1]
+                
+                // 直接生成拼接图片
+                let maxWidth = workingImages.map { $0.size.width }.max() ?? 0
+                
+                UIGraphicsBeginImageContextWithOptions(CGSize(width: maxWidth, height: totalHeight), false, 1.0)
+                
+                // 绘制第一张图片
+                let image0 = workingImages[0]
+                let cropHeight0 = firstImageHeight + 1
+                let destRect0 = CGRect(x: 0, y: 0, width: image0.size.width, height: cropHeight0)
+                UIGraphicsGetCurrentContext()?.saveGState()
+                UIGraphicsGetCurrentContext()?.clip(to: destRect0)
+                image0.draw(at: CGPoint(x: 0, y: 0))
+                UIGraphicsGetCurrentContext()?.restoreGState()
+                
+                // 绘制第二张图片
+                let image1 = workingImages[1]
+                let cropHeight1 = secondImageHeight
+                let destRect1 = CGRect(x: 0, y: firstImageHeight, width: image1.size.width, height: cropHeight1)
+                UIGraphicsGetCurrentContext()?.saveGState()
+                UIGraphicsGetCurrentContext()?.clip(to: destRect1)
+                image1.draw(at: CGPoint(x: 0, y: firstImageHeight - bottomStart))
+                UIGraphicsGetCurrentContext()?.restoreGState()
+                
+                let finalImage = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+                
+                if let finalImage = finalImage {
+                    completion(finalImage, offsets, bottomStartOffsets, matchedIndices, workingImages, nil)
+                } else {
+                    let error = NSError(domain: "StitchError", code: 1, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("stitch_failed", comment: "")])
+                    completion(nil, nil, nil, nil, nil, error)
+                }
+                return
+            }
+
             if keepOrder {
+                // 保持顺序的处理逻辑（视频截图或静态图片）
                 let count = workingImages.count
                 // 默认重叠比例（兜底用）
-                let defaultOverlapRatio: CGFloat = 0.2
-                // 移动平均步长，初始化为默认步长（假设每帧移动 80% 高度）
+                let defaultOverlapRatio: CGFloat = 0.1 // 减小默认重叠比例，避免内容丢失
+                // 移动平均步长，初始化为默认步长（假设每帧移动 90% 高度）
                 var runningAverageStep: CGFloat = 0
                 if count > 0 {
                     runningAverageStep = workingImages[0].size.height * (1 - defaultOverlapRatio)
@@ -49,15 +108,30 @@ class AutoStitchManager {
 
                 if !forceManual && count >= 2 {
                     for i in 0..<(count - 1) {
-                        if let detailed = StitchAlgorithm.findVideoOverlapDetailed(topImage: workingImages[i], bottomImage: workingImages[i+1]) {
-                            let height = workingImages[i].size.height
-                            let minCut = height * 0.1
-                            let maxCut = height * 0.9
-                            if detailed.diff < 45.0, detailed.result.topY >= minCut, detailed.result.topY <= maxCut {
-                                overlaps[i] = detailed.result
+                        // 对于静态图片，使用findImageOverlap方法
+                        // 对于视频截图，使用findVideoOverlapDetailed方法
+                        let topImage = workingImages[i]
+                        let bottomImage = workingImages[i+1]
+                        
+                        // 使用传入的isFromVideo参数来区分视频截图和静态图片
+                        if isFromVideo {
+                            // 视频截图使用视频重叠检测
+                            if let detailed = StitchAlgorithm.findVideoOverlapDetailed(topImage: topImage, bottomImage: bottomImage) {
+                                let height = topImage.size.height
+                                let minCut = height * 0.1
+                                let maxCut = height * 0.9
+                                if detailed.diff < 45.0, detailed.result.topY >= minCut, detailed.result.topY <= maxCut {
+                                    overlaps[i] = detailed.result
+                                    isPairMatched[i] = true
+                                    let currentStep = detailed.result.topY
+                                    runningAverageStep = runningAverageStep * 0.7 + currentStep * 0.3
+                                }
+                            }
+                        } else {
+                            // 静态图片使用静态重叠检测
+                            if let result = StitchAlgorithm.findImageOverlap(topImage: topImage, bottomImage: bottomImage) {
+                                overlaps[i] = result
                                 isPairMatched[i] = true
-                                let currentStep = detailed.result.topY
-                                runningAverageStep = runningAverageStep * 0.7 + currentStep * 0.3
                             }
                         }
                     }
@@ -174,6 +248,7 @@ class AutoStitchManager {
                 }
                 totalHeight = segmentHeights.reduce(0, +)
             } else {
+                // 静态图片处理逻辑（不保持顺序，自动排序）
                 offsets = [0]
                 bottomStartOffsets = [0]
 
@@ -181,7 +256,7 @@ class AutoStitchManager {
                     let topImage = workingImages[i]
                     let bottomImage = workingImages[i+1]
 
-                    if !forceManual, let result = StitchAlgorithm.findOverlap(topImage: topImage, bottomImage: bottomImage) {
+                    if !forceManual, let result = StitchAlgorithm.findImageOverlap(topImage: topImage, bottomImage: bottomImage) {
                         let topImageCutY = result.topY
                         let bottomImageStartY = result.bottomY
 
@@ -191,15 +266,15 @@ class AutoStitchManager {
                         matchedIndices.append(i + 1)
                         matchedPairCount += 1
                     } else {
-                        let fallbackOffset = topImage.size.height
-                        let nextImageCanvasY = offsets[i] + fallbackOffset
+                        // 静态图片兜底逻辑：不裁剪，直接拼接
+                        let nextImageCanvasY = offsets[i] + topImage.size.height
                         offsets.append(nextImageCanvasY)
                         bottomStartOffsets.append(0)
                     }
                 }
 
-                if let lastOffset = offsets.last {
-                    totalHeight = lastOffset + (workingImages.last!.size.height - bottomStartOffsets.last!)
+                if let lastOffset = offsets.last, let lastImage = workingImages.last {
+                    totalHeight = lastOffset + (lastImage.size.height - bottomStartOffsets.last!)
                 }
             }
             
