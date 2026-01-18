@@ -86,7 +86,7 @@ class StitchAlgorithm {
     static func evaluateOverlapRatio(topImage: UIImage, bottomImage: UIImage) -> (diff: Double, ratio: Double)? {
         guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
         
-        let scale: CGFloat = 0.1 // 评估时使用更小的缩放以提高性能
+        let scale: CGFloat = 0.2
         let topSmall = resizeCGImage(topCG, scale: scale)
         let bottomSmall = resizeCGImage(bottomCG, scale: scale)
         
@@ -97,89 +97,74 @@ class StitchAlgorithm {
         let bottomWidth = bottomSmall.width
         let bottomHeight = bottomSmall.height
         
-        let topIgnoreHeader = Int(Double(topHeight) * 0.15)
+        let topIgnoreHeader = Int(Double(topHeight) * 0.10)
         let topIgnoreFooter = Int(Double(topHeight) * 0.05)
-        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.15)
+        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.10)
         
         let topContentStart = topIgnoreHeader
         let topContentEnd = topHeight - topIgnoreFooter
         let bottomContentStart = bottomIgnoreHeader
         
-        let sampleHeight = 40
-        let sampleStart = bottomContentStart
+        let sampleHeight = min(50, bottomHeight - bottomContentStart)
+        let searchStart = topContentStart + (topContentEnd - topContentStart) / 2
+        let rangeEnd = topContentEnd - sampleHeight
+        let samplePositions = [
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.10),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.20),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.30),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.40)
+        ].filter { $0 + sampleHeight <= bottomHeight }
         
         var minDiff = Double.greatestFiniteMagnitude
         var found = false
         var bestTopY = -1
+        var bestBottomY = -1
         
-        // 添加边界检查，避免Range错误
-        let rangeEnd = topContentEnd - sampleHeight
-        if rangeEnd < topContentStart {
+        if rangeEnd < searchStart || sampleHeight <= 0 || samplePositions.isEmpty {
             return nil
         }
         
-        for yOffset in topContentStart...rangeEnd {
-            var totalDiff: Double = 0
-            var pixelCount: Double = 0
-            
-            for row in 0..<sampleHeight {
-                let topRow = yOffset + row
-                let bottomRow = sampleStart + row
+        for sampleStart in samplePositions {
+            for yOffset in stride(from: rangeEnd, through: searchStart, by: -1) {
+                var totalDiff: Double = 0
+                var pixelCount: Double = 0
                 
-                for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 8) {
-                    let topIdx = (topRow * topWidth + col) * 4
-                    let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                for row in 0..<sampleHeight {
+                    let topRow = yOffset + row
+                    let bottomRow = sampleStart + row
                     
-                    if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
-                        let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
-                        let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
-                        let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
-                        totalDiff += Double(dr + dg + db)
-                        pixelCount += 1
+                    for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 8) {
+                        let topIdx = (topRow * topWidth + col) * 4
+                        let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                        
+                        if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
+                            let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                            let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                            let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                            totalDiff += Double(dr + dg + db)
+                            pixelCount += 1
+                        }
                     }
                 }
-            }
-            
-            let averageDiff = totalDiff / (pixelCount * 3.0)
-            if averageDiff < minDiff {
-                minDiff = averageDiff
-                found = true
-                bestTopY = yOffset
+                
+                let averageDiff = totalDiff / (pixelCount * 3.0)
+                if averageDiff < minDiff || (abs(averageDiff - minDiff) < 0.5 && yOffset > bestTopY) {
+                    minDiff = averageDiff
+                    found = true
+                    bestTopY = yOffset
+                    bestBottomY = sampleStart
+                }
             }
         }
         
-        if found && minDiff < 35.0 {
+        if found && minDiff < 50.0 {
             // 计算重合比例：重合区域高度 / 待比较图高度
-            // 修正计算逻辑：
-            // bestTopY 是 topImage 中匹配点的 Y 坐标
-            // sampleStart 是 bottomImage 中采样点的起始 Y 坐标
-            // 它们代表同一个视觉位置，即 topImage 的第 bestTopY 行 == bottomImage 的第 sampleStart 行
-            //
-            // 所以，topImage 相对于 bottomImage 的垂直偏移量 shift = bestTopY - sampleStart
-            // 如果 shift > 0，说明 topImage 偏下（bottomImage 需往下接）
-            //
-            // 重合区域高度 overlapHeight = topHeight - (bestTopY - sampleStart)
-            // 推导：bottomImage 的第 0 行对应 topImage 的 (bestTopY - sampleStart) 行
-            // 所以 topImage 从 (bestTopY - sampleStart) 开始到 topHeight 都是重合的
-            
-            // 注意：这里使用的是缩略图坐标，需要先算好，最后再转回原图比例？
-            // 不，evaluateOverlapRatio 的返回值 ratio 是比例，与 scale 无关。
-            // 只要分子分母都是缩略图尺寸即可。
-            
-            let topShift = bestTopY - sampleStart
+            let topShift = bestTopY - bestBottomY
             let overlapHeight = CGFloat(topHeight - topShift)
             
             // 保护一下，overlapHeight 不应超过 min(topHeight, bottomHeight)
             let safeOverlapHeight = min(overlapHeight, CGFloat(bottomHeight))
             
-            let ratio = safeOverlapHeight / CGFloat(bottomHeight)
-            
-            // 打印调试信息，验证计算是否合理
-            // print("Overlap Calc: bestTopY=\(bestTopY), sampleStart=\(sampleStart), topH=\(topHeight), bottomH=\(bottomHeight), overlap=\(safeOverlapHeight), ratio=\(ratio)")
-            
-            // 修正比例计算：基于原图尺寸重新计算
-            // 缩略图计算可能有精度损失，虽然 ratio 应该一致，但为了保险，我们使用 safeOverlapHeight 在原图上的投影
-            // safeOverlapHeight 是缩略图尺寸
             let overlapInOriginal = safeOverlapHeight / scale
             let bottomHeightInOriginal = CGFloat(bottomCG.height)
             let accurateRatio = overlapInOriginal / bottomHeightInOriginal

@@ -20,8 +20,8 @@ class AutoStitchViewModel {
     
     // 自动拼接图片
     func autoStitch(forceManual: Bool = false, completion: @escaping (UIImage?, [CGFloat]?, [CGFloat]?, [Int]?, Error?) -> Void) {
-        // 对于静态图片，也保持原始顺序，避免图片顺序颠倒
-        let keepOrder = isFromVideo || true // 静态图片也保持顺序
+        // 视频保持原始顺序；静态图片自动排序识别第一张与第二张
+        let keepOrder = isFromVideo
         stitchManager.autoStitch(images, forceManual: forceManual, keepOrder: keepOrder, isFromVideo: isFromVideo, customOverlap: customOverlap) { [weak self] stitchedImage, offsets, bottomStarts, matched, workingImages, error in
             DispatchQueue.main.async {
                 if let workingImages = workingImages {
