@@ -81,8 +81,9 @@ class StitchAlgorithm {
         return images
     }
     
-    // 仅用于评估重合度，返回差异值
-    static func evaluateOverlap(topImage: UIImage, bottomImage: UIImage) -> Double? {
+    // 仅用于评估重合度，返回差异值和重合度比例
+    // ratio = 重合区域高度 / 待比较图(bottomImage)的高度
+    static func evaluateOverlapRatio(topImage: UIImage, bottomImage: UIImage) -> (diff: Double, ratio: Double)? {
         guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
         
         let scale: CGFloat = 0.1 // 评估时使用更小的缩放以提高性能
@@ -94,6 +95,7 @@ class StitchAlgorithm {
         let topWidth = topSmall.width
         let topHeight = topSmall.height
         let bottomWidth = bottomSmall.width
+        let bottomHeight = bottomSmall.height
         
         let topIgnoreHeader = Int(Double(topHeight) * 0.15)
         let topIgnoreFooter = Int(Double(topHeight) * 0.05)
@@ -108,6 +110,7 @@ class StitchAlgorithm {
         
         var minDiff = Double.greatestFiniteMagnitude
         var found = false
+        var bestTopY = -1
         
         // 添加边界检查，避免Range错误
         let rangeEnd = topContentEnd - sampleHeight
@@ -141,10 +144,104 @@ class StitchAlgorithm {
             if averageDiff < minDiff {
                 minDiff = averageDiff
                 found = true
+                bestTopY = yOffset
             }
         }
         
-        return (found && minDiff < 35.0) ? minDiff : nil
+        if found && minDiff < 35.0 {
+            // 计算重合比例：重合区域高度 / 待比较图高度
+            // 修正计算逻辑：
+            // bestTopY 是 topImage 中匹配点的 Y 坐标
+            // sampleStart 是 bottomImage 中采样点的起始 Y 坐标
+            // 它们代表同一个视觉位置，即 topImage 的第 bestTopY 行 == bottomImage 的第 sampleStart 行
+            //
+            // 所以，topImage 相对于 bottomImage 的垂直偏移量 shift = bestTopY - sampleStart
+            // 如果 shift > 0，说明 topImage 偏下（bottomImage 需往下接）
+            //
+            // 重合区域高度 overlapHeight = topHeight - (bestTopY - sampleStart)
+            // 推导：bottomImage 的第 0 行对应 topImage 的 (bestTopY - sampleStart) 行
+            // 所以 topImage 从 (bestTopY - sampleStart) 开始到 topHeight 都是重合的
+            
+            // 注意：这里使用的是缩略图坐标，需要先算好，最后再转回原图比例？
+            // 不，evaluateOverlapRatio 的返回值 ratio 是比例，与 scale 无关。
+            // 只要分子分母都是缩略图尺寸即可。
+            
+            let topShift = bestTopY - sampleStart
+            let overlapHeight = CGFloat(topHeight - topShift)
+            
+            // 保护一下，overlapHeight 不应超过 min(topHeight, bottomHeight)
+            let safeOverlapHeight = min(overlapHeight, CGFloat(bottomHeight))
+            
+            let ratio = safeOverlapHeight / CGFloat(bottomHeight)
+            
+            // 打印调试信息，验证计算是否合理
+            // print("Overlap Calc: bestTopY=\(bestTopY), sampleStart=\(sampleStart), topH=\(topHeight), bottomH=\(bottomHeight), overlap=\(safeOverlapHeight), ratio=\(ratio)")
+            
+            // 修正比例计算：基于原图尺寸重新计算
+            // 缩略图计算可能有精度损失，虽然 ratio 应该一致，但为了保险，我们使用 safeOverlapHeight 在原图上的投影
+            // safeOverlapHeight 是缩略图尺寸
+            let overlapInOriginal = safeOverlapHeight / scale
+            let bottomHeightInOriginal = CGFloat(bottomCG.height)
+            let accurateRatio = overlapInOriginal / bottomHeightInOriginal
+            
+            return (minDiff, Double(accurateRatio))
+        }
+        
+        return nil
+    }
+    
+    // 快速拼接两张图片，仅保留拼接后的结果（用于生成新的参考图）
+    // 采用中间切割策略：在重叠区域的中间进行切割，上半部分用 TopImage，下半部分用 BottomImage
+    // 这样可以有效消除 TopImage 的 Footer 和 BottomImage 的 Header
+    static func mergeImages(topImage: UIImage, bottomImage: UIImage, overlapRatio: Double) -> UIImage? {
+        guard let topCG = topImage.cgImage, let bottomCG = bottomImage.cgImage else { return nil }
+        
+        let overlapHeight = CGFloat(bottomImage.size.height) * CGFloat(overlapRatio)
+        let newHeight = topImage.size.height + bottomImage.size.height - overlapHeight
+        let width = topImage.size.width
+        
+        // 限制最大高度，避免内存溢出
+        // 如果拼接后高度超过阈值（如 3000），则只取底部 3000
+        let maxHeight: CGFloat = 3000
+        let finalHeight = min(newHeight, maxHeight)
+        let drawOffsetY = finalHeight - newHeight // 如果被裁剪，这是负值，用于调整绘制坐标
+        
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: width, height: finalHeight), false, topImage.scale)
+        defer { UIGraphicsEndImageContext() }
+        
+        // 1. 绘制 TopImage
+        // TopImage 负责提供切割线以上的内容
+        topImage.draw(in: CGRect(x: 0, y: drawOffsetY, width: width, height: topImage.size.height))
+        
+        // 2. 绘制 BottomImage，但在中间切割
+        // 计算切割位置：重叠区域的中点
+        // TopImage 坐标系下的切割线：topHeight - overlapHeight/2
+        let midOverlap = overlapHeight / 2.0
+        // 在当前画布（考虑了 drawOffsetY）上的切割线 Y 坐标
+        let cutY = drawOffsetY + topImage.size.height - midOverlap
+        
+        // 设置裁剪区域：只允许绘制 cutY 以下的部分
+        // 这样 BottomImage 绘制时，cutY 以上的部分（即 Header）会被裁剪掉，显示出 TopImage 的内容
+        // 而 cutY 以下的部分，BottomImage 会覆盖掉 TopImage（即 Footer）
+        let clipRect = CGRect(x: 0, y: cutY, width: width, height: finalHeight - cutY)
+        UIRectClip(clipRect)
+        
+        // 绘制 BottomImage
+        // 计算 BottomImage 的绘制位置：
+        // 它的 midOverlap 行应该对齐到 cutY
+        // 所以 bottomImage 的 originY 应该是 cutY - midOverlap
+        // = (drawOffsetY + topHeight - midOverlap) - midOverlap
+        // = drawOffsetY + topHeight - overlapHeight
+        // 这与标准叠加位置一致
+        let bottomY = topImage.size.height - overlapHeight + drawOffsetY
+        bottomImage.draw(in: CGRect(x: 0, y: bottomY, width: width, height: bottomImage.size.height))
+        
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+
+    // 仅用于评估重合度，返回差异值
+    static func evaluateOverlap(topImage: UIImage, bottomImage: UIImage) -> Double? {
+        return evaluateOverlapRatio(topImage: topImage, bottomImage: bottomImage)?.diff
     }
     
     static func findVideoOverlapDetailed(topImage: UIImage, bottomImage: UIImage) -> (result: OverlapResult, diff: Double)? {

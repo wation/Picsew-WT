@@ -76,73 +76,106 @@ class VideoStitcher {
         var lastSampleBuffer: CMSampleBuffer?
 
         let fps = videoTrack.nominalFrameRate
-        let sampleInterval = Int(fps / 2) // 每秒取 2 帧
-        print("[VideoStitcher] Video FPS: \(fps), sample interval: \(sampleInterval) frames")
+        // 缓存2秒的帧数据用于快速搜索
+        let bufferSize = Int(fps * 2) 
+        var frameBuffer: [UIImage] = []
+        print("[VideoStitcher] Video FPS: \(fps), buffer size: \(bufferSize)")
         
         var frameCount = 0
         var extractedFrameCount = 0
         var addedFrameCount = 0
         
-        // 原始帧收集逻辑，只保留变化足够大的帧
-        while let sampleBuffer = readerOutput.copyNextSampleBuffer() {
+        // 快速搜索参数
+        let minOverlapRatio: Double = 0.25
+        let maxOverlapRatio: Double = 0.75
+        
+        // --- 核心流式处理逻辑 ---
+        
+        // 1. 读取第1帧，加入currentSegment
+        if let sampleBuffer = readerOutput.copyNextSampleBuffer(),
+           let firstImage = imageFromSampleBuffer(sampleBuffer) {
+            
             frameCount += 1
-            lastSampleBuffer = sampleBuffer
-            
-            if frameCount % sampleInterval != 0 {
-                continue
-            }
-            
             extractedFrameCount += 1
-            print("[VideoStitcher] Processing frame \(frameCount), extracted frame \(extractedFrameCount)")
             
-            if let image = imageFromSampleBuffer(sampleBuffer) {
-                if let last = lastImage {
-                    if let diff = StitchAlgorithm.evaluateOverlap(topImage: last, bottomImage: image) {
-                        print("[VideoStitcher] Frame difference: \(diff)")
-                        if diff < 5.0 {
-                            print("[VideoStitcher] Frame filtered out due to low difference (< 5.0)")
-                            continue
-                        }
-                        currentSegment.append(image)
-                        addedFrameCount += 1
-                        print("[VideoStitcher] Frame added to current segment, current segment size: \(currentSegment.count)")
-                    } else {
-                        print("[VideoStitcher] Failed to evaluate overlap, creating new segment")
-                        if !currentSegment.isEmpty {
-                            segments.append(currentSegment)
-                            print("[VideoStitcher] Added segment to segments array, total segments: \(segments.count)")
-                        }
-                        currentSegment = [image]
-                        addedFrameCount += 1
-                        print("[VideoStitcher] Created new segment with current frame")
+            currentSegment.append(firstImage)
+            lastImage = firstImage
+            print("[VideoStitcher-Algo] Added first video frame as reference.")
+        } else {
+            // 空视频处理
+            print("[VideoStitcher] Video is empty or failed to read first frame")
+            completion(nil, NSError(domain: "VideoStitcher", code: -5, userInfo: [NSLocalizedDescriptionKey: "Failed to read first frame"]))
+            return
+        }
+        
+        // 2. 循环读取 bufferSize 大小的帧
+        while true {
+            // 填充 buffer
+            var hasMoreFrames = true
+            while frameBuffer.count < bufferSize {
+                if let sampleBuffer = readerOutput.copyNextSampleBuffer() {
+                    frameCount += 1
+                    if let image = imageFromSampleBuffer(sampleBuffer) {
+                        frameBuffer.append(image)
                     }
                 } else {
-                    currentSegment = [image]
-                    addedFrameCount += 1
-                    print("[VideoStitcher] Created first segment with current frame")
+                    hasMoreFrames = false
+                    break
                 }
-                lastImage = image
-            } else {
-                print("[VideoStitcher] Failed to convert sample buffer to UIImage")
+            }
+            
+            if frameBuffer.isEmpty {
+                break
+            }
+            
+            print("[VideoStitcher-Algo] Processing buffer window. Size: \(frameBuffer.count), Reference Frame Set: \(lastImage != nil)")
+            
+            // 3. 在 buffer 中寻找匹配帧（二分查找）
+            if let refImage = lastImage {
+                if let matchIndex = findBestMatch(referenceImage: refImage, buffer: frameBuffer, start: 0, end: frameBuffer.count - 1, minOverlap: minOverlapRatio, maxOverlap: maxOverlapRatio) {
+                    // 找到了匹配帧
+                    let matchedImage = frameBuffer[matchIndex]
+                    currentSegment.append(matchedImage)
+                    addedFrameCount += 1
+                    
+                    print("[VideoStitcher-Algo] Match found at index \(matchIndex). Moving window.")
+                    
+                    // 动态更新参考帧：将原参考帧与新匹配帧拼接
+                    // 为了获取 overlapRatio，需要再次计算（或者优化 findBestMatch 让它返回 ratio）
+                    // 这里为了简单，再次调用 evaluateOverlapRatio
+                    if let (_, ratio) = StitchAlgorithm.evaluateOverlapRatio(topImage: refImage, bottomImage: matchedImage) {
+                        // 拼接并更新 lastImage
+                        if let mergedImage = StitchAlgorithm.mergeImages(topImage: refImage, bottomImage: matchedImage, overlapRatio: ratio) {
+                            lastImage = mergedImage
+                            print("[VideoStitcher-Algo] Updated reference frame with merged image (height: \(mergedImage.size.height))")
+                        } else {
+                            // 拼接失败（理论上不应发生），回退到使用单帧作为参考
+                            lastImage = matchedImage
+                            print("[VideoStitcher-Algo] Merge failed, used single frame as reference")
+                        }
+                    } else {
+                        lastImage = matchedImage
+                    }
+                    
+                    // 4. 滑动窗口：移除 [0...matchIndex]
+                    // 注意：数组移除操作开销较大，但这能保持 buffer 逻辑简单
+                    frameBuffer.removeFirst(matchIndex + 1)
+                } else {
+                    // 没找到匹配帧
+                    print("[VideoStitcher-Algo] No match found in current buffer. Discarding all \(frameBuffer.count) frames.")
+                    // 策略：丢弃整个 buffer，继续读下一批
+                    // 参考帧不变
+                    frameBuffer.removeAll()
+                }
+            }
+            
+            // 如果视频读完了且 buffer 也处理空了（或被清空了），退出循环
+            if !hasMoreFrames && frameBuffer.isEmpty {
+                break
             }
         }
         
-        print("[VideoStitcher] Finished reading video frames, total frames: \(frameCount), extracted: \(extractedFrameCount), added: \(addedFrameCount)")
-        
-        // 确保处理最后一帧，即使它不符合采样间隔
-        if let sampleBuffer = lastSampleBuffer,
-           let image = imageFromSampleBuffer(sampleBuffer) {
-            print("[VideoStitcher] Processing last sample buffer")
-            // 检查最后一帧是否已经被添加
-            let isLastFrameAdded = currentSegment.last.map { $0.isEqual(image) } ?? false
-            if !isLastFrameAdded {
-                currentSegment.append(image)
-                addedFrameCount += 1
-                print("[VideoStitcher] Added last frame to current segment, current segment size: \(currentSegment.count)")
-            } else {
-                print("[VideoStitcher] Last frame already in current segment")
-            }
-        }
+        print("[VideoStitcher] Finished reading video frames, total frames: \(frameCount)")
         
         // 添加最后一个片段
         if !currentSegment.isEmpty {
@@ -150,31 +183,13 @@ class VideoStitcher {
             print("[VideoStitcher] Added final segment to segments array, total segments: \(segments.count)")
         }
         
-        print("[VideoStitcher] Segments before filtering: \(segments.count), total frames: \(segments.flatMap { $0 }.count)")
-        
-        // 片段过滤，只保留长度≥3的片段，但确保保留第一个和最后一个
-        let minSegmentLength = 1 // 降低阈值，确保有足够的图片用于拼接
-        var filteredSegments: [[UIImage]]
-        
-        if segments.count > 1 {
-            // 如果有多个片段，过滤掉中间长度不足的片段，但保留第一个和最后一个
-            filteredSegments = []
-            for (index, segment) in segments.enumerated() {
-                if index == 0 || index == segments.count - 1 || segment.count >= minSegmentLength {
-                    filteredSegments.append(segment)
-                    print("[VideoStitcher] Added segment \(index) to filtered segments, segment size: \(segment.count)")
-                } else {
-                    print("[VideoStitcher] Filtered out segment \(index), segment size: \(segment.count) < \(minSegmentLength)")
-                }
-            }
-        } else {
-            // 如果只有一个片段，直接使用
-            filteredSegments = segments
-            print("[VideoStitcher] Only one segment, using as-is")
+        // 合并片段并返回结果
+        var frames: [UIImage] = []
+        for segment in segments {
+            frames.append(contentsOf: segment)
         }
         
-        let frames = filteredSegments.flatMap { $0 }
-        print("[VideoStitcher] Filtered segments: \(filteredSegments.count), total frames after filtering: \(frames.count)")
+        print("[VideoStitcher] Total frames after processing: \(frames.count)")
         
         DispatchQueue.main.async {
             if frames.count < 2 {
@@ -185,6 +200,52 @@ class VideoStitcher {
                 completion(frames, nil)
             }
         }
+    }
+    
+    // 递归二分查找最佳匹配帧
+    // 优先找离 end 最近的匹配帧
+    private func findBestMatch(referenceImage: UIImage, buffer: [UIImage], start: Int, end: Int, minOverlap: Double, maxOverlap: Double) -> Int? {
+        if start > end { return nil }
+        
+        let targetImage = buffer[end]
+        
+        // 1. 检查 end 是否匹配
+        if let (_, ratio) = StitchAlgorithm.evaluateOverlapRatio(topImage: referenceImage, bottomImage: targetImage) {
+            if ratio >= minOverlap && ratio <= maxOverlap {
+                // 找到了一个匹配，且因为我们是从后往前（通过递归结构），这通常是该区间内较远的匹配
+                // 但为了严谨，我们应该确保它是“最远”的吗？
+                // 用户的逻辑是：先看最远，如果匹配就选它。
+                // 所以这里直接返回 end 是符合“贪心”策略的（步子跨得越大越好）
+                return end
+            }
+        }
+        
+        // 2. 没匹配，二分
+        let mid = (start + end) / 2
+        
+        if mid == end { // 区间只剩 1 个且不匹配
+            return nil
+        }
+        
+        // 优先搜右半边 (mid+1, end) -> 其实上面已经检查了 end，所以区间是 (mid, end-1)
+        // 修正：我们按照二分切割逻辑
+        // 先看右半边 [mid+1, end] 里的最佳匹配
+        if let rightMatch = findBestMatch(referenceImage: referenceImage, buffer: buffer, start: mid + 1, end: end, minOverlap: minOverlap, maxOverlap: maxOverlap) {
+            return rightMatch
+        }
+        
+        // 右边没找到，搜左半边 [start, mid]
+        return findBestMatch(referenceImage: referenceImage, buffer: buffer, start: start, end: mid, minOverlap: minOverlap, maxOverlap: maxOverlap)
+    }
+    
+    // 删除旧的 processFrameBuffer 函数
+    private func unused_processFrameBuffer(_ buffer: inout [UIImage], 
+                                   currentSegment: inout [UIImage], 
+                                   segments: inout [[UIImage]], 
+                                   lastImage: inout UIImage?,
+                                   minOverlap: Double,
+                                   maxOverlap: Double) {
+         // ... existing code ...
     }
     
     private func imageFromSampleBuffer(_ sampleBuffer: CMSampleBuffer) -> UIImage? {
