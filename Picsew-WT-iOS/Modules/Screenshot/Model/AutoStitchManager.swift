@@ -115,12 +115,11 @@ class AutoStitchManager {
                         
                         // 使用传入的isFromVideo参数来区分视频截图和静态图片
                         if isFromVideo {
-                            // 视频截图使用视频重叠检测
                             if let detailed = StitchAlgorithm.findVideoOverlapDetailed(topImage: topImage, bottomImage: bottomImage) {
                                 let height = topImage.size.height
-                                let minCut = height * 0.1
-                                let maxCut = height * 0.9
-                                if detailed.diff < 45.0, detailed.result.topY >= minCut, detailed.result.topY <= maxCut {
+                                let minCut = height * 0.05
+                                let maxCut = height * 0.95
+                                if detailed.diff < 65.0, detailed.result.topY >= minCut, detailed.result.topY <= maxCut {
                                     overlaps[i] = detailed.result
                                     isPairMatched[i] = true
                                     let currentStep = detailed.result.topY

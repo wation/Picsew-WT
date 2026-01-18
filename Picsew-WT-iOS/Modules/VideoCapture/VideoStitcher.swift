@@ -1,9 +1,17 @@
 import UIKit
 import AVFoundation
 import Photos
+import Metal
 
 class VideoStitcher {
     static let shared = VideoStitcher()
+    private let ciContext: CIContext = {
+        if let device = MTLCreateSystemDefaultDevice() {
+            return CIContext(mtlDevice: device)
+        } else {
+            return CIContext(options: [CIContextOption.useSoftwareRenderer: false])
+        }
+    }()
     
     /// 视频处理回调
     /// - images: 提取出的关键帧图片
@@ -76,18 +84,19 @@ class VideoStitcher {
         var lastSampleBuffer: CMSampleBuffer?
 
         let fps = videoTrack.nominalFrameRate
-        // 缓存2秒的帧数据用于快速搜索
-        let bufferSize = Int(fps * 2) 
+        let targetFPS: Float = 3.0
+        let sampleInterval = max(1, Int(fps / targetFPS))
+        let bufferSize = 10 // 抽帧后的缓冲区大小，约可容纳 3 秒的视频内容
         var frameBuffer: [UIImage] = []
-        print("[VideoStitcher] Video FPS: \(fps), buffer size: \(bufferSize)")
+        print("[VideoStitcher] Video FPS: \(fps), sample interval: \(sampleInterval), buffer size: \(bufferSize)")
         
         var frameCount = 0
         var extractedFrameCount = 0
         var addedFrameCount = 0
         
         // 快速搜索参数
-        let minOverlapRatio: Double = 0.25
-        let maxOverlapRatio: Double = 0.75
+        let minOverlapRatio: Double = 0.15 // 降低最小重合率要求，适应快速滚动
+        let maxOverlapRatio: Double = 0.90 // 扩大最大重合率要求，适应慢速滚动
         
         // --- 核心流式处理逻辑 ---
         
@@ -108,15 +117,19 @@ class VideoStitcher {
             return
         }
         
-        // 2. 循环读取 bufferSize 大小的帧
+        let startTime = CFAbsoluteTimeGetCurrent()
         while true {
             // 填充 buffer
             var hasMoreFrames = true
             while frameBuffer.count < bufferSize {
                 if let sampleBuffer = readerOutput.copyNextSampleBuffer() {
                     frameCount += 1
-                    if let image = imageFromSampleBuffer(sampleBuffer) {
-                        frameBuffer.append(image)
+                    // 1秒内抽3帧：仅在符合采样间隔时提取图像
+                    if frameCount % sampleInterval == 0 {
+                        if let image = imageFromSampleBuffer(sampleBuffer) {
+                            frameBuffer.append(image)
+                            extractedFrameCount += 1
+                        }
                     }
                 } else {
                     hasMoreFrames = false
@@ -140,22 +153,9 @@ class VideoStitcher {
                     
                     print("[VideoStitcher-Algo] Match found at index \(matchIndex). Moving window.")
                     
-                    // 动态更新参考帧：将原参考帧与新匹配帧拼接
-                    // 为了获取 overlapRatio，需要再次计算（或者优化 findBestMatch 让它返回 ratio）
-                    // 这里为了简单，再次调用 evaluateOverlapRatio
-                    if let (_, ratio) = StitchAlgorithm.evaluateOverlapRatio(topImage: refImage, bottomImage: matchedImage) {
-                        // 拼接并更新 lastImage
-                        if let mergedImage = StitchAlgorithm.mergeImages(topImage: refImage, bottomImage: matchedImage, overlapRatio: ratio) {
-                            lastImage = mergedImage
-                            print("[VideoStitcher-Algo] Updated reference frame with merged image (height: \(mergedImage.size.height))")
-                        } else {
-                            // 拼接失败（理论上不应发生），回退到使用单帧作为参考
-                            lastImage = matchedImage
-                            print("[VideoStitcher-Algo] Merge failed, used single frame as reference")
-                        }
-                    } else {
-                        lastImage = matchedImage
-                    }
+                    // 使用当前匹配到的帧作为下一次对比的参考帧，而不是使用合并后的长图
+                    // 这样可以避免参考帧高度不断增加导致百分比裁剪逻辑失效
+                    lastImage = matchedImage
                     
                     // 4. 滑动窗口：移除 [0...matchIndex]
                     // 注意：数组移除操作开销较大，但这能保持 buffer 逻辑简单
@@ -167,6 +167,11 @@ class VideoStitcher {
                     // 参考帧不变
                     frameBuffer.removeAll()
                 }
+            }
+            
+            if CFAbsoluteTimeGetCurrent() - startTime > 9.5 {
+                frameBuffer.removeAll()
+                break
             }
             
             // 如果视频读完了且 buffer 也处理空了（或被清空了），退出循环
@@ -205,37 +210,47 @@ class VideoStitcher {
     // 递归二分查找最佳匹配帧
     // 优先找离 end 最近的匹配帧
     private func findBestMatch(referenceImage: UIImage, buffer: [UIImage], start: Int, end: Int, minOverlap: Double, maxOverlap: Double) -> Int? {
+        guard let precomputed = StitchAlgorithm.prepareTopOverlapData(referenceImage) else {
+            return legacyFindBestMatch(referenceImage: referenceImage, buffer: buffer, start: start, end: end, minOverlap: minOverlap, maxOverlap: maxOverlap)
+        }
+        
+        func search(_ start: Int, _ end: Int) -> Int? {
+            if start > end { return nil }
+            let targetImage = buffer[end]
+            if let (_, ratio) = StitchAlgorithm.evaluateOverlapRatioPrecomputed(topSmall: precomputed.cgImage, topData: precomputed.data, bottomImage: targetImage) {
+                if ratio >= minOverlap && ratio <= maxOverlap {
+                    return end
+                }
+            }
+            let mid = (start + end) / 2
+            if mid == end {
+                return nil
+            }
+            if let rightMatch = search(mid + 1, end) {
+                return rightMatch
+            }
+            return search(start, mid)
+        }
+        
+        return search(start, end)
+    }
+    
+    private func legacyFindBestMatch(referenceImage: UIImage, buffer: [UIImage], start: Int, end: Int, minOverlap: Double, maxOverlap: Double) -> Int? {
         if start > end { return nil }
-        
         let targetImage = buffer[end]
-        
-        // 1. 检查 end 是否匹配
         if let (_, ratio) = StitchAlgorithm.evaluateOverlapRatio(topImage: referenceImage, bottomImage: targetImage) {
             if ratio >= minOverlap && ratio <= maxOverlap {
-                // 找到了一个匹配，且因为我们是从后往前（通过递归结构），这通常是该区间内较远的匹配
-                // 但为了严谨，我们应该确保它是“最远”的吗？
-                // 用户的逻辑是：先看最远，如果匹配就选它。
-                // 所以这里直接返回 end 是符合“贪心”策略的（步子跨得越大越好）
                 return end
             }
         }
-        
-        // 2. 没匹配，二分
         let mid = (start + end) / 2
-        
-        if mid == end { // 区间只剩 1 个且不匹配
+        if mid == end {
             return nil
         }
-        
-        // 优先搜右半边 (mid+1, end) -> 其实上面已经检查了 end，所以区间是 (mid, end-1)
-        // 修正：我们按照二分切割逻辑
-        // 先看右半边 [mid+1, end] 里的最佳匹配
-        if let rightMatch = findBestMatch(referenceImage: referenceImage, buffer: buffer, start: mid + 1, end: end, minOverlap: minOverlap, maxOverlap: maxOverlap) {
+        if let rightMatch = legacyFindBestMatch(referenceImage: referenceImage, buffer: buffer, start: mid + 1, end: end, minOverlap: minOverlap, maxOverlap: maxOverlap) {
             return rightMatch
         }
-        
-        // 右边没找到，搜左半边 [start, mid]
-        return findBestMatch(referenceImage: referenceImage, buffer: buffer, start: start, end: mid, minOverlap: minOverlap, maxOverlap: maxOverlap)
+        return legacyFindBestMatch(referenceImage: referenceImage, buffer: buffer, start: start, end: mid, minOverlap: minOverlap, maxOverlap: maxOverlap)
     }
     
     // 删除旧的 processFrameBuffer 函数
@@ -251,8 +266,7 @@ class VideoStitcher {
     private func imageFromSampleBuffer(_ sampleBuffer: CMSampleBuffer) -> UIImage? {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-        let context = CIContext()
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return nil }
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return nil }
         return UIImage(cgImage: cgImage)
     }
 }

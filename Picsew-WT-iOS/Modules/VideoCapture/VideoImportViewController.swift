@@ -103,13 +103,17 @@ class VideoImportViewController: UIViewController {
     private func extractFrames(from videoURL: URL) {
         statusLabel.text = "Extracting frames..."
         
-        importer.extractFrames(from: videoURL, interval: 1.0) { [weak self] frames, error in
+        VideoStitcher.shared.processVideo(url: videoURL) { [weak self] frames, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self?.statusLabel.text = "Error: \(error.localizedDescription)"
-                } else {
+                } else if let frames = frames, !frames.isEmpty {
                     self?.statusLabel.text = "Extracted \(frames.count) frames"
-                    self?.displayFrames(frames)
+                    let autoStitchVC = AutoStitchViewController()
+                    autoStitchVC.setInputImagesFromVideo(frames)
+                    self?.navigationController?.pushViewController(autoStitchVC, animated: true)
+                } else {
+                    self?.statusLabel.text = "Failed to extract frames"
                 }
             }
         }

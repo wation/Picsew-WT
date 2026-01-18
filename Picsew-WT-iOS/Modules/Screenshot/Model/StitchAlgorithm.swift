@@ -97,22 +97,25 @@ class StitchAlgorithm {
         let bottomWidth = bottomSmall.width
         let bottomHeight = bottomSmall.height
         
-        let topIgnoreHeader = Int(Double(topHeight) * 0.10)
-        let topIgnoreFooter = Int(Double(topHeight) * 0.05)
-        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.10)
+        // 采用与视频抽帧识别一致的动态忽略比例
+        let topIgnoreHeader = Int(Double(topHeight) * 0.12)
+        let topIgnoreFooter = Int(Double(topHeight) * 0.10)
+        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.12)
         
         let topContentStart = topIgnoreHeader
         let topContentEnd = topHeight - topIgnoreFooter
         let bottomContentStart = bottomIgnoreHeader
         
-        let sampleHeight = min(50, bottomHeight - bottomContentStart)
-        let searchStart = topContentStart + (topContentEnd - topContentStart) / 2
+        let sampleHeight = min(60, bottomHeight - bottomContentStart - 10)
+        // 扩大搜索范围
+        let searchStart = topContentStart + Int(Double(topContentEnd - topContentStart) * 0.3)
         let rangeEnd = topContentEnd - sampleHeight
+        
         let samplePositions = [
-            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.10),
-            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.20),
-            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.30),
-            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.40)
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.05),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.15),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.25),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.35)
         ].filter { $0 + sampleHeight <= bottomHeight }
         
         var minDiff = Double.greatestFiniteMagnitude
@@ -133,7 +136,8 @@ class StitchAlgorithm {
                     let topRow = yOffset + row
                     let bottomRow = sampleStart + row
                     
-                    for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 8) {
+                    // 增加水平采样密度，提高对细微文本（尤其是视频抽帧产生的模糊文本）的识别度
+                    for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) {
                         let topIdx = (topRow * topWidth + col) * 4
                         let bottomIdx = (bottomRow * bottomWidth + col) * 4
                         
@@ -148,7 +152,7 @@ class StitchAlgorithm {
                 }
                 
                 let averageDiff = totalDiff / (pixelCount * 3.0)
-                if averageDiff < minDiff || (abs(averageDiff - minDiff) < 0.5 && yOffset > bestTopY) {
+                if averageDiff < minDiff || (abs(averageDiff - minDiff) < 0.3 && yOffset > bestTopY) {
                     minDiff = averageDiff
                     found = true
                     bestTopY = yOffset
@@ -157,7 +161,8 @@ class StitchAlgorithm {
             }
         }
         
-        if found && minDiff < 50.0 {
+        // 放宽阈值到 65.0，兼容视频抽帧产生的压缩伪影
+        if found && minDiff < 65.0 {
             // 计算重合比例：重合区域高度 / 待比较图高度
             let topShift = bestTopY - bestBottomY
             let overlapHeight = CGFloat(topHeight - topShift)
@@ -169,6 +174,105 @@ class StitchAlgorithm {
             let bottomHeightInOriginal = CGFloat(bottomCG.height)
             let accurateRatio = overlapInOriginal / bottomHeightInOriginal
             
+            return (minDiff, Double(accurateRatio))
+        }
+        
+        return nil
+    }
+    
+    static func prepareTopOverlapData(_ topImage: UIImage) -> (cgImage: CGImage, data: [UInt8])? {
+        guard let topCG = topImage.cgImage else { return nil }
+        let topSmall = resizeCGImage(topCG, scale: 0.2)
+        guard let topData = getPixelData(topSmall) else { return nil }
+        return (topSmall, topData)
+    }
+    
+    static func evaluateOverlapRatioPrecomputed(topSmall: CGImage, topData: [UInt8], bottomImage: UIImage) -> (diff: Double, ratio: Double)? {
+        guard let bottomCG = bottomImage.cgImage else { return nil }
+        let scale: CGFloat = 0.2
+        let bottomSmall = resizeCGImage(bottomCG, scale: scale)
+        guard let bottomData = getPixelData(bottomSmall) else { return nil }
+        
+        let topWidth = topSmall.width
+        let topHeight = topSmall.height
+        let bottomWidth = bottomSmall.width
+        let bottomHeight = bottomSmall.height
+        
+        // 增加动态忽略比例：根据图片高度自动调整
+        // 对于列表页，顶部通常有导航栏/标题，底部可能有底部栏
+        let topIgnoreHeader = Int(Double(topHeight) * 0.12)
+        let topIgnoreFooter = Int(Double(topHeight) * 0.10)
+        let bottomIgnoreHeader = Int(Double(bottomSmall.height) * 0.12)
+        
+        let topContentStart = topIgnoreHeader
+        let topContentEnd = topHeight - topIgnoreFooter
+        let bottomContentStart = bottomIgnoreHeader
+        
+        let sampleHeight = min(60, bottomHeight - bottomContentStart - 10)
+        // 扩大搜索范围：从底部向上搜索至 30% 处
+        let searchStart = topContentStart + Int(Double(topContentEnd - topContentStart) * 0.3)
+        let rangeEnd = topContentEnd - sampleHeight
+        
+        // 增加样本位置：覆盖底部图片的不同高度
+        let samplePositions = [
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.05),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.15),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.25),
+            bottomContentStart + Int(Double(bottomHeight - bottomContentStart) * 0.35)
+        ].filter { $0 + sampleHeight <= bottomHeight }
+        
+        var minDiff = Double.greatestFiniteMagnitude
+        var found = false
+        var bestTopY = -1
+        var bestBottomY = -1
+        
+        if rangeEnd < searchStart || sampleHeight <= 0 || samplePositions.isEmpty {
+            return nil
+        }
+        
+        for sampleStart in samplePositions {
+            for yOffset in stride(from: rangeEnd, through: searchStart, by: -1) {
+                var totalDiff: Double = 0
+                var pixelCount: Double = 0
+                
+                for row in 0..<sampleHeight {
+                    let topRow = yOffset + row
+                    let bottomRow = sampleStart + row
+                    
+                    // 增加水平采样密度（从 8 改为 4），提高对细微文本的识别度
+                    for col in stride(from: 0, to: min(topWidth, bottomWidth), by: 4) {
+                        let topIdx = (topRow * topWidth + col) * 4
+                        let bottomIdx = (bottomRow * bottomWidth + col) * 4
+                        
+                        if topIdx + 2 < topData.count && bottomIdx + 2 < bottomData.count {
+                            let dr = abs(Int(topData[topIdx]) - Int(bottomData[bottomIdx]))
+                            let dg = abs(Int(topData[topIdx+1]) - Int(bottomData[bottomIdx+1]))
+                            let db = abs(Int(topData[topIdx+2]) - Int(bottomData[bottomIdx+2]))
+                            totalDiff += Double(dr + dg + db)
+                            pixelCount += 1
+                        }
+                    }
+                }
+                
+                let averageDiff = totalDiff / (pixelCount * 3.0)
+                // 降低阈值要求，并增加对 Y 偏移的权重
+                if averageDiff < minDiff || (abs(averageDiff - minDiff) < 0.3 && yOffset > bestTopY) {
+                    minDiff = averageDiff
+                    found = true
+                    bestTopY = yOffset
+                    bestBottomY = sampleStart
+                }
+            }
+        }
+        
+        // 放宽 diff 阈值到 65.0（原 50.0），以应对视频抽帧带来的压缩伪影
+        if found && minDiff < 65.0 {
+            let topShift = bestTopY - bestBottomY
+            let overlapHeight = CGFloat(topHeight - topShift)
+            let safeOverlapHeight = min(overlapHeight, CGFloat(bottomHeight))
+            let overlapInOriginal = safeOverlapHeight / scale
+            let bottomHeightInOriginal = CGFloat(bottomCG.height)
+            let accurateRatio = overlapInOriginal / bottomHeightInOriginal
             return (minDiff, Double(accurateRatio))
         }
         
